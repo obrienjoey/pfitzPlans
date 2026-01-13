@@ -1,12 +1,16 @@
 import type { RenderedWeek } from '../types';
 import { DayCard } from './DayCard';
-
 import { usePlanStore } from '../store/usePlanStore';
 
-export const WeekCard = ({ week }: { week: RenderedWeek }) => {
+export const WeekCard = ({ week, weekIndex }: { week: RenderedWeek, weekIndex: number }) => {
     const { units } = usePlanStore();
     const isMetric = units === 'km';
     const KM_PER_MILE = 1.60934;
+
+    // UseDroppable context for this week (optional, but good for structure)
+    // Actually, we drop onto specific days, so maybe not strictly needed on the week container 
+    // unless we want to support dragging *between* weeks. 
+    // For now, let's keep it simple.
 
     // Calculate total volume (in source units, likely miles)
     const totalDistSource = week.workouts.reduce((acc, day) => {
@@ -31,7 +35,7 @@ export const WeekCard = ({ week }: { week: RenderedWeek }) => {
                         </span>
                     </h3>
                     <div className="text-sm text-slate-500 mt-0.5">
-                        {week.weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {week.weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        {new Date(week.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(week.weekEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                 </div>
                 {totalDistSource > 0 && (
@@ -45,8 +49,13 @@ export const WeekCard = ({ week }: { week: RenderedWeek }) => {
 
             {/* Grid: Desktop 7 cols, Tablet 4 cols, Mobile 1 col */}
             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-                {week.workouts.map(workout => (
-                    <DayCard key={workout.dayOfWeek} workout={workout} units={units} />
+                {week.workouts.map((workout, dayIndex) => (
+                    <DayCard
+                        key={workout.dayOfWeek}
+                        workout={workout}
+                        units={units}
+                        id={`week-${weekIndex}-day-${dayIndex}`}
+                    />
                 ))}
             </div>
         </div>
