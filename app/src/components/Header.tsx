@@ -11,7 +11,7 @@ export const Header = () => {
             <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <img
-                        src="/pwa-512x512.png"
+                        src="pwa-512x512.png"
                         alt="Logo"
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl shadow-lg shadow-rose-500/20 object-cover"
                     />
