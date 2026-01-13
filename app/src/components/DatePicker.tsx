@@ -30,7 +30,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
 
     useEffect(() => {
         if (value) {
-            setInputValue(format(value, 'yyyy-MM-dd'));
+            setInputValue(format(value, 'MMM d, yyyy'));
             setCurrentMonth(value);
         } else {
             setInputValue('');
@@ -51,11 +51,16 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
         const val = e.target.value;
         setInputValue(val);
 
-        // Attempt to parse yyyy-MM-dd
+        // Attempt to parse various formats
         const parsed = parse(val, 'yyyy-MM-dd', new Date());
+        const parsedNicer = parse(val, 'MMM d, yyyy', new Date());
+
         if (isValid(parsed)) {
             onChange(parsed);
             setCurrentMonth(parsed);
+        } else if (isValid(parsedNicer)) {
+            onChange(parsedNicer);
+            setCurrentMonth(parsedNicer);
         }
     };
 
@@ -69,6 +74,8 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
 
     const weeks = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+    const isCompact = className?.includes('text-sm');
+
     return (
         <div className={clsx("relative", className)} ref={containerRef}>
             <div className="relative group">
@@ -79,19 +86,22 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     onClick={() => setIsOpen(true)}
                     placeholder={placeholder}
                     className={clsx(
-                        "w-full bg-slate-950 border border-slate-700 group-hover:border-slate-600 rounded-xl pl-12 pr-4 text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
-                        className?.includes('text-sm') ? 'py-2 text-sm' : 'py-3 text-lg'
+                        "w-full bg-slate-950 border border-slate-700 group-hover:border-slate-600 rounded-xl pr-4 text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
+                        isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
                     )}
                 />
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <div className={clsx(
+                    "absolute top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none",
+                    isCompact ? "left-3" : "left-4"
+                )}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={isCompact ? "w-4 h-4" : "w-5 h-5"}>
                         <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm-3.75 8.25v9a1.5 1.5 0 001.5 1.5h15a1.5 1.5 0 001.5-1.5v-9h-18z" clipRule="evenodd" />
                     </svg>
                 </div>
             </div>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute top-full right-0 mt-2 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between mb-4">
                         <button onClick={prevMonth} className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">

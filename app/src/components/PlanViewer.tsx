@@ -69,7 +69,7 @@ export const PlanViewer = () => {
                     {raceDate && (
                         <div className="flex flex-col md:items-end">
                             <div className="text-2xl font-bold text-rose-400 leading-none mb-1">
-                                {format(raceDate, 'MMMM d')}
+                                {format(raceDate, 'MMM d')}
                             </div>
                             <div className="text-lg text-slate-100 font-medium leading-none mb-1">
                                 {format(raceDate, 'yyyy')}
