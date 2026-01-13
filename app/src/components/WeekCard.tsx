@@ -3,7 +3,19 @@ import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
 import type { Paces } from '../lib/paceCalculator';
 
-export const WeekCard = ({ week, weekIndex, paces }: { week: RenderedWeek, weekIndex: number, paces?: Paces }) => {
+export const WeekCard = ({
+    week,
+    weekIndex,
+    paces,
+    activeId,
+    overId
+}: {
+    week: RenderedWeek,
+    weekIndex: number,
+    paces?: Paces,
+    activeId?: string,
+    overId?: string
+}) => {
     const { units } = usePlanStore();
     const isMetric = units === 'km';
     const KM_PER_MILE = 1.60934;
@@ -27,7 +39,7 @@ export const WeekCard = ({ week, weekIndex, paces }: { week: RenderedWeek, weekI
 
     return (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="bg-slate-950/50 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-slate-800">
+            <div className="bg-slate-950/50 px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b border-slate-800">
                 <div>
                     <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 sm:gap-3">
                         <span>Week {week.weekNumber}</span>
@@ -49,16 +61,21 @@ export const WeekCard = ({ week, weekIndex, paces }: { week: RenderedWeek, weekI
             </div>
 
             {/* Grid: Desktop 7 cols, Tablet 4 cols, Mobile 1 col */}
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-                {week.workouts.map((workout, dayIndex) => (
-                    <DayCard
-                        key={workout.dayOfWeek}
-                        workout={workout}
-                        units={units}
-                        id={`week-${weekIndex}-day-${dayIndex}`}
-                        paces={paces}
-                    />
-                ))}
+            <div className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2 sm:gap-3">
+                {week.workouts.map((workout, dayIndex) => {
+                    const dayId = `week-${weekIndex}-day-${dayIndex}`;
+                    return (
+                        <DayCard
+                            key={workout.dayOfWeek}
+                            workout={workout}
+                            units={units}
+                            id={dayId}
+                            paces={paces}
+                            isOver={overId === dayId}
+                            isActive={activeId === dayId}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

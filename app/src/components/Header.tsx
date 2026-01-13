@@ -9,13 +9,13 @@ export const Header = () => {
     return (
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60 shadow-sm transition-all text-left">
             <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <img
                         src="/pwa-512x512.png"
                         alt="Logo"
-                        className="w-10 h-10 rounded-xl shadow-lg shadow-rose-500/20 object-cover"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl shadow-lg shadow-rose-500/20 object-cover"
                     />
-                    <h1 className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                    <h1 className="text-lg sm:text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                         MarathonPlans
                     </h1>
                 </div>

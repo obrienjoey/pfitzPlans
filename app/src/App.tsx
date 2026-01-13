@@ -12,7 +12,7 @@ function App() {
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {!raceDate ? (
-          <div className="flex flex-col items-center justify-center p-12 bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-700/50 shadow-2xl mt-12">
+          <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-700/50 shadow-2xl mt-12 sm:mt-24">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent mb-6">
               Start Your Training
             </h2>

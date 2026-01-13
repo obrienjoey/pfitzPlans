@@ -25,6 +25,7 @@ export const PlanViewer = () => {
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, goalTime, units } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [overId, setOverId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -84,9 +85,14 @@ export const PlanViewer = () => {
         setActiveId(event.active.id as string);
     };
 
+    const handleDragOver = (event: any) => {
+        setOverId(event.over?.id as string || null);
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
+        setOverId(null);
 
         if (!over) return;
         if (active.id === over.id) return;
@@ -130,6 +136,7 @@ export const PlanViewer = () => {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -163,7 +170,14 @@ export const PlanViewer = () => {
 
                 <div className="space-y-6">
                     {currentSchedule.weeks.map((week, idx) => (
-                        <WeekCard key={week.weeksToGoal} week={week} weekIndex={idx} paces={paces || undefined} />
+                        <WeekCard
+                            key={week.weeksToGoal}
+                            week={week}
+                            weekIndex={idx}
+                            paces={paces || undefined}
+                            activeId={activeId || undefined}
+                            overId={overId || undefined}
+                        />
                     ))}
                 </div>
             </div>

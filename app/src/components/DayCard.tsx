@@ -34,9 +34,11 @@ interface DayCardProps {
     // Optional overrides for DragOverlay when not fully hydrated
     date?: Date;
     isRaceDay?: boolean;
+    isOver?: boolean;
+    isActive?: boolean;
 }
 
-export const DayCard = ({ workout, units, id, date, paces }: DayCardProps) => {
+export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: DayCardProps) => {
     // If id is provided, we hook into useSortable. If not (e.g. DragOverlay), we just render.
     const {
         attributes,
@@ -86,12 +88,14 @@ export const DayCard = ({ workout, units, id, date, paces }: DayCardProps) => {
         <div
             {...wrapperProps}
             className={clsx(
-                "relative p-4 rounded-xl border transition-all hover:shadow-lg group min-h-[120px] sm:min-h-[140px] flex flex-col select-none touch-none", // touch-none is key for mobile DnD
+                "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none touch-none", // touch-none is key for mobile DnD
                 isRest
                     ? "bg-slate-900/30 border-slate-800/50 text-slate-500"
                     : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60 text-slate-200",
                 isRace && "border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 ring-1 ring-rose-500/20",
-                isLongRun && "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10"
+                isLongRun && "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10",
+                isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
+                isActive && "opacity-20 grayscale-[0.5]"
             )}
         >
             {/* Drag Handle (visible on hover or always?) - simpler to make whole card draggable for now */}

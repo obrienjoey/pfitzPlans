@@ -35,7 +35,7 @@ export const usePlanStore = create<PlanState>()(
                 if (!schedule) return {};
 
                 // Deep copy to avoid mutation issues
-                const newSchedule = JSON.parse(JSON.stringify(schedule)) as RenderedPlan;
+                const newSchedule = structuredClone(schedule);
 
                 const fromWeek = newSchedule.weeks[fromWeekIndex];
                 const toWeek = newSchedule.weeks[toWeekIndex];
