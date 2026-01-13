@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
 import { calculateSchedule } from '../lib/calculator';
 import { AVAILABLE_PLANS } from '../config';
 import type { Plan } from '../types';
+import { calculatePaces, parseTimeString } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
 import { PaceChart } from './PaceChart';
 import {
@@ -21,7 +22,7 @@ import {
 import { DayCard } from './DayCard';
 
 export const PlanViewer = () => {
-    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout } = usePlanStore();
+    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, goalTime, units } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -58,6 +59,17 @@ export const PlanViewer = () => {
         };
         load();
     }, [selectedPlanId]);
+
+    // Calculate Paces for consistent display across components
+    const paces = useMemo(() => {
+        if (!goalTime) return null;
+        const totalSeconds = parseTimeString(goalTime);
+        if (!totalSeconds) return null;
+
+        // MP per km
+        const mpPerKm = totalSeconds / 42.195;
+        return calculatePaces(mpPerKm);
+    }, [goalTime]);
 
     // Calculate canonical schedule when inputs change
     useEffect(() => {
@@ -147,11 +159,11 @@ export const PlanViewer = () => {
                     </div>
                 </div>
 
-                <PaceChart />
+                <PaceChart paces={paces || undefined} />
 
                 <div className="space-y-6">
                     {currentSchedule.weeks.map((week, idx) => (
-                        <WeekCard key={week.weeksToGoal} week={week} weekIndex={idx} />
+                        <WeekCard key={week.weeksToGoal} week={week} weekIndex={idx} paces={paces || undefined} />
                     ))}
                 </div>
             </div>
@@ -163,7 +175,8 @@ export const PlanViewer = () => {
                             workout={activeWorkout}
                             date={activeWorkout.date} // optional override, though effectively same
                             isRaceDay={false}
-                            units={usePlanStore.getState().units}
+                            units={units}
+                            paces={paces || undefined}
                         />
                     </div>
                 ) : null}

@@ -72,3 +72,22 @@ export const parseTimeString = (timeString: string): number | null => {
     }
     return null;
 }
+
+export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => {
+    const t = title.toLowerCase();
+
+    if (tags?.includes('Race') || t.includes('goal marathon') || t.includes('race')) return 'Marathon'; // Simplification: assume marathon pace for race week rehearsal if not specified
+    if (t.includes('marathon pace') || t.includes('mp')) return 'Marathon';
+
+    if (t.includes('lt') || t.includes('lactate') || t.includes('threshold')) return 'Lactate Threshold';
+
+    if (t.includes('vo₂max') || t.includes('vo2max') || t.includes('intervals') || t.includes('5k race pace')) return 'VO2 Max';
+
+    if (t.includes('long run') || t.includes('med-long run')) return 'Long Run';
+
+    if (t.includes('gen-aerobic') || t.includes('general aerobic')) return 'General Aerobic';
+
+    if (t.includes('recovery')) return 'Recovery';
+
+    return null;
+};

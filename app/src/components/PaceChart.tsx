@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { calculatePaces, formatTime, parseTimeString } from '../lib/paceCalculator';
+import { calculatePaces, formatTime, parseTimeString, type Paces } from '../lib/paceCalculator';
 import clsx from 'clsx';
 
-export const PaceChart = () => {
+export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
     const { goalTime, units } = usePlanStore();
     const [isOpen, setIsOpen] = useState(false);
 
     const paces = useMemo(() => {
+        if (initialPaces) return initialPaces;
         if (!goalTime) return null;
         const totalSeconds = parseTimeString(goalTime);
         if (!totalSeconds) return null;
@@ -16,7 +17,7 @@ export const PaceChart = () => {
         const mpPerKm = totalSeconds / 42.195;
 
         return calculatePaces(mpPerKm);
-    }, [goalTime]);
+    }, [goalTime, initialPaces]);
 
     if (!paces) return null;
 

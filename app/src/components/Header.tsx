@@ -10,11 +10,13 @@ export const Header = () => {
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60 shadow-sm transition-all text-left">
             <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center font-bold text-white shadow-lg shadow-rose-500/20">
-                        M
-                    </div>
-                    <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                        MarathonPlanner
+                    <img
+                        src="/pwa-512x512.png"
+                        alt="Logo"
+                        className="w-10 h-10 rounded-xl shadow-lg shadow-rose-500/20 object-cover"
+                    />
+                    <h1 className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                        MarathonPlans
                     </h1>
                 </div>
 
