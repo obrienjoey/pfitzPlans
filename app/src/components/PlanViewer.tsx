@@ -6,6 +6,7 @@ import { calculateSchedule } from '../lib/calculator';
 import { AVAILABLE_PLANS } from '../config';
 import type { Plan, RenderedPlan } from '../types';
 import { WeekCard } from './WeekCard';
+import { PaceChart } from './PaceChart';
 
 export const PlanViewer = () => {
     const { selectedPlanId, raceDate } = usePlanStore();
@@ -81,6 +82,8 @@ export const PlanViewer = () => {
                     )}
                 </div>
             </div>
+
+            <PaceChart />
 
             <div className="space-y-6">
                 {schedule.weeks.map(week => (

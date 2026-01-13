@@ -1,6 +1,7 @@
 import { usePlanStore } from '../store/usePlanStore';
 import { AVAILABLE_PLANS } from '../config';
 import { DatePicker } from './DatePicker';
+import { TimeInput } from './TimeInput';
 
 export const Header = () => {
     const { selectedPlanId, setPlanId, raceDate, setRaceDate } = usePlanStore();
@@ -37,12 +38,19 @@ export const Header = () => {
                     </button>
 
                     {raceDate && (
-                        <DatePicker
-                            value={raceDate}
-                            onChange={setRaceDate}
-                            className="w-[150px] text-sm"
-                            placeholder="Race Date"
-                        />
+                        <>
+                            <TimeInput
+                                value={usePlanStore(state => state.goalTime)}
+                                onChange={(val) => usePlanStore.getState().setGoalTime(val)}
+                                className="w-[100px] bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                            />
+                            <DatePicker
+                                value={raceDate}
+                                onChange={setRaceDate}
+                                className="w-[150px] text-sm"
+                                placeholder="Race Date"
+                            />
+                        </>
                     )}
                 </div>
             </div>
