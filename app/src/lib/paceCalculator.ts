@@ -10,7 +10,7 @@ export interface Paces {
 }
 
 // Pfitz Zones based on Marathon Pace (MP)
-// Recovery: MP + 17-28%
+// Recovery: MP + 25-40% (Slowest effort)
 // General Aerobic: MP + 15-25%
 // Long Run: MP + 10-20%
 // Marathon: MP
@@ -21,7 +21,7 @@ export interface Paces {
 
 // Let's refine multipliers for TIME per distance (inverse of speed):
 // If goal is 4:00/km. 
-// Recovery (slower): 4 * 1.17 to 4 * 1.28
+// Recovery (slower): 4 * 1.25 to 4 * 1.40
 // GA: 4 * 1.15 to 4 * 1.25
 // Long: 4 * 1.10 to 4 * 1.20
 // MP: 4 * 1.0
@@ -32,7 +32,7 @@ const ZONES: Record<PaceZone, { min: number; max: number }> = {
     // factors are multipliers of time-per-unit (e.g. seconds per km)
     // min factor = faster end (smaller multiplier)
     // max factor = slower end (larger multiplier)
-    'Recovery': { min: 1.17, max: 1.28 },
+    'Recovery': { min: 1.25, max: 1.40 },
     'General Aerobic': { min: 1.15, max: 1.25 },
     'Long Run': { min: 1.10, max: 1.20 },
     'Marathon': { min: 1.0, max: 1.0 }, // Exact MP
@@ -75,6 +75,8 @@ export const parseTimeString = (timeString: string): number | null => {
 
 export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => {
     const t = title.toLowerCase();
+
+    if (t.includes('tune-up')) return null;
 
     if (tags?.includes('Race') || t.includes('goal marathon') || t.includes('race')) return 'Marathon'; // Simplification: assume marathon pace for race week rehearsal if not specified
     if (t.includes('marathon pace') || t.includes('mp')) return 'Marathon';

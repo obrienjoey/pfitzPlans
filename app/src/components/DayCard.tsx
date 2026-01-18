@@ -79,7 +79,9 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: D
         return `${formatTime(minMile)}-${formatTime(maxMile)}`;
     };
 
-    const paceString = paceRange ? formatPaceRange(paceRange) : null;
+    const paceString = (paceRange && zone === 'Recovery')
+        ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min })}`
+        : paceRange ? formatPaceRange(paceRange) : null;
 
     // If no ID is passed, this is likely the DragOverlay copy, so we render a "clean" div without ref/listeners
     const wrapperProps = id ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};

@@ -80,7 +80,7 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
                                     zone === 'VO2 Max' && "text-rose-400"
                                 )}>{zone}</span>
                                 <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
-                                    {formatRange(range)}
+                                    {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
                                 </span>
                             </div>
                         ))}

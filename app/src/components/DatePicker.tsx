@@ -68,11 +68,11 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
     const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
     const days = eachDayOfInterval({
-        start: startOfWeek(startOfMonth(currentMonth)),
-        end: endOfWeek(endOfMonth(currentMonth))
+        start: startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 }),
+        end: endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
     });
 
-    const weeks = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    const weeks = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
     const isCompact = className?.includes('text-sm');
 
