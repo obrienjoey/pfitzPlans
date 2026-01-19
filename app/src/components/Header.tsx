@@ -44,7 +44,7 @@ export const Header = () => {
                             <TimeInput
                                 value={usePlanStore(state => state.goalTime)}
                                 onChange={(val) => usePlanStore.getState().setGoalTime(val)}
-                                className="w-[100px] bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="w-[110px] text-sm"
                             />
                             <DatePicker
                                 value={raceDate}
