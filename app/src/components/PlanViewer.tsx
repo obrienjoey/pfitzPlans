@@ -5,7 +5,7 @@ import { fetchPlan } from '../lib/parser';
 import { calculateSchedule } from '../lib/calculator';
 import { AVAILABLE_PLANS } from '../config';
 import type { Plan } from '../types';
-import { calculatePaces, parseTimeString } from '../lib/paceCalculator';
+import { calculatePaces, parseTimeString, RACE_DISTANCES_KM } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
 import { PaceChart } from './PaceChart';
 import {
@@ -46,6 +46,7 @@ export const PlanViewer = () => {
             const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
             if (!planInfo) return;
 
+            setSchedule(null);
             setLoading(true);
             setError(null);
             try {
@@ -63,14 +64,14 @@ export const PlanViewer = () => {
 
     // Calculate Paces for consistent display across components
     const paces = useMemo(() => {
-        if (!goalTime) return null;
+        if (!goalTime || !plan) return null;
         const totalSeconds = parseTimeString(goalTime);
         if (!totalSeconds) return null;
 
-        // MP per km
-        const mpPerKm = totalSeconds / 42.195;
+        const raceDistanceKm = RACE_DISTANCES_KM[plan.type] ?? 42.195;
+        const mpPerKm = totalSeconds / raceDistanceKm;
         return calculatePaces(mpPerKm);
-    }, [goalTime]);
+    }, [goalTime, plan]);
 
     // Calculate canonical schedule when inputs change
     useEffect(() => {

@@ -9,6 +9,11 @@ export interface Paces {
     [key: string]: PaceRange;
 }
 
+export const RACE_DISTANCES_KM: Record<string, number> = {
+    'Marathon': 42.195,
+    'Half Marathon': 21.0975,
+};
+
 // Pfitz Zones based on Marathon Pace (MP)
 // Recovery: MP + 25-40% (Slowest effort)
 // General Aerobic: MP + 15-25%
@@ -86,6 +91,8 @@ export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => 
     if (t.includes('vo₂max') || t.includes('vo2max') || t.includes('intervals') || t.includes('5k race pace')) return 'VO2 Max';
 
     if (t.includes('long run') || t.includes('med-long run')) return 'Long Run';
+
+    if (t.includes('endurance')) return 'Long Run';
 
     if (t.includes('gen-aerobic') || t.includes('general aerobic')) return 'General Aerobic';
 

@@ -46,4 +46,26 @@ describe('usePlanStore', () => {
         expect(workouts[0].date.toISOString()).toBe(new Date('2025-12-01').toISOString());
         expect(workouts[1].date.toISOString()).toBe(new Date('2025-12-02').toISOString());
     });
+
+    it('swaps goal time when race type changes', () => {
+        const { setPlanId } = usePlanStore.getState();
+
+        // Start with marathon plan selected, goal time is default "4:00:00"
+        usePlanStore.setState({ selectedPlanId: 'pfitz_18_55_4th', goalTime: '4:00:00' });
+
+        // Switch to half marathon plan
+        setPlanId('pfitz_half_12_63');
+        expect(usePlanStore.getState().goalTime).toBe('1:45:00');
+        expect(usePlanStore.getState().selectedPlanId).toBe('pfitz_half_12_63');
+
+        // Switch back to marathon plan
+        setPlanId('pfitz_18_70_4th');
+        expect(usePlanStore.getState().goalTime).toBe('4:00:00');
+        expect(usePlanStore.getState().selectedPlanId).toBe('pfitz_18_70_4th');
+
+        // Switch to another marathon plan (should not change customized goal time)
+        usePlanStore.setState({ goalTime: '3:30:00' });
+        setPlanId('pfitz_18_55_4th');
+        expect(usePlanStore.getState().goalTime).toBe('3:30:00');
+    });
 });

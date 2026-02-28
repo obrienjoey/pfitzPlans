@@ -34,6 +34,9 @@ describe('paceCalculator', () => {
         it('identifies Long Runs', () => {
             expect(getPaceZone('Long Run 15 mi')).toBe('Long Run');
         });
+        it('identifies Endurance', () => {
+            expect(getPaceZone('Endurance 12 mi')).toBe('Long Run');
+        });
         it('identifies Lactate Threshold', () => {
             expect(getPaceZone('Lactate Threshold interval')).toBe('Lactate Threshold');
         });

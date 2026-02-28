@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { calculatePaces, formatTime, parseTimeString, type Paces } from '../lib/paceCalculator';
+import { calculatePaces, formatTime, parseTimeString, type Paces, RACE_DISTANCES_KM } from '../lib/paceCalculator';
+import { AVAILABLE_PLANS } from '../config';
 import clsx from 'clsx';
 
 export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
-    const { goalTime, units } = usePlanStore();
+    const { goalTime, units, selectedPlanId } = usePlanStore();
     const [isOpen, setIsOpen] = useState(false);
 
     const paces = useMemo(() => {
@@ -13,11 +14,12 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
         const totalSeconds = parseTimeString(goalTime);
         if (!totalSeconds) return null;
 
-        // Calculate MP per km (Plan goal is marathon distance = 42.195)
-        const mpPerKm = totalSeconds / 42.195;
+        const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
+        const raceDistanceKm = planInfo?.type ? (RACE_DISTANCES_KM[planInfo.type] ?? 42.195) : 42.195;
+        const mpPerKm = totalSeconds / raceDistanceKm;
 
         return calculatePaces(mpPerKm);
-    }, [goalTime, initialPaces]);
+    }, [goalTime, initialPaces, selectedPlanId]);
 
     if (!paces) return null;
 

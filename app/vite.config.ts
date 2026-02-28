@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'MarathonPlans',
-        short_name: 'MarathonPlans',
-        description: 'Interactive Marathon Training Plans',
+        name: 'RacePlans',
+        short_name: 'RacePlans',
+        description: 'Interactive Marathon & Half Marathon Training Plans',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

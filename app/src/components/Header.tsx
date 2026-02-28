@@ -16,7 +16,7 @@ export const Header = () => {
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl shadow-lg shadow-rose-500/20 object-cover"
                     />
                     <h1 className="text-lg sm:text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                        MarathonPlans
+                        RacePlans
                     </h1>
                 </div>
 
@@ -27,7 +27,7 @@ export const Header = () => {
                         className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                     >
                         {AVAILABLE_PLANS.map(plan => (
-                            <option key={plan.id} value={plan.id}>{plan.name}</option>
+                            <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
                         ))}
                     </select>
 

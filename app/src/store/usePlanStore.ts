@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { AVAILABLE_PLANS } from '../config';
 
 import type { RenderedPlan } from '../types';
 
@@ -19,13 +20,32 @@ interface PlanState {
 
 export const usePlanStore = create<PlanState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             selectedPlanId: 'pfitz_18_55_4th',
             raceDate: null,
             units: 'km',
             goalTime: '4:00:00',
             currentSchedule: null,
-            setPlanId: (id) => set({ selectedPlanId: id }),
+            setPlanId: (id) => {
+                const planInfo = AVAILABLE_PLANS.find(p => p.id === id);
+                const newType = planInfo?.type;
+                const currentPlanInfo = AVAILABLE_PLANS.find(p => p.id === get().selectedPlanId);
+                const currentType = currentPlanInfo?.type;
+
+                const updates: Partial<PlanState> = { selectedPlanId: id };
+
+                const DEFAULT_GOAL_TIMES: Record<string, string> = {
+                    'Marathon': '4:00:00',
+                    'Half Marathon': '1:45:00',
+                };
+
+                // Reset goal time if switching race type
+                if (newType && newType !== currentType) {
+                    updates.goalTime = DEFAULT_GOAL_TIMES[newType] || '4:00:00';
+                }
+
+                set(updates);
+            },
             setRaceDate: (date) => set({ raceDate: date }),
             setUnits: (units) => set({ units }),
             setGoalTime: (time) => set({ goalTime: time }),
