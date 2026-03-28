@@ -29,7 +29,7 @@ export const usePlanStore = create<PlanState>()(
             selectedPlanId: 'pfitz_18_55_4th',
             raceDate: null,
             units: 'km',
-            raceInput: { distance: '10K', time: '45:00' },
+            raceInput: { distance: '10K', time: '0:45:00' },
             currentSchedule: null,
             setPlanId: (id) => {
                 const planInfo = AVAILABLE_PLANS.find(p => p.id === id);
@@ -40,13 +40,13 @@ export const usePlanStore = create<PlanState>()(
                 const updates: Partial<PlanState> = { selectedPlanId: id };
 
                 const DEFAULT_RACE_INPUTS: Record<string, RaceInputState> = {
-                    'Marathon': { distance: '10K', time: '45:00' },
-                    'Half Marathon': { distance: '5K', time: '22:00' },
+                    'Marathon': { distance: '10K', time: '0:45:00' },
+                    'Half Marathon': { distance: '5K', time: '0:22:00' },
                 };
 
                 // Reset race input if switching race type
                 if (newType && newType !== currentType) {
-                    updates.raceInput = DEFAULT_RACE_INPUTS[newType] || { distance: '10K', time: '45:00' };
+                    updates.raceInput = DEFAULT_RACE_INPUTS[newType] || { distance: '10K', time: '0:45:00' };
                 }
 
                 set(updates);
