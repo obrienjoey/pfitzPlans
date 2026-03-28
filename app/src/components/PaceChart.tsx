@@ -1,27 +1,28 @@
 import { useMemo, useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { calculatePaces, formatTime, parseTimeString, type Paces, RACE_DISTANCES_KM } from '../lib/paceCalculator';
+import { calculateTrainingPaces, formatTime, formatTimeHMS, parseTimeString, type TrainingPaces, type EquivalentTimes } from '../lib/paceCalculator';
 import { AVAILABLE_PLANS } from '../config';
 import clsx from 'clsx';
 
-export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
-    const { goalTime, units, selectedPlanId } = usePlanStore();
+export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: { paces?: TrainingPaces, equivalents?: EquivalentTimes }) => {
+    const { raceInput, units, selectedPlanId } = usePlanStore();
     const [isOpen, setIsOpen] = useState(false);
 
-    const paces = useMemo(() => {
-        if (initialPaces) return initialPaces;
-        if (!goalTime) return null;
-        const totalSeconds = parseTimeString(goalTime);
+    const data = useMemo(() => {
+        if (initialPaces) return { paces: initialPaces, equivalents: initialEquivs };
+        if (!raceInput) return null;
+        const totalSeconds = parseTimeString(raceInput.time);
         if (!totalSeconds) return null;
 
         const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
-        const raceDistanceKm = planInfo?.type ? (RACE_DISTANCES_KM[planInfo.type] ?? 42.195) : 42.195;
-        const mpPerKm = totalSeconds / raceDistanceKm;
+        const planType = planInfo?.type || 'Marathon';
 
-        return calculatePaces(mpPerKm);
-    }, [goalTime, initialPaces, selectedPlanId]);
+        return calculateTrainingPaces({ distance: raceInput.distance, timeSeconds: totalSeconds }, planType);
+    }, [raceInput, initialPaces, initialEquivs, selectedPlanId]);
 
-    if (!paces) return null;
+    if (!data || !data.paces) return null;
+    
+    const { paces, equivalents } = data;
 
     const KM_TO_MILE = 1.60934;
 
@@ -32,8 +33,7 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
             }
             return `${formatTime(range.min)} - ${formatTime(range.max)} /km`;
         }
-        // Convert seconds/km to seconds/mile
-        // time/mile = time/km * 1.60934
+        
         const minMile = range.min * KM_TO_MILE;
         const maxMile = range.max * KM_TO_MILE;
 
@@ -48,6 +48,7 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800/50 transition-colors"
+                title="Toggle Pace Chart"
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
@@ -57,7 +58,7 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-100">Training Paces</h3>
-                        <p className="text-xs text-slate-400">Based on {goalTime} goal</p>
+                        <p className="text-xs text-slate-400">Based on {raceInput?.time} {raceInput?.distance} race</p>
                     </div>
                 </div>
                 <div className={clsx("text-slate-500 transition-transform duration-200", isOpen && "rotate-180")}>
@@ -69,23 +70,40 @@ export const PaceChart = ({ paces: initialPaces }: { paces?: Paces }) => {
 
             {isOpen && (
                 <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {Object.entries(paces).map(([zone, range]) => (
-                            <div key={zone} className="bg-slate-950 border border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-700 transition-colors">
-                                <span className={clsx(
-                                    "text-sm font-medium",
-                                    zone === 'Recovery' && "text-slate-400",
-                                    zone === 'General Aerobic' && "text-slate-300",
-                                    zone === 'Long Run' && "text-amber-400",
-                                    zone === 'Marathon' && "text-emerald-400 font-bold",
-                                    zone === 'Lactate Threshold' && "text-orange-400",
-                                    zone === 'VO2 Max' && "text-rose-400"
-                                )}>{zone}</span>
-                                <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
-                                    {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
-                                </span>
+                    {equivalents && (
+                        <div className="mb-4 pb-4 border-b border-slate-800">
+                            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Equivalent Race Times</div>
+                            <div className="flex flex-wrap gap-2 text-sm">
+                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">5K: <span className="font-mono text-white">{formatTimeHMS(equivalents['5K'])}</span></span>
+                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">10K: <span className="font-mono text-white">{formatTimeHMS(equivalents['10K'])}</span></span>
+                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">15K: <span className="font-mono text-white">{formatTimeHMS(equivalents['15K'])}</span></span>
+                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">HM: <span className="font-mono text-white">{formatTimeHMS(equivalents['Half Marathon'])}</span></span>
+                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">Marathon: <span className="font-mono text-white">{formatTimeHMS(equivalents['Marathon'])}</span></span>
                             </div>
-                        ))}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {Object.entries(paces).map(([zone, range]) => {
+                            if (!range) return null;
+                            return (
+                                <div key={zone} className="bg-slate-950 border border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-700 transition-colors">
+                                    <span className={clsx(
+                                        "text-sm font-medium",
+                                        zone === 'Recovery' && "text-slate-400",
+                                        zone === 'General Aerobic' && "text-slate-300",
+                                        zone === 'Long Run' && "text-amber-400",
+                                        zone === 'Marathon' && "text-emerald-400 font-bold",
+                                        zone === 'Lactate Threshold' && "text-orange-400",
+                                        zone === 'VO2 Max' && "text-rose-400",
+                                        zone.includes('Speed') && "text-purple-400"
+                                    )}>{zone}</span>
+                                    <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
+                                        {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

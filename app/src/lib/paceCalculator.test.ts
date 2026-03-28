@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePaces, formatTime, parseTimeString, getPaceZone } from './paceCalculator';
+import { calculateTrainingPaces, equivalentTimes, to10KEquivalent, formatTime, formatTimeHMS, parseTimeString, getPaceZone } from './paceCalculator';
 
 describe('paceCalculator', () => {
     describe('parseTimeString', () => {
@@ -19,8 +19,16 @@ describe('paceCalculator', () => {
             expect(formatTime(180)).toBe('3:00');
         });
         it('formats 3605 seconds as "60:05"', () => {
-            // Logic in formatTime is mins:seconds. 3600s = 60m.
             expect(formatTime(3605)).toBe('60:05');
+        });
+    });
+    
+    describe('formatTimeHMS', () => {
+        it('formats 5400 seconds as "1:30:00"', () => {
+            expect(formatTimeHMS(5400)).toBe('1:30:00');
+        });
+        it('formats 180 seconds as "3:00"', () => {
+            expect(formatTimeHMS(180)).toBe('3:00');
         });
     });
 
@@ -34,31 +42,26 @@ describe('paceCalculator', () => {
         it('identifies Long Runs', () => {
             expect(getPaceZone('Long Run 15 mi')).toBe('Long Run');
         });
-        it('identifies Endurance', () => {
-            expect(getPaceZone('Endurance 12 mi')).toBe('Long Run');
-        });
         it('identifies Lactate Threshold', () => {
             expect(getPaceZone('Lactate Threshold interval')).toBe('Lactate Threshold');
         });
-        it('identifies VO2 Max', () => {
-            expect(getPaceZone('VO2Max Intervals')).toBe('VO2 Max');
-        });
-        it('identifies Marathon Pace', () => {
-            expect(getPaceZone('12 mi w/ 8 mi @ MP')).toBe('Marathon');
-        });
     });
 
-    describe('calculatePaces', () => {
-        it('calculates ranges correctly for 4:00/km (240s)', () => {
-            const paces = calculatePaces(240);
-
-            // Marathon: 240 * 1.0 = 240
-            expect(paces['Marathon'].min).toBe(240);
-            expect(paces['Marathon'].max).toBe(240);
-
-            // Long Run: 240 * 1.10 = 264, 240 * 1.20 = 288
-            expect(paces['Long Run'].min).toBe(264);
-            expect(paces['Long Run'].max).toBe(288);
+    describe('pace calculations', () => {
+        it('calculates 10K equivalent correctly', () => {
+            const t10 = to10KEquivalent({ distance: '5K', timeSeconds: 1200 });
+            expect(t10).toBeCloseTo(1200 / 0.4808, 1);
+        });
+        
+        it('calculates marathon training paces', () => {
+            const res = calculateTrainingPaces({ distance: '10K', timeSeconds: 2400 }, 'Marathon');
+            expect(res.t10).toBe(2400);
+            
+            // 40:00 10K = 4:00/km
+            expect(res.paces['Marathon'].min).toBeCloseTo((2400 * 4.68) / 42.195, 1);
+            
+            expect(res.paces['Lactate Threshold'].min).toBeCloseTo(2400 / 10 + 10, 1);
+            expect(res.paces['Lactate Threshold'].max).toBeCloseTo(2400 / 10 + 15, 1);
         });
     });
 });

@@ -5,9 +5,10 @@ interface TimeInputProps {
     value: string;
     onChange: (value: string) => void;
     className?: string;
+    raceDistance?: string;
 }
 
-export const TimeInput = ({ value, onChange, className }: TimeInputProps) => {
+export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInputProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const firstInputRef = useRef<HTMLInputElement>(null);
@@ -93,12 +94,15 @@ export const TimeInput = ({ value, onChange, className }: TimeInputProps) => {
         }
     };
 
-    const PRESETS = [
-        { label: 'Sub 3', h: 2, m: 59, s: 59 },
-        { label: '3:15', h: 3, m: 15, s: 0 },
-        { label: '3:30', h: 3, m: 30, s: 0 },
-        { label: '4:00', h: 4, m: 0, s: 0 },
-    ];
+    const PRESETS_BY_DISTANCE: Record<string, Array<{label: string, h: number, m: number, s: number}>> = {
+      '5K':            [{ label: '18:00', h:0, m:18, s:0 }, { label: '20:00', h:0, m:20, s:0 }, { label: '25:00', h:0, m:25, s:0 }, { label: '30:00', h:0, m:30, s:0 }],
+      '10K':           [{ label: '38:00', h:0, m:38, s:0 }, { label: '45:00', h:0, m:45, s:0 }, { label: '50:00', h:0, m:50, s:0 }, { label: '1:00:00', h:1, m:0, s:0 }],
+      '15K':           [{ label: '1:00:00', h:1, m:0, s:0 }, { label: '1:15:00', h:1, m:15, s:0 }, { label: '1:30:00', h:1, m:30, s:0 }],
+      'Half Marathon': [{ label: '1:30:00', h:1, m:30, s:0 }, { label: '1:45:00', h:1, m:45, s:0 }, { label: '2:00:00', h:2, m:0, s:0 }],
+      'Marathon':      [{ label: 'Sub 3', h:2, m:59, s:59 }, { label: '3:15:00', h:3, m:15, s:0 }, { label: '3:30:00', h:3, m:30, s:0 }, { label: '4:00:00', h:4, m:0, s:0 }],
+    };
+
+    const PRESETS = (raceDistance && PRESETS_BY_DISTANCE[raceDistance]) ? PRESETS_BY_DISTANCE[raceDistance] : PRESETS_BY_DISTANCE['Marathon'];
 
     const displayValue = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 

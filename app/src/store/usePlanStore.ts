@@ -4,16 +4,21 @@ import { AVAILABLE_PLANS } from '../config';
 
 import type { RenderedPlan } from '../types';
 
+export interface RaceInputState {
+  distance: '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon';
+  time: string; // "H:MM:SS" or "MM:SS"
+}
+
 interface PlanState {
     selectedPlanId: string;
     raceDate: Date | null;
     units: 'mi' | 'km';
-    goalTime: string;
+    raceInput: RaceInputState | null;
     currentSchedule: RenderedPlan | null;
     setPlanId: (id: string) => void;
     setRaceDate: (date: Date | null) => void;
     setUnits: (units: 'mi' | 'km') => void;
-    setGoalTime: (time: string) => void;
+    setRaceInput: (input: RaceInputState | null) => void;
     setSchedule: (schedule: RenderedPlan | null) => void;
     moveWorkout: (fromWeekIndex: number, fromDayIndex: number, toWeekIndex: number, toDayIndex: number) => void;
 }
@@ -24,7 +29,7 @@ export const usePlanStore = create<PlanState>()(
             selectedPlanId: 'pfitz_18_55_4th',
             raceDate: null,
             units: 'km',
-            goalTime: '4:00:00',
+            raceInput: { distance: '10K', time: '45:00' },
             currentSchedule: null,
             setPlanId: (id) => {
                 const planInfo = AVAILABLE_PLANS.find(p => p.id === id);
@@ -34,21 +39,21 @@ export const usePlanStore = create<PlanState>()(
 
                 const updates: Partial<PlanState> = { selectedPlanId: id };
 
-                const DEFAULT_GOAL_TIMES: Record<string, string> = {
-                    'Marathon': '4:00:00',
-                    'Half Marathon': '1:45:00',
+                const DEFAULT_RACE_INPUTS: Record<string, RaceInputState> = {
+                    'Marathon': { distance: '10K', time: '45:00' },
+                    'Half Marathon': { distance: '5K', time: '22:00' },
                 };
 
-                // Reset goal time if switching race type
+                // Reset race input if switching race type
                 if (newType && newType !== currentType) {
-                    updates.goalTime = DEFAULT_GOAL_TIMES[newType] || '4:00:00';
+                    updates.raceInput = DEFAULT_RACE_INPUTS[newType] || { distance: '10K', time: '45:00' };
                 }
 
                 set(updates);
             },
             setRaceDate: (date) => set({ raceDate: date }),
             setUnits: (units) => set({ units }),
-            setGoalTime: (time) => set({ goalTime: time }),
+            setRaceInput: (input) => set({ raceInput: input }),
             setSchedule: (schedule) => set({ currentSchedule: schedule }),
             moveWorkout: (fromWeekIndex, fromDayIndex, toWeekIndex, toDayIndex) => set((state) => {
                 const schedule = state.currentSchedule;
@@ -66,10 +71,6 @@ export const usePlanStore = create<PlanState>()(
                 // Check if days are valid
                 if (!fromDay || !toDay) return {};
 
-                // Core Logic: 
-                // We want to KEEP the date of the destination day, but SWAP the workout content.
-                // Because RenderedWorkout EXTENDS Workout, we swap the specific workout fields.
-
                 const tempTitle = fromDay.title;
                 const tempDesc = fromDay.description;
                 const tempDist = fromDay.distance;
@@ -86,21 +87,22 @@ export const usePlanStore = create<PlanState>()(
                 toDay.distance = tempDist;
                 toDay.tags = tempTags;
 
-                // Note: We are keeping the dates fixed to the calendar day!
-
                 return { currentSchedule: newSchedule };
             }),
         }),
         {
             name: 'plan-storage',
             // Custom serialization for Date
-            partialize: (state) => ({
-                selectedPlanId: state.selectedPlanId,
-                raceDate: state.raceDate ? state.raceDate.toISOString() : null,
-                units: state.units,
-                goalTime: state.goalTime,
-                currentSchedule: state.currentSchedule,
-            }),
+            partialize: (state) => {
+                // Backward compatibility: map old 'goalTime' to 'raceInput' if saving over an old session
+                return {
+                    selectedPlanId: state.selectedPlanId,
+                    raceDate: state.raceDate ? state.raceDate.toISOString() : null,
+                    units: state.units,
+                    raceInput: state.raceInput,
+                    currentSchedule: state.currentSchedule,
+                };
+            },
             merge: (persistedState: any, currentState) => {
                 const revivedSchedule = persistedState.currentSchedule ? {
                     ...persistedState.currentSchedule,
@@ -116,12 +118,25 @@ export const usePlanStore = create<PlanState>()(
                         }))
                     }))
                 } : null;
+                
+                // Backwards compat: if old "goalTime" exists but no "raceInput" yet
+                let mergedRaceInput = persistedState.raceInput;
+                if (!mergedRaceInput && persistedState.goalTime) {
+                    const planId = persistedState.selectedPlanId || currentState.selectedPlanId;
+                    const planType = AVAILABLE_PLANS.find(p => p.id === planId)?.type;
+                    if (planType === 'Half Marathon') {
+                        mergedRaceInput = { distance: 'Half Marathon', time: persistedState.goalTime };
+                    } else {
+                        mergedRaceInput = { distance: 'Marathon', time: persistedState.goalTime };
+                    }
+                }
 
                 return {
                     ...currentState,
                     ...persistedState,
                     raceDate: persistedState.raceDate ? new Date(persistedState.raceDate) : null,
                     currentSchedule: revivedSchedule,
+                    raceInput: mergedRaceInput || currentState.raceInput,
                 }
             }
         }

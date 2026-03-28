@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { formatPlanLabel } from '../lib/formatters';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getPaceZone, formatTime, type Paces } from '../lib/paceCalculator';
+import { getPaceZone, formatTime, type TrainingPaces } from '../lib/paceCalculator';
 
 const KM_PER_MILE = 1.60934;
 
@@ -30,7 +30,7 @@ interface DayCardProps {
     workout: RenderedWorkout;
     units: 'mi' | 'km';
     id?: string;
-    paces?: Paces;
+    paces?: TrainingPaces;
     // Optional overrides for DragOverlay when not fully hydrated
     date?: Date;
     isRaceDay?: boolean;

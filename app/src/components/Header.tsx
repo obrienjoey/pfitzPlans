@@ -6,6 +6,9 @@ import { TimeInput } from './TimeInput';
 export const Header = () => {
     const { selectedPlanId, setPlanId, raceDate, setRaceDate } = usePlanStore();
 
+    const units = usePlanStore(state => state.units);
+    const raceInput = usePlanStore(state => state.raceInput);
+
     return (
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60 shadow-sm transition-all text-left">
             <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl">
@@ -32,27 +35,45 @@ export const Header = () => {
                     </select>
 
                     <button
-                        onClick={() => usePlanStore.getState().setUnits(usePlanStore.getState().units === 'mi' ? 'km' : 'mi')}
+                        onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
                         className="flex-none px-3 py-2 bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg text-sm font-medium text-slate-300 transition-colors w-12"
                         title="Toggle Units"
                     >
-                        {usePlanStore(state => state.units)}
+                        {units}
                     </button>
 
                     {raceDate && (
-                        <>
+                        <div className="flex gap-1 items-center">
+                            <select 
+                                className="bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                value={raceInput?.distance}
+                                onChange={(e) => {
+                                    const state = usePlanStore.getState();
+                                    state.setRaceInput(state.raceInput ? { ...state.raceInput, distance: e.target.value as any } : { distance: e.target.value as any, time: '45:00' });
+                                }}
+                            >
+                                <option>5K</option>
+                                <option>10K</option>
+                                <option>15K</option>
+                                <option>Half Marathon</option>
+                                <option>Marathon</option>
+                            </select>
                             <TimeInput
-                                value={usePlanStore(state => state.goalTime)}
-                                onChange={(val) => usePlanStore.getState().setGoalTime(val)}
-                                className="w-[110px] text-sm"
+                                value={raceInput?.time || ''}
+                                onChange={(val) => {
+                                    const state = usePlanStore.getState();
+                                    state.setRaceInput(state.raceInput ? { ...state.raceInput, time: val } : { distance: '10K', time: val });
+                                }}
+                                raceDistance={raceInput?.distance}
+                                className="w-[110px] text-sm hidden sm:block "
                             />
                             <DatePicker
                                 value={raceDate}
                                 onChange={setRaceDate}
-                                className="w-[150px] text-sm"
+                                className="w-[120px] sm:w-[150px] text-sm"
                                 placeholder="Race Date"
                             />
-                        </>
+                        </div>
                     )}
                 </div>
             </div>

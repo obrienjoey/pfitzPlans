@@ -5,7 +5,7 @@ import { fetchPlan } from '../lib/parser';
 import { calculateSchedule } from '../lib/calculator';
 import { AVAILABLE_PLANS } from '../config';
 import type { Plan } from '../types';
-import { calculatePaces, parseTimeString, RACE_DISTANCES_KM } from '../lib/paceCalculator';
+import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
 import { PaceChart } from './PaceChart';
 import {
@@ -22,7 +22,7 @@ import {
 import { DayCard } from './DayCard';
 
 export const PlanViewer = () => {
-    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, goalTime, units } = usePlanStore();
+    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -62,16 +62,16 @@ export const PlanViewer = () => {
         load();
     }, [selectedPlanId]);
 
-    // Calculate Paces for consistent display across components
-    const paces = useMemo(() => {
-        if (!goalTime || !plan) return null;
-        const totalSeconds = parseTimeString(goalTime);
+    const data = useMemo(() => {
+        if (!raceInput || !plan) return null;
+        const totalSeconds = parseTimeString(raceInput.time);
         if (!totalSeconds) return null;
 
-        const raceDistanceKm = RACE_DISTANCES_KM[plan.type] ?? 42.195;
-        const mpPerKm = totalSeconds / raceDistanceKm;
-        return calculatePaces(mpPerKm);
-    }, [goalTime, plan]);
+        return calculateTrainingPaces({ distance: raceInput.distance, timeSeconds: totalSeconds }, plan.type);
+    }, [raceInput, plan]);
+    
+    const paces = data?.paces;
+    const equivalents = data?.equivalents;
 
     // Calculate canonical schedule when inputs change
     useEffect(() => {
@@ -167,7 +167,7 @@ export const PlanViewer = () => {
                     </div>
                 </div>
 
-                <PaceChart paces={paces || undefined} />
+                <PaceChart paces={paces || undefined} equivalents={equivalents || undefined} />
 
                 <div className="space-y-6">
                     {currentSchedule.weeks.map((week, idx) => (

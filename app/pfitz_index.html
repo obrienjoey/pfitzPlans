@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pfitz Pace Tool</title>
+<style>
+  :root{ --bg:#0b0f12; --card:#12181d; --ink:#e7eef6; --muted:#9ab; --accent:#22c55e; --mono:#ced7e0; }
+  *{box-sizing:border-box} body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; background:var(--bg); color:var(--ink);}
+  header{padding:16px 18px; border-bottom:1px solid #22303c; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+  header h1{font-size:18px; margin:0}
+  .wrap{max-width:1150px; margin:0 auto; padding:16px 12px 48px;}
+  .tabs{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap}
+  .tab{padding:10px 14px; background:#0e141a; border:1px solid #1e2a36; border-radius:10px; cursor:pointer; color:var(--muted)}
+  .tab.active{background:var(--card); color:var(--ink); border-color:#2a3a49}
+  .panel{display:none} .panel.active{display:block}
+  .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:14px}
+  .card{background:var(--card); border:1px solid #1f2937; border-radius:14px; padding:14px}
+  .span12{grid-column:span 12} .span6{grid-column:span 6}
+  @media(max-width:900px){ .span6{grid-column:span 12}}
+  h2{margin:0 0 8px; font-size:18px}
+  label{display:block; font-size:13px; color:#a9b7c6; margin:6px 0 4px}
+  input, select{width:100%; padding:11px 12px; border-radius:10px; border:1px solid #2c3947; background:#0b1218; color:#e7eef6; font-size:16px}
+  small.err{display:block; color:#ffb3b3; min-height:16px; margin-top:4px}
+  table{width:100%; border-collapse:collapse; font-size:14px} th,td{padding:8px 10px; border-bottom:1px solid #1f2937; text-align:left}
+  th{color:#9fb3c8; font-weight:600; background:#0f151b}
+  .mono{font-variant-numeric: tabular-nums; font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--mono)}
+  .btn{background:var(--accent); color:#04130a; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700}
+  .btn-row{display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap}
+  .muted{color:#9ab}
+  footer{margin-top:12px; color:#9ab; font-size:11px; line-height:1.35}
+  footer a{color:#9ab; text-decoration:underline}
+</style>
+</head>
+<body>
+<header><h1>Pfitz Pace Tool</h1></header>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="marathon">Marathon Calculator</button>
+    <button class="tab" data-tab="frr">FRR (5K–HM) Calculator</button>
+  </div>
+
+  <!-- Marathon -->
+  <section id="marathon" class="panel active">
+    <div class="grid">
+      <div class="card span6">
+        <h2>Inputs</h2>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap:10px">
+          <div>
+            <label>Race distance</label>
+            <!-- reordered: 5K → 10K → 15K → HM → Marathon -->
+            <select id="mDist">
+              <option>5K</option>
+              <option selected>10K</option>
+              <option>15K</option>
+              <option>Half Marathon</option>
+              <option>Marathon</option>
+            </select>
+          </div>
+          <div>
+            <label>Race time</label>
+            <input id="mTime" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><small class="err" id="mTime_err"></small>
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px">
+          <div><label>Max HR (bpm)</label><input id="maxHR" type="number" inputmode="numeric" placeholder="—"></div>
+          <div><label>Resting HR (bpm)</label><input id="restHR" type="number" inputmode="numeric" placeholder="—"></div>
+        </div>
+        <div class="btn-row"><button class="btn" id="calcA">Calculate</button></div>
+      </div>
+
+      <div class="card span6">
+        <h2>Race Summary</h2>
+        <table><tbody>
+          <tr><th>Distance</th><td id="sumDist">—</td></tr>
+          <tr><th>Time</th><td class="mono" id="sumTime">—</td></tr>
+          <tr><th>Pace (mi / km)</th><td class="mono" id="sumPace">—</td></tr>
+        </tbody></table>
+      </div>
+
+      <div class="card span6">
+        <h2>Goal Marathon</h2>
+        <table><tbody>
+          <tr><th>Goal Marathon Time</th><td class="mono" id="goalMar">—</td></tr>
+          <tr><th>Marathon Pace (mi / km)</th><td class="mono" id="goalMP">—</td></tr>
+        </tbody></table>
+      </div>
+
+      <div class="card span6">
+        <h2>Equivalent Race Times</h2>
+        <table><thead><tr><th>Distance</th><th>Time</th></tr></thead>
+          <tbody id="amEq"></tbody>
+        </table>
+      </div>
+
+      <div class="card span12">
+        <h2>Training Paces</h2>
+        <table><thead><tr><th>Zone</th><th>Pace / mi</th><th>Pace / km</th></tr></thead>
+          <tbody id="amPaces"></tbody>
+        </table>
+      </div>
+
+      <div class="card span12">
+        <h2>Heart Rate Zones</h2>
+        <table id="hrTable"><thead>
+          <tr><th>Zone</th><th>% Max HR</th><th>BPM (Max)</th><th>% HRR</th><th>BPM (HRR)</th></tr>
+        </thead><tbody id="hrRows"></tbody></table>
+      </div>
+    </div>
+    <footer>
+      © 2025 Unofficial training pace tool inspired by <em>Advanced Marathoning</em> by Pete Pfitzinger &amp; Scott Douglas. No affiliation or endorsement. Support the authors:
+      <a href="https://a.co/d/fvw1C0c" target="_blank" rel="noopener">https://a.co/d/fvw1C0c</a>
+    </footer>
+  </section>
+
+  <!-- FRR -->
+  <section id="frr" class="panel">
+    <div class="grid">
+      <div class="card span6">
+        <h2>Inputs</h2>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap:10px">
+          <div><label>Distance</label>
+            <select id="frrDist"><option>5K</option><option selected>10K</option><option>15K</option><option>Half Marathon</option></select>
+          </div>
+          <div><label>Race time</label>
+            <input id="frrTime" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><small class="err" id="frrTime_err"></small>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn" id="calcB">Calculate</button></div>
+      </div>
+
+      <div class="card span6">
+        <h2>Race Summary</h2>
+        <table><tbody>
+          <tr><th>Distance</th><td id="frrSumDist">—</td></tr>
+          <tr><th>Time</th><td class="mono" id="frrSumTime">—</td></tr>
+          <tr><th>Pace (mi / km)</th><td class="mono" id="frrSumPace">—</td></tr>
+        </tbody></table>
+      </div>
+
+      <div class="card span6">
+        <h2>Equivalent Race Times (FRR)</h2>
+        <table><thead><tr><th>Distance</th><th>Time</th><th>Pace (per mile)</th></tr></thead>
+          <tbody id="frrEq"></tbody></table>
+      </div>
+
+      <div class="card span12">
+        <h2>Training Paces (FRR)</h2>
+        <table><thead><tr><th>Zone</th><th>Pace / mi</th><th>Pace / km</th></tr></thead>
+          <tbody id="frrPaces"></tbody></table>
+      </div>
+    </div>
+    <footer>
+      © 2025 Unofficial training pace tool inspired by <em>Faster Road Racing</em> by Pete Pfitzinger &amp; Philip Latter. No affiliation or endorsement. Support the authors:
+      <a href="https://a.co/d/98pgfoL" target="_blank" rel="noopener">https://a.co/d/98pgfoL</a>
+    </footer>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+// time helpers
+function sanitize(s){ return (s||'').replace(/\u200B/g,'').replace(/[：﹕꞉]/g,':').replace(/\s+/g,' ').trim(); }
+function smartTimeString(raw){ raw=sanitize(raw); if(!raw) return ''; if(raw.includes(':')) return raw; if(!/^\d+$/.test(raw)) return raw; if(raw.length<=2) return '0:'+raw.padStart(2,'0'); if(raw.length<=4){ const mm=raw.slice(0,-2), ss=raw.slice(-2); return mm+':'+ss; } const ss=raw.slice(-2), mm=raw.slice(-4,-2), hh=raw.slice(0,-4); return hh+':'+mm+':'+ss; }
+function parseTimeValue(v,id){ const elErr=document.getElementById(id+'_err'); if(!v){ if(elErr) elErr.textContent=''; return null; } const raw=smartTimeString(v); const p=raw.split(':').map(Number); const set=(m)=>{ if(elErr) elErr.textContent=m||''; }; if(p.some(n=>Number.isNaN(n))){ set('Time must be numeric'); return null;} if(p.length===2){ if(p[1]>=60){ set('Use mm:ss'); return null;} set(''); return p[0]*60+p[1]; } if(p.length===3){ if(p[1]>=60||p[2]>=60){ set('Use hh:mm:ss'); return null;} set(''); return p[0]*3600+p[1]*60+p[2]; } set('Use mm:ss or hh:mm:ss'); return null; }
+function fmtTime(sec){ if(sec==null||!isFinite(sec)||sec<=0) return '—'; const s=Math.round(sec); const m=Math.floor(s/60), r=s%60; return `${m}:${r.toString().padStart(2,'0')}`; }
+function fmtHMS(sec){ if(sec==null||!isFinite(sec)||sec<=0) return '—'; const s=Math.round(sec); const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const r=s%60; return `${h}:${m.toString().padStart(2,'0')}:${r.toString().padStart(2,'0')}`; }
+const DISTS = { '5K':5000, '10K':10000, '15K':15000, 'Half Marathon':21097.5, 'Marathon':42195 };
+function paceFromTime(distMeters, timeSec){ const perMile=timeSec/(distMeters/1609.344); const perKm=timeSec/(distMeters/1000); return {mi:fmtTime(perMile), km:fmtTime(perKm)}; }
+function perMileFromTime(distMeters, timeSec){ const perMile=timeSec/(distMeters/1609.344); return fmtTime(perMile); }
+
+// === AM ratios (equivalents) ===
+const K5_FROM_K10=0.4808, K15_FROM_K10=1.536, TENMI_FROM_K10=1.72, HM_FROM_K10=2.22, MAR_FROM_K10=4.68;
+function amFrom10k(t10){ return { k10:t10, k5:t10*K5_FROM_K10, k15:t10*K15_FROM_K10, tenmi:t10*TENMI_FROM_K10, hm:t10*HM_FROM_K10, mar:t10*MAR_FROM_K10 }; }
+function fillQuickAMEq(t10){
+  const out=$('#amEq'); out.innerHTML='';
+  if(!t10) return;
+  const eq=amFrom10k(t10);
+  [['10K', eq.k10], ['15K', eq.k15], ['10 miles', eq.tenmi], ['Half Marathon', eq.hm], ['Marathon', eq.mar]].forEach(([lab,val])=>{
+    out.insertAdjacentHTML('beforeend', `<tr><td>${lab}</td><td class="mono">${fmtHMS(val)}</td></tr>`);
+  });
+}
+
+// === Marathon calculator (no override) ===
+function calcMarathon(){
+  const dist=$('#mDist').value;
+  const t=parseTimeValue($('#mTime').value,'mTime');
+  let t10=null;
+  if(t){ if(dist==='10K') t10=t; else if(dist==='5K') t10=t/K5_FROM_K10; else if(dist==='15K') t10=t/K15_FROM_K10; else if(dist==='Half Marathon') t10=t/HM_FROM_K10; else if(dist==='Marathon') t10=t/MAR_FROM_K10; }
+
+  if(t){ $('#sumDist').textContent=dist; $('#sumTime').textContent=fmtHMS(t); const p=paceFromTime(DISTS[dist], t); $('#sumPace').textContent=`${p.mi} / ${p.km}`; }
+  else { ['sumDist','sumTime','sumPace'].forEach(id=>$('#'+id).textContent='—'); }
+
+  const marSec = t10 ? amFrom10k(t10).mar : null;
+  $('#goalMar').textContent=fmtHMS(marSec);
+  const mpMi=marSec?marSec/26.21875:null, mpKm=marSec?marSec/42.195:null;
+  $('#goalMP').textContent = mpMi?`${fmtTime(mpMi)} / ${fmtTime(mpKm)}`:'—';
+
+  fillQuickAMEq(t10);
+
+  const tb=$('#amPaces'); tb.innerHTML='';
+  const t5 = t10 ? amFrom10k(t10).k5 : (dist==='5K' && t ? t : null);
+  const p5mi = t5 ? t5/3.10686 : null, p5km=t5? t5/5.0:null;
+  tb.insertAdjacentHTML('beforeend', `<tr><td>VO₂ Max</td><td class="mono">${fmtTime(p5mi)}</td><td class="mono">${fmtTime(p5km)}</td></tr>`);
+
+  const p10mi = t10 ? t10/6.21371 : null, p10km = t10 ? t10/10.0 : null;
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Lactate Threshold</td><td class="mono">${p10mi?`${fmtTime(p10mi+10)} – ${fmtTime(p10mi+15)}`:'—'}</td><td class="mono">${p10km?`${fmtTime(p10km+10)} – ${fmtTime(p10km+15)}`:'—'}</td></tr>`);
+
+  if(mpMi){
+    tb.insertAdjacentHTML('beforeend', `<tr><td>General Aerobic</td><td class="mono">${fmtTime(mpMi*1.15)} – ${fmtTime(mpMi*1.25)}</td><td class="mono">${fmtTime(mpKm*1.15)} – ${fmtTime(mpKm*1.25)}</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr><td>Long Run</td><td class="mono">${fmtTime(mpMi*1.10)} – ${fmtTime(mpMi*1.20)}</td><td class="mono">${fmtTime(mpKm*1.10)} – ${fmtTime(mpKm*1.20)}</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr class="muted"><td>By mile 5 ≤</td><td class="mono">${fmtTime(mpMi*1.20)}</td><td class="mono">${fmtTime(mpKm*1.20)}</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr class="muted"><td>Last 5–10 ≈</td><td class="mono">${fmtTime(mpMi*1.10)}</td><td class="mono">${fmtTime(mpKm*1.10)}</td></tr>`);
+  } else {
+    tb.insertAdjacentHTML('beforeend', `<tr><td>General Aerobic</td><td class="mono">—</td><td class="mono">—</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr><td>Long Run</td><td class="mono">—</td><td class="mono">—</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr class="muted"><td>By mile 5 ≤</td><td class="mono">—</td><td class="mono">—</td></tr>`);
+    tb.insertAdjacentHTML('beforeend', `<tr class="muted"><td>Last 5–10 ≈</td><td class="mono">—</td><td class="mono">—</td></tr>`);
+  }
+
+  calcHRZones();
+}
+
+// Heart Rate Zones (Table 8.2 exact) in requested order
+const HR_ZONES = [
+  {name:'VO₂ max (5K pace)',   pctMax:'93–95%', pctMaxRange:[0.93,0.95], pctHRR:'91–94%', pctHRRRange:[0.91,0.94]},
+  {name:'Lactate Threshold',   pctMax:'83–90%', pctMaxRange:[0.83,0.90], pctHRR:'77–87%', pctHRRRange:[0.77,0.87]},
+  {name:'Marathon Pace',       pctMax:'81–88%', pctMaxRange:[0.81,0.88], pctHRR:'74–84%', pctHRRRange:[0.74,0.84]},
+  {name:'Long/Medium-Long Run', pctMax:'75–83%', pctMaxRange:[0.75,0.83], pctHRR:'66–77%', pctHRRRange:[0.66,0.77]},
+  {name:'General Aerobic',     pctMax:'72–80%', pctMaxRange:[0.72,0.80], pctHRR:'62–73%', pctHRRRange:[0.62,0.73]},
+  {name:'Recovery',            pctMax:'<75%',   pctMaxRange:[0.00,0.75], pctHRR:'<66%', pctHRRRange:[0.00,0.66]}
+];
+
+function bpmRangeFromMax(maxHR, r){ if(!maxHR) return '—'; const lo=Math.round(maxHR*r[0]); const hi=Math.round(maxHR*r[1]); return r[0]===0?`≤ ${hi}`:`${lo}–${hi}`; }
+function bpmRangeFromHRR(maxHR, restHR, r){ if(!maxHR||!restHR) return '—'; const rr=maxHR-restHR; const lo=Math.round(restHR + rr*r[0]); const hi=Math.round(restHR + rr*r[1]); return r[0]===0?`≤ ${hi}`:`${lo}–${hi}`; }
+
+function calcHRZones(){
+  const max = parseInt(($('#maxHR').value||'').trim(),10);
+  const rest = parseInt(($('#restHR').value||'').trim(),10);
+  const body = document.getElementById('hrRows'); body.innerHTML='';
+  HR_ZONES.forEach(z=>{
+    body.insertAdjacentHTML('beforeend', `<tr>
+      <td>${z.name}</td>
+      <td class="mono">${z.pctMax}</td>
+      <td class="mono">${bpmRangeFromMax(max, z.pctMaxRange)}</td>
+      <td class="mono">${z.pctHRR}</td>
+      <td class="mono">${bpmRangeFromHRR(max, rest, z.pctHRRRange)}</td>
+    </tr>`);
+  });
+}
+
+
+// ---------- helpers (put once, above FRR_ROWS) ----------
+function t(mm, ss){ return mm*60 + ss; }                // mm:ss -> seconds
+function tH(h, mm, ss){ return h*3600 + mm*60 + ss; }   // hh:mm:ss -> seconds
+function tHMM(h, mm, ss){ return tH(h, mm, ss); }       // alias
+
+// ---------- Complete FRR table (5K 14:00 → 30:00) ----------
+const FRR_ROWS = [
+  {fiveK:t(14,00), k10:t(29,07), k15:t(44,42), half:tH(1,04,39), ltLo:"4:40", ltHi:"4:50", lrEarly:"6:14", lrLatter:"5:37", v400f:65,  v400s:67,  s300f:44, s300s:47, s200f:29, s200s:31},
+  {fiveK:t(14,30), k10:t(30,10), k15:t(46,18), half:tH(1,06,57), ltLo:"4:50", ltHi:"5:00", lrEarly:"6:27", lrLatter:"5:49", v400f:67,  v400s:70,  s300f:45, s300s:48, s200f:30, s200s:32},
+  {fiveK:t(15,00), k10:t(31,12), k15:t(47,54), half:tH(1,09,16), ltLo:"5:00", ltHi:"5:10", lrEarly:"6:41", lrLatter:"6:02", v400f:69,  v400s:72,  s300f:47, s300s:50, s200f:31, s200s:33},
+  {fiveK:t(15,30), k10:t(32,14), k15:t(49,29), half:tH(1,11,34), ltLo:"5:11", ltHi:"5:21", lrEarly:"6:54", lrLatter:"6:14", v400f:72,  v400s:74,  s300f:48, s300s:52, s200f:32, s200s:35},
+  {fiveK:t(16,00), k10:t(33,17), k15:t(51,05), half:tH(1,13,53), ltLo:"5:20", ltHi:"5:30", lrEarly:"7:07", lrLatter:"6:26", v400f:74,  v400s:77,  s300f:50, s300s:54, s200f:33, s200s:36},
+  {fiveK:t(16,30), k10:t(34,19), k15:t(52,41), half:tH(1,16,11), ltLo:"5:30", ltHi:"5:40", lrEarly:"7:21", lrLatter:"6:38", v400f:76,  v400s:79,  s300f:51, s300s:55, s200f:34, s200s:37},
+  {fiveK:t(17,00), k10:t(35,22), k15:t(54,17), half:tH(1,18,30), ltLo:"5:40", ltHi:"5:50", lrEarly:"7:34", lrLatter:"6:50", v400f:78,  v400s:82,  s300f:53, s300s:57, s200f:35, s200s:38},
+  {fiveK:t(17,30), k10:t(36,24), k15:t(55,52), half:tH(1,20,48), ltLo:"5:51", ltHi:"6:01", lrEarly:"7:47", lrLatter:"7:02", v400f:81,  v400s:84,  s300f:54, s300s:59, s200f:36, s200s:39},
+  {fiveK:t(18,00), k10:t(37,26), k15:t(57,28), half:tH(1,23,07), ltLo:"6:00", ltHi:"6:10", lrEarly:"8:01", lrLatter:"7:14", v400f:83,  v400s:86,  s300f:56, s300s:60, s200f:37, s200s:40},
+  {fiveK:t(18,30), k10:t(38,29), k15:t(59,04), half:tH(1,25,26), ltLo:"6:10", ltHi:"6:20", lrEarly:"8:14", lrLatter:"7:26", v400f:85,  v400s:89,  s300f:58, s300s:62, s200f:38, s200s:41},
+  {fiveK:t(19,00), k10:t(39,31), k15:tHMM(1,00,40), half:tH(1,27,44), ltLo:"6:21", ltHi:"6:31", lrEarly:"8:28", lrLatter:"7:38", v400f:88,  v400s:91,  s300f:59, s300s:64, s200f:39, s200s:42},
+  {fiveK:t(19,30), k10:t(40,34), k15:tHMM(1,02,16), half:tH(1,30,03), ltLo:"6:31", ltHi:"6:41", lrEarly:"8:41", lrLatter:"7:50", v400f:90,  v400s:94,  s300f:61, s300s:65, s200f:40, s200s:43},
+  {fiveK:t(20,00), k10:t(41,36), k15:tHMM(1,03,51), half:tH(1,32,21), ltLo:"6:41", ltHi:"6:51", lrEarly:"8:54", lrLatter:"8:02", v400f:92,  v400s:96,  s300f:62, s300s:67, s200f:41, s200s:45},
+  {fiveK:t(20,30), k10:t(42,38), k15:tHMM(1,05,27), half:tH(1,34,40), ltLo:"6:51", ltHi:"7:01", lrEarly:"9:08", lrLatter:"8:14", v400f:95,  v400s:98,  s300f:64, s300s:69, s200f:43, s200s:46},
+  {fiveK:t(21,00), k10:t(43,41), k15:tHMM(1,07,03), half:tH(1,36,58), ltLo:"7:02", ltHi:"7:12", lrEarly:"9:21", lrLatter:"8:26", v400f:97,  v400s:101, s300f:65, s300s:70, s200f:44, s200s:47},
+  {fiveK:t(21,30), k10:t(44,43), k15:tHMM(1,08,39), half:tH(1,39,17), ltLo:"7:12", ltHi:"7:22", lrEarly:"9:34", lrLatter:"8:38", v400f:99,  v400s:103, s300f:67, s300s:72, s200f:45, s200s:48},
+  {fiveK:t(22,00), k10:t(45,46), k15:tHMM(1,10,14), half:tH(1,41,35), ltLo:"7:22", ltHi:"7:32", lrEarly:"9:48", lrLatter:"8:50", v400f:101, v400s:106, s300f:68, s300s:74, s200f:46, s200s:49},
+  {fiveK:t(22,30), k10:t(46,48), k15:tHMM(1,11,50), half:tH(1,43,54), ltLo:"7:32", ltHi:"7:42", lrEarly:"10:01", lrLatter:"9:02", v400f:104, v400s:108, s300f:70, s300s:75, s200f:47, s200s:50},
+  {fiveK:t(23,00), k10:t(47,50), k15:tHMM(1,13,26), half:tH(1,46,12), ltLo:"7:43", ltHi:"7:53", lrEarly:"10:14", lrLatter:"9:14", v400f:106, v400s:110, s300f:72, s300s:77, s200f:48, s200s:51},
+  {fiveK:t(23,30), k10:t(48,53), k15:tHMM(1,15,02), half:tH(1,48,31), ltLo:"7:53", ltHi:"8:03", lrEarly:"10:28", lrLatter:"9:26", v400f:108, v400s:113, s300f:73, s300s:79, s200f:49, s200s:52},
+  {fiveK:t(24,00), k10:t(49,55), k15:tHMM(1,16,38), half:tH(1,50,49), ltLo:"8:03", ltHi:"8:13", lrEarly:"10:41", lrLatter:"9:38", v400f:110, v400s:115, s300f:75, s300s:80, s200f:50, s200s:54},
+  {fiveK:t(24,30), k10:t(50,58), k15:tHMM(1,18,13), half:tH(1,53,08), ltLo:"8:14", ltHi:"8:24", lrEarly:"10:54", lrLatter:"9:50", v400f:112, v400s:117, s300f:76, s300s:82, s200f:51, s200s:55},
+  {fiveK:t(25,00), k10:t(52,00), k15:tHMM(1,19,49), half:tH(1,55,26), ltLo:"8:24", ltHi:"8:34", lrEarly:"11:08", lrLatter:"10:03", v400f:115, v400s:120, s300f:78, s300s:84, s200f:52, s200s:56},
+  {fiveK:t(26,00), k10:t(54,05), k15:tHMM(1,23,01), half:tH(2,00,33), ltLo:"8:44", ltHi:"8:54", lrEarly:"11:35", lrLatter:"10:27", v400f:120, v400s:125, s300f:81, s300s:87, s200f:54, s200s:58},
+  {fiveK:t(27,00), k10:t(56,10), k15:tHMM(1,26,12), half:tH(2,04,41), ltLo:"9:05", ltHi:"9:15", lrEarly:"12:01", lrLatter:"10:51", v400f:125, v400s:130, s300f:84, s300s:90, s200f:56, s200s:60},
+  {fiveK:t(28,00), k10:t(58,14), k15:tHMM(1,29,24), half:tH(2,09,18), ltLo:"9:25", ltHi:"9:35", lrEarly:"12:28", lrLatter:"11:15", v400f:129, v400s:134, s300f:87, s300s:94, s200f:58, s200s:62},
+  {fiveK:t(29,00), k10:tHMM(1,00,19), k15:tHMM(1,32,35), half:tH(2,13,55), ltLo:"9:46", ltHi:"9:56", lrEarly:"12:55", lrLatter:"11:39", v400f:134, v400s:139, s300f:90, s300s:97, s200f:60, s200s:65},
+  {fiveK:t(30,00), k10:tHMM(1,02,24), k15:tHMM(1,35,47), half:tH(2,18,32), ltLo:"10:07", ltHi:"10:17", lrEarly:"13:21", lrLatter:"12:03", v400f:138, v400s:144, s300f:93, s300s:100, s200f:62, s200s:67}
+];
+function lerp(a,b,t){ return a+(b-a)*t; }
+function mmssToSecLocal(s){ const parts=s.split(':').map(Number); return parts[0]*60+parts[1]; }
+function lerpPace(p1,p2,t){ return lerp(mmssToSecLocal(p1), mmssToSecLocal(p2), t); }
+
+function computeFRR(row, alreadySec=false){
+  return {
+    fiveK: row.fiveK, fifteenK: row.k15, half: row.half,
+    ltLo: alreadySec? row.ltLo : mmssToSecLocal(row.ltLo),
+    ltHi: alreadySec? row.ltHi : mmssToSecLocal(row.ltHi),
+    lrEarly: alreadySec? row.lrEarly : mmssToSecLocal(row.lrEarly),
+    lrLatter: alreadySec? row.lrLatter : mmssToSecLocal(row.lrLatter),
+    vo2mi: `${fmtTime(row.v400f*(1609.344/400))} – ${fmtTime(row.v400s*(1609.344/400))}`,
+    vo2km: `${fmtTime(row.v400f*(1000/400))} – ${fmtTime(row.v400s*(1000/400))}`,
+    sp300mi: `${fmtTime(row.s300f*(1609.344/300))} – ${fmtTime(row.s300s*(1609.344/300))}`,
+    sp300km: `${fmtTime(row.s300f*(1000/300))} – ${fmtTime(row.s300s*(1000/300))}`,
+    sp200mi: `${fmtTime(row.s200f*(1609.344/200))} – ${fmtTime(row.s200s*(1609.344/200))}`,
+    sp200km: `${fmtTime(row.s200f*(1000/200))} – ${fmtTime(row.s200s*(1000/200))}`
+  };
+}
+function frrInterpolate(t10){
+  FRR_ROWS.sort((a,b)=>a.k10-b.k10);
+  const min=FRR_ROWS[0].k10, max=FRR_ROWS[FRR_ROWS.length-1].k10;
+  if(t10<=min) return computeFRR(FRR_ROWS[0]);
+  if(t10>=max) return computeFRR(FRR_ROWS[FRR_ROWS.length-1]);
+  let lo=null, hi=null;
+  for(let i=0;i<FRR_ROWS.length-1;i++){ if(t10>=FRR_ROWS[i].k10 && t10<=FRR_ROWS[i+1].k10){ lo=FRR_ROWS[i]; hi=FRR_ROWS[i+1]; break; } }
+  const f=(t10-lo.k10)/(hi.k10-lo.k10);
+  const fiveK = lerp(lo.fiveK, hi.fiveK, f);
+  const k15 = lerp(lo.k15, hi.k15, f);
+  const half = lerp(lo.half, hi.half, f);
+  const ltLo = lerpPace(lo.ltLo, hi.ltLo, f);
+  const ltHi = lerpPace(lo.ltHi, hi.ltHi, f);
+  const lrEarly = lerpPace(lo.lrEarly, hi.lrEarly, f);
+  const lrLatter = lerpPace(lo.lrLatter, hi.lrLatter, f);
+  const v400f = lerp(lo.v400f, hi.v400f, f);
+  const v400s = lerp(lo.v400s, hi.v400s, f);
+  const s300f = lerp(lo.s300f, hi.s300f, f);
+  const s300s = lerp(lo.s300s, hi.s300s, f);
+  const s200f = lerp(lo.s200f, hi.s200f, f);
+  const s200s = lerp(lo.s200s, hi.s200s, f);
+  return computeFRR({k10:t10,fiveK,k15,half,ltLo,ltHi,lrEarly,lrLatter,v400f,v400s,s300f,s300s,s200f,s200s}, true);
+}
+
+function calcFRR(){
+  const dist=$('#frrDist').value;
+  const t=parseTimeValue($('#frrTime').value,'frrTime');
+  if(!t){ ['frrSumDist','frrSumTime','frrSumPace'].forEach(id=>$('#'+id).textContent='—'); $('#frrEq').innerHTML=''; $('#frrPaces').innerHTML=''; return; }
+  $('#frrSumDist').textContent=dist; $('#frrSumTime').textContent=fmtHMS(t);
+  const pp=paceFromTime(DISTS[dist], t); $('#frrSumPace').textContent=`${pp.mi} / ${pp.km}`;
+
+  let t10=t;
+  if(dist==='5K') t10 = t / 0.4808;
+  else if(dist==='15K') t10 = t / 1.536;
+  else if(dist==='Half Marathon') t10 = t / 2.22;
+
+  const res = FRR_ROWS.length>=2 ? frrInterpolate(t10) : computeFRR({k10:t10,fiveK:t10*0.4808,k15:t10*1.536,half:t10*2.22,ltLo:"7:00",ltHi:"7:10",lrEarly:"9:15",lrLatter:"8:20",v400f:96,v400s:100,s300f:65,s300s:70,s200f:44,s200s:47});
+
+  const eqTB=$('#frrEq'); eqTB.innerHTML='';
+  const fiveK = t10*0.4808;
+  const fifteenK = t10*1.536;
+  const half = t10*2.22;
+  [['5K',fiveK, DISTS['5K']], ['10K',t10, DISTS['10K']], ['15K',fifteenK, DISTS['15K']], ['Half Marathon',half, DISTS['Half Marathon']]].forEach(([lab,sec,meters])=>{
+    eqTB.insertAdjacentHTML('beforeend', `<tr><td>${lab}</td><td class="mono">${fmtHMS(sec)}</td><td class="mono">${perMileFromTime(meters,sec)}</td></tr>`);
+  });
+
+  const tb=$('#frrPaces'); tb.innerHTML='';
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Lactate Threshold</td><td class="mono">${fmtTime(res.ltLo)} – ${fmtTime(res.ltHi)}</td><td class="mono">${fmtTime(res.ltLo/1.609344)} – ${fmtTime(res.ltHi/1.609344)}</td></tr>`);
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Long Run — early</td><td class="mono">${fmtTime(res.lrEarly)}</td><td class="mono">${fmtTime(res.lrEarly/1.609344)}</td></tr>`);
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Long Run — latter</td><td class="mono">${fmtTime(res.lrLatter)}</td><td class="mono">${fmtTime(res.lrLatter/1.609344)}</td></tr>`);
+  tb.insertAdjacentHTML('beforeend', `<tr><td>VO₂ Max Intervals (3K–5K)</td><td class="mono">${res.vo2mi}</td><td class="mono">${res.vo2km}</td></tr>`);
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Speed 300m (per-mile / per-km)</td><td class="mono">${res.sp300mi}</td><td class="mono">${res.sp300km}</td></tr>`);
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Speed 200m (per-mile / per-km)</td><td class="mono">${res.sp200mi}</td><td class="mono">${res.sp200km}</td></tr>`);
+}
+
+// wire
+function wire(){
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active'); document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+  document.getElementById('calcA').addEventListener('click', calcMarathon);
+  document.getElementById('calcB').addEventListener('click', calcFRR);
+  ['mTime','maxHR','restHR'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('keydown',e=>{ if(e.key==='Enter') calcMarathon();}); });
+  ['frrTime'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('keydown',e=>{ if(e.key==='Enter') calcFRR(); }); });
+
+  calcHRZones();
+}
+wire();
+</script>
+</body>
+</html>
