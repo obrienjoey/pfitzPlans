@@ -65,7 +65,7 @@ export const Header = () => {
                                     state.setRaceInput(state.raceInput ? { ...state.raceInput, time: val } : { distance: '10K', time: val });
                                 }}
                                 raceDistance={raceInput?.distance}
-                                className="w-[110px] text-sm hidden sm:block "
+                                className="w-[110px] text-sm"
                             />
                             <DatePicker
                                 value={raceDate}
