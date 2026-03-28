@@ -1,7 +1,7 @@
 import type { RenderedWeek } from '../types';
 import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
-import type { Paces } from '../lib/paceCalculator';
+import type { TrainingPaces } from '../lib/paceCalculator';
 
 export const WeekCard = ({
     week,
@@ -12,7 +12,7 @@ export const WeekCard = ({
 }: {
     week: RenderedWeek,
     weekIndex: number,
-    paces?: Paces,
+    paces?: TrainingPaces,
     activeId?: string,
     overId?: string
 }) => {

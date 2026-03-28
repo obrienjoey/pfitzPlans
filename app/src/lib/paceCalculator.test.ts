@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTrainingPaces, equivalentTimes, to10KEquivalent, formatTime, formatTimeHMS, parseTimeString, getPaceZone } from './paceCalculator';
+import { calculateTrainingPaces, to10KEquivalent, formatTime, formatTimeHMS, parseTimeString, getPaceZone } from './paceCalculator';
 
 describe('paceCalculator', () => {
     describe('parseTimeString', () => {
