@@ -146,12 +146,13 @@ export function frrTrainingPaces(t10: number): TrainingPaces {
 
 export function calculateTrainingPaces(
   input: RaceInput,
-  planType: 'Marathon' | 'Half Marathon' | string
+  planType: 'Marathon' | 'Half Marathon' | '5K' | string
 ): { paces: TrainingPaces; equivalents: EquivalentTimes; t10: number } {
   const t10 = to10KEquivalent(input);
   const equivalents = equivalentTimes(t10);
   
-  const paces = planType === 'Half Marathon' 
+  // Both Half Marathon and 5K plans use the FRR (Faster Road Racing) pace tables
+  const paces = (planType === 'Half Marathon' || planType === '5K')
     ? frrTrainingPaces(t10) 
     : marathonTrainingPaces(t10);
     
@@ -195,9 +196,10 @@ export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => 
 
     if (t.includes('tune-up')) return null;
 
-    if (tags?.includes('Race') || t.includes('goal marathon') || t.includes('race')) return 'Marathon';
+    if (tags?.includes('Race') || t.includes('goal marathon') || t.includes('goal race') || t.includes('race pace')) return 'Marathon';
     if (t.includes('marathon pace') || t.includes('mp')) return 'Marathon';
     if (t.includes('lt') || t.includes('lactate') || t.includes('threshold')) return 'Lactate Threshold';
+    if (t.includes('speed') && !t.includes('aerobic')) return 'VO2 Max';
     if (t.includes('vo₂max') || t.includes('vo2max') || t.includes('intervals') || t.includes('5k race pace')) return 'VO2 Max';
     if (t.includes('long run') || t.includes('med-long run')) return 'Long Run';
     if (t.includes('endurance')) return 'Long Run';

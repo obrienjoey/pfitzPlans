@@ -9,9 +9,15 @@ export const PlanSelector = ({ selectedId, onSelect }: { selectedId: string, onS
         return acc;
     }, {} as Record<string, PlanInfo[]>);
 
+    // Order groups by race distance
+    const typeOrder = ['5K', 'Half Marathon', 'Marathon'];
+    const sortedEntries = Object.entries(groupedPlans).sort(
+        ([a], [b]) => (typeOrder.indexOf(a) ?? 99) - (typeOrder.indexOf(b) ?? 99)
+    );
+
     return (
         <div className="space-y-8 w-full max-w-2xl mx-auto mb-10">
-            {Object.entries(groupedPlans).map(([type, plans]) => (
+            {sortedEntries.map(([type, plans]) => (
                 <section key={type} className="space-y-4">
                     <h3 className="text-xl font-bold text-slate-300 border-b border-slate-700 pb-2">{type}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
