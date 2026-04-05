@@ -1,7 +1,7 @@
 export interface PlanInfo {
     id: string;
     name: string;
-    type: 'Marathon' | 'Half Marathon' | '5K';
+    type: 'Marathon' | 'Half Marathon' | '5K' | '10K';
     weeks: number;
     path: string;
 }
@@ -27,6 +27,27 @@ export const AVAILABLE_PLANS: PlanInfo[] = [
         type: '5K',
         weeks: 14,
         path: 'plans/frr_5k_03.yaml'
+    },
+    {
+        id: 'frr_8k10k_01',
+        name: 'FRR 8K-10K Sched 1 / 30–42 mi',
+        type: '10K',
+        weeks: 14,
+        path: 'plans/frr_8k10k_01.yaml'
+    },
+    {
+        id: 'frr_8k10k_02',
+        name: 'FRR 8K-10K Sched 2 / 38–57 mi',
+        type: '10K',
+        weeks: 14,
+        path: 'plans/frr_8k10k_02.yaml'
+    },
+    {
+        id: 'frr_8k10k_03',
+        name: 'FRR 8K-10K Sched 3 / 43–76 mi',
+        type: '10K',
+        weeks: 14,
+        path: 'plans/frr_8k10k_03.yaml'
     },
     {
         id: 'pfitz_half_12_63',

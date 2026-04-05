@@ -10,7 +10,7 @@ export const PlanSelector = ({ selectedId, onSelect }: { selectedId: string, onS
     }, {} as Record<string, PlanInfo[]>);
 
     // Order groups by race distance
-    const typeOrder = ['5K', 'Half Marathon', 'Marathon'];
+    const typeOrder = ['5K', '10K', 'Half Marathon', 'Marathon'];
     const sortedEntries = Object.entries(groupedPlans).sort(
         ([a], [b]) => (typeOrder.indexOf(a) ?? 99) - (typeOrder.indexOf(b) ?? 99)
     );

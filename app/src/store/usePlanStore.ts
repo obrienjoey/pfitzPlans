@@ -43,6 +43,7 @@ export const usePlanStore = create<PlanState>()(
                     'Marathon': { distance: '10K', time: '0:45:00' },
                     'Half Marathon': { distance: '5K', time: '0:22:00' },
                     '5K': { distance: '5K', time: '0:20:00' },
+                    '10K': { distance: '10K', time: '0:45:00' },
                 };
 
                 // Reset race input if switching race type
@@ -129,6 +130,8 @@ export const usePlanStore = create<PlanState>()(
                         mergedRaceInput = { distance: 'Half Marathon', time: persistedState.goalTime };
                     } else if (planType === '5K') {
                         mergedRaceInput = { distance: '5K', time: persistedState.goalTime };
+                    } else if (planType === '10K') {
+                        mergedRaceInput = { distance: '10K', time: persistedState.goalTime };
                     } else {
                         mergedRaceInput = { distance: 'Marathon', time: persistedState.goalTime };
                     }
