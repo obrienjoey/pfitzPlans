@@ -34,9 +34,11 @@ export interface TrainingPaces {
   'Recovery': PaceRange;
   'Speed 300m'?: PaceRange;
   'Speed 200m'?: PaceRange;
+  /** Used by FRR plans in place of 'Marathon' to avoid displaying marathon pace for 5K/10K/HM plans */
+  'Race Equivalent'?: PaceRange;
 }
 
-export type PaceZone = keyof TrainingPaces | 'General Aerobic' | 'Long Run' | 'Marathon' | 'Lactate Threshold' | 'VO2 Max' | 'Recovery';
+export type PaceZone = keyof TrainingPaces | 'General Aerobic' | 'Long Run' | 'Marathon' | 'Race Equivalent' | 'Lactate Threshold' | 'VO2 Max' | 'Recovery';
 
 export function to10KEquivalent(input: RaceInput): number {
   switch (input.distance) {
@@ -130,6 +132,8 @@ export function frrTrainingPaces(t10: number): TrainingPaces {
     
     const tMar = t10 * MAR_FROM_K10;
     const trueMpKm = tMar / 42.195;
+    // 10K race pace in sec/km — used as the reference for General Aerobic / Recovery in FRR plans
+    const t10PaceKm = t10 / 10.0;
 
     return {
         'Lactate Threshold': { min: ltLoMi * miToKm, max: ltHiMi * miToKm },
@@ -137,10 +141,12 @@ export function frrTrainingPaces(t10: number): TrainingPaces {
         'VO2 Max': { min: row.v400f * (1000 / 400), max: row.v400s * (1000 / 400) },
         'Speed 300m': { min: row.s300f * (1000 / 300), max: row.s300s * (1000 / 300) },
         'Speed 200m': { min: row.s200f * (1000 / 200), max: row.s200s * (1000 / 200) },
-        
+
+        // Marathon pace is still computed for equivalents display, but for FRR plans
+        // General Aerobic / Recovery reference the 10K pace, not the marathon equivalent
         'Marathon': { min: trueMpKm, max: trueMpKm },
-        'General Aerobic': { min: trueMpKm * 1.15, max: trueMpKm * 1.25 },
-        'Recovery': { min: trueMpKm * 1.25, max: trueMpKm * 1.40 }
+        'General Aerobic': { min: t10PaceKm * 1.15, max: t10PaceKm * 1.25 },
+        'Recovery': { min: t10PaceKm * 1.25, max: t10PaceKm * 1.40 }
     };
 }
 
@@ -194,9 +200,15 @@ export const parseTimeString = (timeString: string | undefined): number | null =
 export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => {
     const t = title.toLowerCase();
 
+    // Tune-up races and goal races for non-marathon distances show no pace badge
     if (t.includes('tune-up')) return null;
 
-    if (tags?.includes('Race') || t.includes('goal marathon') || t.includes('goal race')) return 'Marathon';
+    // Only map to 'Marathon' pace zone if the race is explicitly a marathon.
+    // e.g. "8K or 10K goal race", "5K goal race" should NOT show the marathon-equivalent pace.
+    if (t.includes('goal marathon') || t.includes('marathon goal race')) return 'Marathon';
+    if (t.includes('goal race')) return null; // non-marathon goal race: no pace badge
+    if (tags?.includes('Race')) return null;  // generic Race tag: no pace badge
+
     if (t.includes('marathon pace') || t.includes('mp')) return 'Marathon';
     if (t.includes('lt') || t.includes('lactate') || t.includes('threshold')) return 'Lactate Threshold';
     if (t.includes('speed') && !t.includes('aerobic')) return 'VO2 Max';

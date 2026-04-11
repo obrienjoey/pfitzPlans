@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { calculateTrainingPaces, formatTime, formatTimeHMS, parseTimeString, type TrainingPaces, type EquivalentTimes } from '../lib/paceCalculator';
+import {
+    calculateTrainingPaces,
+    formatTime,
+    formatTimeHMS,
+    parseTimeString,
+    type TrainingPaces,
+    type EquivalentTimes,
+} from '../lib/paceCalculator';
 import { AVAILABLE_PLANS } from '../config';
 import clsx from 'clsx';
 
@@ -8,39 +15,75 @@ export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: {
     const { raceInput, units, selectedPlanId } = usePlanStore();
     const [isOpen, setIsOpen] = useState(false);
 
+    const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
+    const planType = planInfo?.type || 'Marathon';
+
     const data = useMemo(() => {
-        if (initialPaces) return { paces: initialPaces, equivalents: initialEquivs };
+        if (initialPaces) return { paces: initialPaces, equivalents: initialEquivs, t10: null };
         if (!raceInput) return null;
         const totalSeconds = parseTimeString(raceInput.time);
         if (!totalSeconds) return null;
-
-        const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
-        const planType = planInfo?.type || 'Marathon';
-
         return calculateTrainingPaces({ distance: raceInput.distance, timeSeconds: totalSeconds }, planType);
-    }, [raceInput, initialPaces, initialEquivs, selectedPlanId]);
+    }, [raceInput, initialPaces, initialEquivs, planType]);
 
     if (!data || !data.paces) return null;
-    
+
     const { paces, equivalents } = data;
+
+    // For FRR plans (non-marathon) hide the 'Marathon' training zone — it's the
+    // extrapolated marathon-equivalent pace which is not a relevant training target.
+    const isFRRPlan = planType !== 'Marathon';
+    const filteredPaces = isFRRPlan
+        ? Object.fromEntries(Object.entries(paces).filter(([zone]) => zone !== 'Marathon'))
+        : paces;
 
     const KM_TO_MILE = 1.60934;
 
-    const formatRange = (range: { min: number, max: number }) => {
+    const formatRange = (range: { min: number; max: number }) => {
         if (units === 'km') {
-            if (range.min === range.max) {
-                return `${formatTime(range.min)} /km`;
-            }
-            return `${formatTime(range.min)} - ${formatTime(range.max)} /km`;
+            if (range.min === range.max) return `${formatTime(range.min)} /km`;
+            return `${formatTime(range.min)} – ${formatTime(range.max)} /km`;
         }
-        
         const minMile = range.min * KM_TO_MILE;
         const maxMile = range.max * KM_TO_MILE;
+        if (range.min === range.max) return `${formatTime(minMile)} /mi`;
+        return `${formatTime(minMile)} – ${formatTime(maxMile)} /mi`;
+    };
 
-        if (range.min === range.max) {
-            return `${formatTime(minMile)} /mi`;
-        }
-        return `${formatTime(minMile)} - ${formatTime(maxMile)} /mi`;
+    // Derive per-km race paces from equivalents, then convert to per-mile if needed.
+    // These are computed regardless of which race distance the user entered.
+    const racePaces = equivalents
+        ? [
+              {
+                  label: '5K',
+                  paceKm: equivalents['5K'] / 5,
+                  time: equivalents['5K'],
+                  isGoal: raceInput?.distance === '5K',
+              },
+              {
+                  label: '10K',
+                  paceKm: equivalents['10K'] / 10,
+                  time: equivalents['10K'],
+                  isGoal: raceInput?.distance === '10K',
+              },
+              {
+                  label: 'Half Marathon',
+                  paceKm: equivalents['Half Marathon'] / 21.0975,
+                  time: equivalents['Half Marathon'],
+                  isGoal: raceInput?.distance === 'Half Marathon',
+              },
+              {
+                  label: 'Marathon',
+                  paceKm: equivalents['Marathon'] / 42.195,
+                  time: equivalents['Marathon'],
+                  isGoal: raceInput?.distance === 'Marathon',
+              },
+          ]
+        : [];
+
+    const formatRacePace = (paceKm: number) => {
+        const pace = units === 'km' ? paceKm : paceKm * KM_TO_MILE;
+        return `${formatTime(pace)} /${units}`;
     };
 
     return (
@@ -69,42 +112,72 @@ export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: {
             </button>
 
             {isOpen && (
-                <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-200">
-                    {equivalents && (
-                        <div className="mb-4 pb-4 border-b border-slate-800">
-                            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Equivalent Race Times</div>
-                            <div className="flex flex-wrap gap-2 text-sm">
-                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">5K: <span className="font-mono text-white">{formatTimeHMS(equivalents['5K'])}</span></span>
-                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">10K: <span className="font-mono text-white">{formatTimeHMS(equivalents['10K'])}</span></span>
-                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">15K: <span className="font-mono text-white">{formatTimeHMS(equivalents['15K'])}</span></span>
-                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">HM: <span className="font-mono text-white">{formatTimeHMS(equivalents['Half Marathon'])}</span></span>
-                                <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded">Marathon: <span className="font-mono text-white">{formatTimeHMS(equivalents['Marathon'])}</span></span>
+                <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-200 space-y-6">
+
+                    {/* ── Race Paces ── */}
+                    {racePaces.length > 0 && (
+                        <div>
+                            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Race Paces</div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {racePaces.map(({ label, paceKm, time, isGoal }) => (
+                                    <div
+                                        key={label}
+                                        className={clsx(
+                                            "p-3 rounded-lg border flex flex-col gap-1 transition-colors",
+                                            isGoal
+                                                ? "bg-indigo-500/10 border-indigo-500/40 ring-1 ring-indigo-500/20"
+                                                : "bg-slate-950 border-slate-800 hover:border-slate-700"
+                                        )}
+                                    >
+                                        <span className={clsx(
+                                            "text-xs font-bold uppercase tracking-wider",
+                                            isGoal ? "text-indigo-400" : "text-slate-500"
+                                        )}>
+                                            {label}{isGoal && " ★"}
+                                        </span>
+                                        <span className={clsx(
+                                            "font-mono font-bold text-base leading-none",
+                                            isGoal ? "text-indigo-200" : "text-slate-200"
+                                        )}>
+                                            {formatRacePace(paceKm)}
+                                        </span>
+                                        <span className="text-[11px] text-slate-500 font-mono">
+                                            {formatTimeHMS(time)}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {Object.entries(paces).map(([zone, range]) => {
-                            if (!range) return null;
-                            return (
-                                <div key={zone} className="bg-slate-950 border border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-700 transition-colors">
-                                    <span className={clsx(
-                                        "text-sm font-medium",
-                                        zone === 'Recovery' && "text-slate-400",
-                                        zone === 'General Aerobic' && "text-slate-300",
-                                        zone === 'Long Run' && "text-amber-400",
-                                        zone === 'Marathon' && "text-emerald-400 font-bold",
-                                        zone === 'Lactate Threshold' && "text-orange-400",
-                                        zone === 'VO2 Max' && "text-rose-400",
-                                        zone.includes('Speed') && "text-purple-400"
-                                    )}>{zone}</span>
-                                    <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
-                                        {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
-                                    </span>
-                                </div>
-                            );
-                        })}
+                    {/* ── Training Zones ── */}
+                    <div>
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Training Zones</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {Object.entries(filteredPaces).map(([zone, range]) => {
+                                if (!range) return null;
+                                return (
+                                    <div key={zone} className="bg-slate-950 border border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-700 transition-colors">
+                                        <span className={clsx(
+                                            "text-sm font-medium",
+                                            zone === 'Recovery' && "text-slate-400",
+                                            zone === 'General Aerobic' && "text-slate-300",
+                                            zone === 'Long Run' && "text-amber-400",
+                                            zone === 'Marathon' && "text-emerald-400 font-bold",
+                                            zone === 'Race Equivalent' && "text-emerald-400 font-bold",
+                                            zone === 'Lactate Threshold' && "text-orange-400",
+                                            zone === 'VO2 Max' && "text-rose-400",
+                                            zone.includes('Speed') && "text-purple-400"
+                                        )}>{zone}</span>
+                                        <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
+                                            {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+
                 </div>
             )}
         </div>
