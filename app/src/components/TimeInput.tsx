@@ -13,33 +13,40 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
     const containerRef = useRef<HTMLDivElement>(null);
     const firstInputRef = useRef<HTMLInputElement>(null);
 
-    // Internal state for the individual fields
-    const [h, setH] = useState(0);
-    const [m, setM] = useState(0);
-    const [s, setS] = useState(0);
-
-    // Parse the incoming "H:MM:SS" (or similar) string into numbers
-    useEffect(() => {
-        if (!value) return;
-
-        const parts = value.split(':').map(p => parseInt(p, 10));
+    const parseValue = (val: string) => {
+        if (!val) return { hours: 0, mins: 0, secs: 0 };
+        const parts = val.split(':').map(p => parseInt(p, 10));
         let hours = 0, mins = 0, secs = 0;
-
         if (parts.length === 3) {
             [hours, mins, secs] = parts;
         } else if (parts.length === 2) {
-            [hours, mins] = parts;
+            [mins, secs] = parts;
+            hours = 0;
         } else if (parts.length === 1 && !isNaN(parts[0])) {
-            // Fallback for raw seconds or pure minutes? 
-            // Existing logic seemed a bit fuzzy, let's assume if it came from us it's formatted.
-            // If it's effectively empty 0, just set 0.
             hours = parts[0];
         }
+        return {
+            hours: isNaN(hours) ? 0 : hours,
+            mins: isNaN(mins) ? 0 : mins,
+            secs: isNaN(secs) ? 0 : secs,
+        };
+    };
 
-        setH(isNaN(hours) ? 0 : hours);
-        setM(isNaN(mins) ? 0 : mins);
-        setS(isNaN(secs) ? 0 : secs);
-    }, [value]);
+    const [prevValue, setPrevValue] = useState<string>(value);
+    const initialParsed = parseValue(value);
+
+    // Internal state for the individual fields
+    const [h, setH] = useState(initialParsed.hours);
+    const [m, setM] = useState(initialParsed.mins);
+    const [s, setS] = useState(initialParsed.secs);
+
+    if (value !== prevValue) {
+        setPrevValue(value);
+        const { hours, mins, secs } = parseValue(value);
+        setH(hours);
+        setM(mins);
+        setS(secs);
+    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -114,6 +121,9 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                     readOnly
                     value={displayValue}
                     onClick={() => setIsOpen(!isOpen)}
+                    aria-label="Race result time"
+                    aria-expanded={isOpen}
+                    aria-haspopup="dialog"
                     className={clsx(
                         "w-full bg-slate-900 border border-slate-700 group-hover:border-slate-600 rounded-lg px-3 py-2 text-sm text-center font-mono cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
                         isOpen && "ring-2 ring-rose-500/50 border-rose-500/50"
@@ -136,6 +146,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                                 type="number"
                                 min={0}
                                 value={h}
+                                aria-label="Hours"
                                 onChange={(e) => updateTime(Math.max(0, parseInt(e.target.value) || 0), m, s)}
                                 onWheel={(e) => handleWheel(e, 'h')}
                                 className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-2 text-center text-xl text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"
@@ -149,6 +160,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                                 min={0}
                                 max={59}
                                 value={m}
+                                aria-label="Minutes"
                                 onChange={(e) => updateTime(h, Math.max(0, Math.min(59, parseInt(e.target.value) || 0)), s)}
                                 onWheel={(e) => handleWheel(e, 'm')}
                                 className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-2 text-center text-xl text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"
@@ -162,6 +174,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                                 min={0}
                                 max={59}
                                 value={s}
+                                aria-label="Seconds"
                                 onChange={(e) => updateTime(h, m, Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
                                 onWheel={(e) => handleWheel(e, 's')}
                                 className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-2 text-center text-xl text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"

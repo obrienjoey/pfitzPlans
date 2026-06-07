@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: 'RacePlans',
         short_name: 'RacePlans',
-        description: 'Interactive Marathon & Half Marathon Training Plans',
+        description: 'Interactive Running Training Plans (5K, 10K, Half Marathon, Marathon)',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

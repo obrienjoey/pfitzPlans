@@ -2,6 +2,7 @@ import type { RenderedWeek } from '../types';
 import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
 import type { TrainingPaces } from '../lib/paceCalculator';
+import { KM_PER_MILE } from '../lib/constants';
 
 export const WeekCard = ({
     week,
@@ -18,7 +19,9 @@ export const WeekCard = ({
 }) => {
     const { units } = usePlanStore();
     const isMetric = units === 'km';
-    const KM_PER_MILE = 1.60934;
+
+    const today = new Date();
+    const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
 
     // UseDroppable context for this week (optional, but good for structure)
     // Actually, we drop onto specific days, so maybe not strictly needed on the week container 
@@ -38,11 +41,16 @@ export const WeekCard = ({
         : Math.round(totalDistSource);
 
     return (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="bg-slate-950/50 px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b border-slate-800">
+        <div className={`bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-800'}`}>
+            <div className={`px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b ${isCurrentWeek ? 'bg-indigo-950/20 border-indigo-500/20' : 'bg-slate-950/50 border-slate-800'}`}>
                 <div>
                     <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 sm:gap-3">
                         <span>Week {week.weekNumber}</span>
+                        {isCurrentWeek && (
+                            <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-[10px] sm:text-xs rounded-full font-bold whitespace-nowrap animate-pulse">
+                                CURRENT WEEK
+                            </span>
+                        )}
                         <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] sm:text-xs rounded-full font-normal whitespace-nowrap">
                             {week.weeksToGoal < 1 ? 'Recovery Week' : week.weeksToGoal === 1 ? 'Race Week' : `${week.weeksToGoal} Weeks to Goal`}
                         </span>

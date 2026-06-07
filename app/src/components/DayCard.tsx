@@ -1,11 +1,10 @@
 import type { RenderedWorkout, Distance } from '../types';
 import clsx from 'clsx';
-import { formatPlanLabel } from '../lib/formatters';
+import { formatPlanLabel, formatPaceRange } from '../lib/formatters';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getPaceZone, formatTime, type TrainingPaces } from '../lib/paceCalculator';
-
-const KM_PER_MILE = 1.60934;
+import { getPaceZone, type TrainingPaces } from '../lib/paceCalculator';
+import { KM_PER_MILE } from '../lib/constants';
 
 const convert = (val: number, toMetric: boolean) => {
     if (toMetric) return Math.round(val * KM_PER_MILE * 10) / 10;
@@ -23,8 +22,6 @@ const formatDistance = (dist?: Distance, units: 'mi' | 'km' = 'mi') => {
     }
     return `${convert(dist[0], isMetric)}–${convert(dist[1], isMetric)} ${label}`;
 };
-
-const KM_TO_MILE = 1.60934;
 
 interface DayCardProps {
     workout: RenderedWorkout;
@@ -54,6 +51,7 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: D
         transition,
         opacity: isDragging ? 0.3 : 1,
         zIndex: isDragging ? 10 : undefined,
+        touchAction: isDragging ? 'none' : 'auto',
     };
 
     const isRest = workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
@@ -61,6 +59,8 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: D
     const isLongRun = workout.tags?.includes('Long Run');
 
     const displayDate = date || workout.date;
+    const today = new Date();
+    const isToday = today.toDateString() === new Date(displayDate).toDateString();
 
     const displayTitle = formatPlanLabel(workout.title, units);
 
@@ -68,20 +68,9 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: D
     const zone = getPaceZone(workout.title, workout.tags);
     const paceRange = (paces && zone) ? paces[zone] : null;
 
-    const formatPaceRange = (range: { min: number, max: number }) => {
-        if (units === 'km') {
-            if (range.min === range.max) return formatTime(range.min);
-            return `${formatTime(range.min)}-${formatTime(range.max)}`;
-        }
-        const minMile = range.min * KM_TO_MILE;
-        const maxMile = range.max * KM_TO_MILE;
-        if (range.min === range.max) return formatTime(minMile);
-        return `${formatTime(minMile)}-${formatTime(maxMile)}`;
-    };
-
     const paceString = (paceRange && zone === 'Recovery')
-        ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min })}`
-        : paceRange ? formatPaceRange(paceRange) : null;
+        ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min }, units, false)}`
+        : paceRange ? formatPaceRange(paceRange, units, false) : null;
 
     // If no ID is passed, this is likely the DragOverlay copy, so we render a "clean" div without ref/listeners
     const wrapperProps = id ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
@@ -90,22 +79,27 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive }: D
         <div
             {...wrapperProps}
             className={clsx(
-                "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none touch-none", // touch-none is key for mobile DnD
+                "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none",
                 isRest
                     ? "bg-slate-900/30 border-slate-800/50 text-slate-500"
                     : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60 text-slate-200",
                 isRace && "border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 ring-1 ring-rose-500/20",
                 isLongRun && "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10",
+                isToday && "border-indigo-500 bg-slate-850 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-950/40 z-10 text-white",
                 isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
                 isActive && "opacity-20 grayscale-[0.5]"
             )}
         >
-            {/* Drag Handle (visible on hover or always?) - simpler to make whole card draggable for now */}
+            {isToday && (
+                <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-indigo-500 text-white font-extrabold text-[8px] rounded shadow-md tracking-wider animate-pulse z-20">
+                    TODAY
+                </span>
+            )}
 
             {/* Date Header */}
             <div className="flex justify-between items-start mb-3">
-                <div className="text-xs font-semibold uppercase tracking-wider opacity-60">
-                    {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                <div className="text-xs font-semibold uppercase tracking-wider opacity-60 flex items-center gap-1.5">
+                    {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
                 </div>
                 {workout.distance && (
                     <div className={clsx(

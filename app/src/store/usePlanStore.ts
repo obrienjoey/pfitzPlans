@@ -23,6 +23,34 @@ interface PlanState {
     moveWorkout: (fromWeekIndex: number, fromDayIndex: number, toWeekIndex: number, toDayIndex: number) => void;
 }
 
+interface PersistedWorkout {
+    date: string;
+    [key: string]: unknown;
+}
+
+interface PersistedWeek {
+    weekStart: string;
+    weekEnd: string;
+    workouts: PersistedWorkout[];
+    [key: string]: unknown;
+}
+
+interface PersistedSchedule {
+    raceDate: string;
+    startDate: string;
+    weeks: PersistedWeek[];
+    [key: string]: unknown;
+}
+
+interface PersistedState {
+    selectedPlanId?: string;
+    raceDate?: string | null;
+    units?: 'mi' | 'km';
+    raceInput?: RaceInputState | null;
+    currentSchedule?: PersistedSchedule | null;
+    goalTime?: string;
+}
+
 export const usePlanStore = create<PlanState>()(
     persist(
         (set, get) => ({
@@ -40,8 +68,8 @@ export const usePlanStore = create<PlanState>()(
                 const updates: Partial<PlanState> = { selectedPlanId: id };
 
                 const DEFAULT_RACE_INPUTS: Record<string, RaceInputState> = {
-                    'Marathon': { distance: '10K', time: '0:45:00' },
-                    'Half Marathon': { distance: '5K', time: '0:22:00' },
+                    'Marathon': { distance: 'Marathon', time: '3:30:00' },
+                    'Half Marathon': { distance: 'Half Marathon', time: '1:45:00' },
                     '5K': { distance: '5K', time: '0:20:00' },
                     '10K': { distance: '10K', time: '0:45:00' },
                 };
@@ -105,16 +133,19 @@ export const usePlanStore = create<PlanState>()(
                     currentSchedule: state.currentSchedule,
                 };
             },
-            merge: (persistedState: any, currentState) => {
-                const revivedSchedule = persistedState.currentSchedule ? {
-                    ...persistedState.currentSchedule,
-                    raceDate: new Date(persistedState.currentSchedule.raceDate),
-                    startDate: new Date(persistedState.currentSchedule.startDate),
-                    weeks: persistedState.currentSchedule.weeks.map((week: any) => ({
+            merge: (persistedState: unknown, currentState) => {
+                const pState = persistedState as PersistedState;
+                if (!pState) return currentState;
+
+                const revivedSchedule = pState.currentSchedule ? {
+                    ...pState.currentSchedule,
+                    raceDate: new Date(pState.currentSchedule.raceDate),
+                    startDate: new Date(pState.currentSchedule.startDate),
+                    weeks: pState.currentSchedule.weeks.map((week) => ({
                         ...week,
                         weekStart: new Date(week.weekStart),
                         weekEnd: new Date(week.weekEnd),
-                        workouts: week.workouts.map((workout: any) => ({
+                        workouts: week.workouts.map((workout) => ({
                             ...workout,
                             date: new Date(workout.date)
                         }))
@@ -122,26 +153,37 @@ export const usePlanStore = create<PlanState>()(
                 } : null;
                 
                 // Backwards compat: if old "goalTime" exists but no "raceInput" yet
-                let mergedRaceInput = persistedState.raceInput;
-                if (!mergedRaceInput && persistedState.goalTime) {
-                    const planId = persistedState.selectedPlanId || currentState.selectedPlanId;
+                let mergedRaceInput = pState.raceInput;
+                if (!mergedRaceInput && pState.goalTime) {
+                    const planId = pState.selectedPlanId || currentState.selectedPlanId;
                     const planType = AVAILABLE_PLANS.find(p => p.id === planId)?.type;
                     if (planType === 'Half Marathon') {
-                        mergedRaceInput = { distance: 'Half Marathon', time: persistedState.goalTime };
+                        mergedRaceInput = { distance: 'Half Marathon', time: pState.goalTime };
                     } else if (planType === '5K') {
-                        mergedRaceInput = { distance: '5K', time: persistedState.goalTime };
+                        mergedRaceInput = { distance: '5K', time: pState.goalTime };
                     } else if (planType === '10K') {
-                        mergedRaceInput = { distance: '10K', time: persistedState.goalTime };
+                        mergedRaceInput = { distance: '10K', time: pState.goalTime };
                     } else {
-                        mergedRaceInput = { distance: 'Marathon', time: persistedState.goalTime };
+                        mergedRaceInput = { distance: 'Marathon', time: pState.goalTime };
                     }
+                }
+
+                let revivedRaceDate = pState.raceDate ? new Date(pState.raceDate) : null;
+                if (revivedRaceDate && (isNaN(revivedRaceDate.getTime()) || revivedRaceDate.getFullYear() < 2020 || revivedRaceDate.getFullYear() > 2050)) {
+                    revivedRaceDate = null;
+                }
+
+                // If the schedule date is corrupted, discard the schedule too
+                let finalRevivedSchedule = revivedSchedule;
+                if (revivedSchedule && revivedSchedule.raceDate && (isNaN(revivedSchedule.raceDate.getTime()) || revivedSchedule.raceDate.getFullYear() < 2020 || revivedSchedule.raceDate.getFullYear() > 2050)) {
+                    finalRevivedSchedule = null;
                 }
 
                 return {
                     ...currentState,
-                    ...persistedState,
-                    raceDate: persistedState.raceDate ? new Date(persistedState.raceDate) : null,
-                    currentSchedule: revivedSchedule,
+                    ...pState,
+                    raceDate: revivedRaceDate,
+                    currentSchedule: finalRevivedSchedule as unknown as RenderedPlan,
                     raceInput: mergedRaceInput || currentState.raceInput,
                 }
             }

@@ -90,6 +90,8 @@ export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: {
         <div className="w-full bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden mb-8 transition-all">
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label="Toggle training paces details"
+                aria-expanded={isOpen}
                 className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800/50 transition-colors"
                 title="Toggle Pace Chart"
             >

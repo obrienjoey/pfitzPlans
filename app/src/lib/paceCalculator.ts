@@ -94,12 +94,30 @@ function parsePaceToSec(pace: string): number {
 export function frrTrainingPaces(t10: number): TrainingPaces {
     let lower: FRRRow = FRR_ROWS[0];
     let upper: FRRRow = FRR_ROWS[FRR_ROWS.length - 1];
-    let row: any = {};
+    const row: Record<string, number> = {};
 
     if (t10 <= lower.k10) {
-        row = lower;
+        row.ltLo = parsePaceToSec(lower.ltLo);
+        row.ltHi = parsePaceToSec(lower.ltHi);
+        row.lrEarly = parsePaceToSec(lower.lrEarly);
+        row.lrLatter = parsePaceToSec(lower.lrLatter);
+        row.v400f = lower.v400f;
+        row.v400s = lower.v400s;
+        row.s300f = lower.s300f;
+        row.s300s = lower.s300s;
+        row.s200f = lower.s200f;
+        row.s200s = lower.s200s;
     } else if (t10 >= upper.k10) {
-        row = upper;
+        row.ltLo = parsePaceToSec(upper.ltLo);
+        row.ltHi = parsePaceToSec(upper.ltHi);
+        row.lrEarly = parsePaceToSec(upper.lrEarly);
+        row.lrLatter = parsePaceToSec(upper.lrLatter);
+        row.v400f = upper.v400f;
+        row.v400s = upper.v400s;
+        row.s300f = upper.s300f;
+        row.s300s = upper.s300s;
+        row.s200f = upper.s200f;
+        row.s200s = upper.s200s;
     } else {
         for (let i = 0; i < FRR_ROWS.length - 1; i++) {
             if (t10 >= FRR_ROWS[i].k10 && t10 <= FRR_ROWS[i + 1].k10) {
@@ -123,10 +141,10 @@ export function frrTrainingPaces(t10: number): TrainingPaces {
         row.s200s = lerp(lower.s200s, upper.s200s, f);
     }
     
-    const ltLoMi = typeof row.ltLo === 'string' ? parsePaceToSec(row.ltLo) : row.ltLo;
-    const ltHiMi = typeof row.ltHi === 'string' ? parsePaceToSec(row.ltHi) : row.ltHi;
-    const lrEarlyMi = typeof row.lrEarly === 'string' ? parsePaceToSec(row.lrEarly) : row.lrEarly;
-    const lrLatterMi = typeof row.lrLatter === 'string' ? parsePaceToSec(row.lrLatter) : row.lrLatter;
+    const ltLoMi = row.ltLo;
+    const ltHiMi = row.ltHi;
+    const lrEarlyMi = row.lrEarly;
+    const lrLatterMi = row.lrLatter;
     
     const miToKm = 1 / 1.609344;
     

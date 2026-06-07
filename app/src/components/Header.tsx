@@ -27,6 +27,7 @@ export const Header = () => {
                     <select
                         value={selectedPlanId}
                         onChange={(e) => setPlanId(e.target.value)}
+                        aria-label="Select training plan"
                         className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                     >
                         {AVAILABLE_PLANS.map(plan => (
@@ -36,6 +37,7 @@ export const Header = () => {
 
                     <button
                         onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
+                        aria-label="Toggle units of measurement"
                         className="flex-none px-3 py-2 bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg text-sm font-medium text-slate-300 transition-colors w-12"
                         title="Toggle Units"
                     >
@@ -45,11 +47,13 @@ export const Header = () => {
                     {raceDate && (
                         <div className="flex gap-1 items-center">
                             <select 
+                                aria-label="Select race distance"
                                 className="bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                                 value={raceInput?.distance}
                                 onChange={(e) => {
                                     const state = usePlanStore.getState();
-                                    state.setRaceInput(state.raceInput ? { ...state.raceInput, distance: e.target.value as any } : { distance: e.target.value as any, time: '45:00' });
+                                    const val = e.target.value as '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon';
+                                    state.setRaceInput(state.raceInput ? { ...state.raceInput, distance: val } : { distance: val, time: '45:00' });
                                 }}
                             >
                                 <option>5K</option>

@@ -50,13 +50,13 @@ describe('usePlanStore', () => {
     it('swaps raceInput when race type changes', () => {
         const { setPlanId } = usePlanStore.getState();
 
-        // Start with marathon plan selected, race input is default "0:45:00" for 10K
-        usePlanStore.setState({ selectedPlanId: 'pfitz_18_55_4th', raceInput: { distance: '10K', time: '0:45:00' } });
+        // Start with marathon plan selected
+        usePlanStore.setState({ selectedPlanId: 'pfitz_18_55_4th', raceInput: { distance: 'Marathon', time: '3:30:00' } });
 
         // Switch to half marathon plan
         setPlanId('pfitz_half_12_63');
-        expect(usePlanStore.getState().raceInput?.distance).toBe('5K');
-        expect(usePlanStore.getState().raceInput?.time).toBe('0:22:00');
+        expect(usePlanStore.getState().raceInput?.distance).toBe('Half Marathon');
+        expect(usePlanStore.getState().raceInput?.time).toBe('1:45:00');
         expect(usePlanStore.getState().selectedPlanId).toBe('pfitz_half_12_63');
 
         // Switch to 5K plan
@@ -67,8 +67,8 @@ describe('usePlanStore', () => {
 
         // Switch back to marathon plan
         setPlanId('pfitz_18_70_4th');
-        expect(usePlanStore.getState().raceInput?.distance).toBe('10K');
-        expect(usePlanStore.getState().raceInput?.time).toBe('0:45:00');
+        expect(usePlanStore.getState().raceInput?.distance).toBe('Marathon');
+        expect(usePlanStore.getState().raceInput?.time).toBe('3:30:00');
         expect(usePlanStore.getState().selectedPlanId).toBe('pfitz_18_70_4th');
 
         // Switch to another marathon plan (should not change customized race input)

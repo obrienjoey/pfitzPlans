@@ -25,17 +25,17 @@ interface DatePickerProps {
 export const DatePicker = ({ value, onChange, className, placeholder = "Select date..." }: DatePickerProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value || new Date());
-    const [inputValue, setInputValue] = useState('');
+    const [prevValue, setPrevValue] = useState<Date | null>(value);
+    const [inputValue, setInputValue] = useState(value ? format(value, 'MMM d, yyyy') : '');
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    if (value !== prevValue) {
+        setPrevValue(value);
+        setInputValue(value ? format(value, 'MMM d, yyyy') : '');
         if (value) {
-            setInputValue(format(value, 'MMM d, yyyy'));
             setCurrentMonth(value);
-        } else {
-            setInputValue('');
         }
-    }, [value]);
+    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -85,6 +85,9 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     onChange={handleInputChange}
                     onClick={() => setIsOpen(true)}
                     placeholder={placeholder}
+                    aria-label="Target race date"
+                    aria-expanded={isOpen}
+                    aria-haspopup="grid"
                     className={clsx(
                         "w-full bg-slate-950 border border-slate-700 group-hover:border-slate-600 rounded-xl pr-4 text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
                         isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
@@ -103,7 +106,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
             {isOpen && (
                 <div className="absolute top-full right-0 mt-2 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between mb-4">
-                        <button onClick={prevMonth} className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
+                        <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
                             </svg>
@@ -111,7 +114,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                         <span className="font-bold text-white">
                             {format(currentMonth, 'MMMM yyyy')}
                         </span>
-                        <button onClick={nextMonth} className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
+                        <button onClick={nextMonth} aria-label="Next month" className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
                             </svg>

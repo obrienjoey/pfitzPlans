@@ -16,7 +16,6 @@ describe('calculateSchedule', () => {
             ]
         };
         const raceDate = new Date('2026-06-15'); // local date
-        const normalizedRaceDate = startOfDay(raceDate);
         const schedule = calculateSchedule(mockPlan, raceDate);
 
         // Since total weeks = 2, and no goal race is found, it defaults to aligning the last day (Sunday of last week) to the raceDate.
@@ -52,7 +51,6 @@ describe('calculateSchedule', () => {
         // daysToGoal = (1 * 7) + 0 = 7.
         // programStartDate = raceDate - 7 days = June 8.
         // So the goal race workout should fall exactly on raceDate (June 15).
-        const expectedStartDate = new Date('2026-06-08');
         expect(schedule.weeks[1].workouts[0].title).toBe('8K or 10K goal race {11:18}');
         expect(schedule.weeks[1].workouts[0].date.toISOString()).toBe(normalizedRaceDate.toISOString());
         expect(schedule.weeks[2].workouts[0].date.toISOString()).toBe(startOfDay(new Date('2026-06-22')).toISOString());

@@ -1,0 +1,43 @@
+name: Suggest a New Plan
+description: Suggest adding a new training plan to the app
+title: "[New Plan]: "
+labels: ["new plan"]
+body:
+  - type: input
+    id: plan-name
+    attributes:
+      label: Plan Name
+      description: What is the name of the plan? (e.g. Daniels 2Q Marathon Plan)
+      placeholder: e.g. Jack Daniels 2Q Up to 55 mi
+    validations:
+      required: true
+  - type: dropdown
+    id: plan-type
+    attributes:
+      label: Distance / Type
+      description: What distance or type is this plan?
+      options:
+        - 5K
+        - 10K
+        - Half Marathon
+        - Marathon
+        - Base Training
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source/Book Information
+      description: Please share details about the book, author, or online source where the plan is defined.
+      placeholder: e.g. Jack Daniels' Running Formula, 4th Edition
+    validations:
+      required: true
+  - type: textarea
+    id: plan-schedule
+    attributes:
+      label: Plan Schedule Description
+      description: Provide the weeks, weekly volume, or workout details if possible. Alternatively, links to resources or spreadsheets are welcome!
+      placeholder: Describe the weeks and workouts...
+    validations:
+      required: true

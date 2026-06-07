@@ -8,6 +8,7 @@ import type { Plan } from '../types';
 import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
 import { PaceChart } from './PaceChart';
+import { MileageChart } from './MileageChart';
 import {
     DndContext,
     DragOverlay,
@@ -17,7 +18,8 @@ import {
     TouchSensor,
     closestCenter,
     type DragEndEvent,
-    type DragStartEvent
+    type DragStartEvent,
+    type DragOverEvent
 } from '@dnd-kit/core';
 import { DayCard } from './DayCard';
 
@@ -60,7 +62,7 @@ export const PlanViewer = () => {
             }
         };
         load();
-    }, [selectedPlanId]);
+    }, [selectedPlanId, setSchedule]);
 
     const data = useMemo(() => {
         if (!raceInput || !plan) return null;
@@ -86,7 +88,7 @@ export const PlanViewer = () => {
         setActiveId(event.active.id as string);
     };
 
-    const handleDragOver = (event: any) => {
+    const handleDragOver = (event: DragOverEvent) => {
         setOverId(event.over?.id as string || null);
     };
 
@@ -166,6 +168,8 @@ export const PlanViewer = () => {
                         )}
                     </div>
                 </div>
+
+                <MileageChart weeks={currentSchedule.weeks} units={units} />
 
                 <PaceChart paces={paces || undefined} equivalents={equivalents || undefined} />
 
