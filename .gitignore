@@ -16,4 +16,8 @@
 .env.local
 .env.*.local
 
-*.md
+# Plan implementation docs
+MULTI_PLAN_IMPLEMENTATION_PLAN.md
+PHASE_2_IMPLEMENTATION_PLAN.md
+PHASE_3_IMPLEMENTATION_PLAN.md
+implementation_plan.md
