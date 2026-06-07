@@ -44,7 +44,7 @@ export const WeekCard = ({
                     <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 sm:gap-3">
                         <span>Week {week.weekNumber}</span>
                         <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] sm:text-xs rounded-full font-normal whitespace-nowrap">
-                            {week.weeksToGoal === 0 || week.weeksToGoal === 1 ? 'Race Week' : `${week.weeksToGoal} Weeks to Goal`}
+                            {week.weeksToGoal < 1 ? 'Recovery Week' : week.weeksToGoal === 1 ? 'Race Week' : `${week.weeksToGoal} Weeks to Goal`}
                         </span>
                     </h3>
                     <div className="text-xs sm:text-sm text-slate-500 mt-0.5">

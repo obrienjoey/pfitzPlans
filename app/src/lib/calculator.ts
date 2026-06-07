@@ -6,29 +6,41 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
     const normalizedRaceDate = startOfDay(raceDate);
 
     const totalWeeks = plan.schedule.length;
-    // Assumption: The plan ends on Race Day, and Race Day is the last day (Sunday) of the plan.
-    // Last Week End = Race Date.
-    // Last Week Start = Race Date - 6 days.
-    // First Week Start = Race Date - 6 days - (N-1) weeks.
-    // Or simply: First Week Start = Race Date - (TotalWeeks * 7) + 1?
-    // Let's do it by week index.
-    // Week N-1 (last week) ends on RaceDate.
-    // Week 0 starts at: RaceDate - (TotalWeeks * 7 - 1) days?
-    // Example: 1 week plan. Ends on Sunday (Race).
-    // Starts on Monday. Days = 7.
-    // Start = Race - 6 days.
-    // 1 week * 7 = 7. Race - 7 + 1 = Race - 6. Correct.
 
-    // So StartDate (Monday of week 1) = RaceDate - (totalWeeks * 7) + 1 day
-    const programStartDate = addDays(normalizedRaceDate, -(totalWeeks * 7) + 1);
+    // Find the goal race workout to align the raceDate.
+    // Search the weeks and workouts for a title containing "goal race" or "goal marathon" (case-insensitive).
+    let goalWeekIndex = totalWeeks - 1; // default to last week
+    let goalDayIndex = 6; // default to Sunday (day 6 of week)
+    let foundGoal = false;
+
+    for (let w = 0; w < totalWeeks; w++) {
+        const week = plan.schedule[w];
+        for (let d = 0; d < week.workouts.length; d++) {
+            const workout = week.workouts[d];
+            const title = workout.title.toLowerCase();
+            if (title.includes('goal race') || title.includes('goal marathon')) {
+                goalWeekIndex = w;
+                goalDayIndex = d;
+                foundGoal = true;
+                break;
+            }
+        }
+        if (foundGoal) {
+            break;
+        }
+    }
+
+    // Days from program start to the goal race workout
+    const daysToGoal = (goalWeekIndex * 7) + goalDayIndex;
+    const programStartDate = addDays(normalizedRaceDate, -daysToGoal);
 
     const weeks: RenderedWeek[] = plan.schedule.map((week, weekIndex) => {
         const weekStart = addDays(programStartDate, weekIndex * 7);
         const weekEnd = addDays(weekStart, 6);
-        const weeksToGoal = totalWeeks - weekIndex; // 1-based "weeks to go"? Or 0 based? Usually "18 weeks to go" at start.
-        // Actually "Weeks to Goal" usually means "X weeks remaining".
-        // If I am in week 1 of 18, I have 17 weeks "to go" after this?
-        // Let's use `totalWeeks - weekIndex` -> Week 1 = 18. Last week = 1.
+        
+        // weeksToGoal is relative to the actual goal week (1 for goal week, 2 for the week before, etc.)
+        // post-race weeks will have values <= 0.
+        const weeksToGoal = goalWeekIndex - weekIndex + 1;
 
         const renderedWorkouts: RenderedWorkout[] = week.workouts.map((workout, dayIndex) => {
             const date = addDays(weekStart, dayIndex);
