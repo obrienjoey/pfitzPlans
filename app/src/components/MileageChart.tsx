@@ -44,10 +44,11 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const barWidth = 32; // Width of each bar
     const gap = 12; // Gap between bars
     const paddingX = 16;
-    const paddingY = 20;
+    const paddingTop = 40;
+    const paddingBottom = 20;
 
     const svgWidth = chartData.length * (barWidth + gap) - gap + paddingX * 2;
-    const svgHeight = height + paddingY * 2;
+    const svgHeight = height + paddingTop + paddingBottom;
 
     return (
         <div className="w-full bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 mb-8 transition-all shadow-xl">
@@ -75,7 +76,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         {chartData.map((data, index) => {
                             const barHeight = (data.volume / maxVolume) * height;
                             const x = paddingX + index * (barWidth + gap);
-                            const y = svgHeight - paddingY - barHeight;
+                            const y = svgHeight - paddingBottom - barHeight;
                             const isHovered = hoveredIndex === index;
 
                             // Color states
