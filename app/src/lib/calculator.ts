@@ -49,7 +49,7 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
         const weeksToGoal = goalWeekIndex - weekIndex + 1;
 
         // Clone workouts array for editing if it's the goal week and we need to swap
-        let workouts = [...week.workouts];
+        const workouts = [...week.workouts];
         if (weekIndex === goalWeekIndex && goalDayIndex !== targetDayIndex) {
             // Swap workouts so goal race is on the actual targetDayIndex (e.g. Sunday)
             const temp = workouts[goalDayIndex];
