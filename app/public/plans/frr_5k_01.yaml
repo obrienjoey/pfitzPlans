@@ -15,14 +15,17 @@ schedule:
 - workouts:
   - title: Rest or cross-training
   - title: General aerobic + speed {6:10}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {6:10}
       "6 × 12 sec uphill followed by 6 × 100 m strides"
     distance: 6.0
   - title: Endurance {8:13}
+    zone: Long Run
     distance: 8.0
   - title: Rest or cross-training
   - title: Lactate threshold {7:11}
+    zone: Lactate Threshold
     description: |-
       Lactate threshold {7:11}
       4 × 6 min LT intervals

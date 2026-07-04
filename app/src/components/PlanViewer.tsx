@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
 import { calculateSchedule } from '../lib/calculator';
-import { AVAILABLE_PLANS } from '../config';
 import type { Plan } from '../types';
 import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
@@ -24,7 +23,7 @@ import {
 import { DayCard } from './DayCard';
 
 export const PlanViewer = () => {
-    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units } = usePlanStore();
+    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export const PlanViewer = () => {
 
     useEffect(() => {
         const load = async () => {
-            const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
+            const planInfo = availablePlans.find(p => p.id === selectedPlanId);
             if (!planInfo) return;
 
             setSchedule(null);
@@ -62,7 +61,7 @@ export const PlanViewer = () => {
             }
         };
         load();
-    }, [selectedPlanId, setSchedule]);
+    }, [selectedPlanId, setSchedule, availablePlans]);
 
     const data = useMemo(() => {
         if (!raceInput || !plan) return null;
@@ -181,7 +180,13 @@ export const PlanViewer = () => {
 
                 <MileageChart weeks={currentSchedule.weeks} units={units} />
 
-                <PaceChart paces={paces || undefined} equivalents={equivalents || undefined} />
+                <PaceChart
+                    paces={paces || undefined}
+                    equivalents={equivalents || undefined}
+                    units={units}
+                    raceInput={raceInput}
+                    planType={plan?.type || 'Marathon'}
+                />
 
                 <div className="space-y-6">
                     {currentSchedule.weeks.map((week, idx) => (

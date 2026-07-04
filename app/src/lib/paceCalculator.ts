@@ -215,7 +215,8 @@ export const parseTimeString = (timeString: string | undefined): number | null =
     return null;
 }
 
-export const getPaceZone = (title: string, tags?: string[]): PaceZone | null => {
+export const getPaceZone = (title: string, tags?: string[], zone?: PaceZone): PaceZone | null => {
+    if (zone) return zone;
     const t = title.toLowerCase();
 
     // Tune-up races and goal races for non-marathon distances show no pace badge

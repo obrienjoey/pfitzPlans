@@ -1,34 +1,31 @@
-import { useMemo, useState } from 'react';
-import { usePlanStore } from '../store/usePlanStore';
+import { useState } from 'react';
 import {
-    calculateTrainingPaces,
     formatTime,
     formatTimeHMS,
-    parseTimeString,
     type TrainingPaces,
     type EquivalentTimes,
 } from '../lib/paceCalculator';
-import { AVAILABLE_PLANS } from '../config';
+import type { RaceInputState } from '../store/usePlanStore';
 import clsx from 'clsx';
 
-export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: { paces?: TrainingPaces, equivalents?: EquivalentTimes }) => {
-    const { raceInput, units, selectedPlanId } = usePlanStore();
+export interface PaceChartProps {
+    paces?: TrainingPaces;
+    equivalents?: EquivalentTimes;
+    units: 'mi' | 'km';
+    raceInput: RaceInputState | null;
+    planType: string;
+}
+
+export const PaceChart = ({
+    paces,
+    equivalents,
+    units,
+    raceInput,
+    planType
+}: PaceChartProps) => {
     const [isOpen, setIsOpen] = useState(true);
 
-    const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
-    const planType = planInfo?.type || 'Marathon';
-
-    const data = useMemo(() => {
-        if (initialPaces) return { paces: initialPaces, equivalents: initialEquivs, t10: null };
-        if (!raceInput) return null;
-        const totalSeconds = parseTimeString(raceInput.time);
-        if (!totalSeconds) return null;
-        return calculateTrainingPaces({ distance: raceInput.distance, timeSeconds: totalSeconds }, planType);
-    }, [raceInput, initialPaces, initialEquivs, planType]);
-
-    if (!data || !data.paces) return null;
-
-    const { paces, equivalents } = data;
+    if (!paces) return null;
 
     // For FRR plans (non-marathon) hide the 'Marathon' training zone — it's the
     // extrapolated marathon-equivalent pace which is not a relevant training target.

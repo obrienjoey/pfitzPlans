@@ -45,6 +45,9 @@ describe('paceCalculator', () => {
         it('identifies Lactate Threshold', () => {
             expect(getPaceZone('Lactate Threshold interval')).toBe('Lactate Threshold');
         });
+        it('uses explicit zone when provided', () => {
+            expect(getPaceZone('Some Random Title', [], 'VO2 Max')).toBe('VO2 Max');
+        });
     });
 
     describe('pace calculations', () => {

@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { AVAILABLE_PLANS } from '../config';
 import { DatePicker } from './DatePicker';
 import { TimeInput } from './TimeInput';
 
 export const Header = () => {
-    const { selectedPlanId, setPlanId, raceDate, setRaceDate } = usePlanStore();
+    const { selectedPlanId, setPlanId, raceDate, setRaceDate, availablePlans } = usePlanStore();
     const units = usePlanStore(state => state.units);
     const raceInput = usePlanStore(state => state.raceInput);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
+    const planInfo = availablePlans.find(p => p.id === selectedPlanId);
 
     return (
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60 shadow-sm transition-all text-left">
@@ -42,7 +41,7 @@ export const Header = () => {
                         aria-label="Select training plan"
                         className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                     >
-                        {AVAILABLE_PLANS.map(plan => (
+                        {availablePlans.map(plan => (
                             <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
                         ))}
                     </select>
@@ -145,7 +144,7 @@ export const Header = () => {
                                     onChange={(e) => setPlanId(e.target.value)}
                                     className="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                                 >
-                                    {AVAILABLE_PLANS.map(plan => (
+                                    {availablePlans.map(plan => (
                                         <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
                                     ))}
                                 </select>

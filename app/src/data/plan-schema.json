@@ -78,6 +78,19 @@
             "properties": {
                 "title": {"type": "string"},
                 "description": {"type": "string"},
+                "zone": {
+                    "enum": [
+                        "VO2 Max",
+                        "Lactate Threshold",
+                        "General Aerobic",
+                        "Long Run",
+                        "Marathon",
+                        "Recovery",
+                        "Speed 300m",
+                        "Speed 200m",
+                        "Race Equivalent"
+                    ]
+                },
                 "distance": {
                     "anyOf": [
                       { "type": "number" },

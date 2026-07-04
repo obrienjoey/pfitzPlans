@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { formatPlanLabel, formatPaceRange } from '../lib/formatters';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getPaceZone, type TrainingPaces } from '../lib/paceCalculator';
+import { getPaceZone, type TrainingPaces, type PaceZone } from '../lib/paceCalculator';
 import { KM_PER_MILE } from '../lib/constants';
 import { usePlanStore, type WorkoutStatus } from '../store/usePlanStore';
 
@@ -51,6 +51,7 @@ interface DayCardContentProps extends DayCardProps {
 const DayCardContent = ({
     workout,
     units,
+    id,
     date,
     paces,
     isOver,
@@ -74,7 +75,7 @@ const DayCardContent = ({
     const displayTitle = formatPlanLabel(workout.title, units);
 
     // Pace Calculation Logic
-    const zone = getPaceZone(workout.title, workout.tags);
+    const zone = getPaceZone(workout.title, workout.tags, workout.zone as PaceZone);
     const paceRange = (paces && zone) ? paces[zone] : null;
 
     const paceString = (paceRange && zone === 'Recovery')
@@ -194,6 +195,7 @@ const DayCardContent = ({
 
     return (
         <div
+            id={id}
             {...wrapperProps}
             className={clsx(
                 "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none",

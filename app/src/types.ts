@@ -5,6 +5,7 @@ export interface Workout {
     description?: string;
     distance?: Distance;
     tags?: string[];
+    zone?: string;
 }
 
 export interface Week {

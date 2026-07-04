@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AVAILABLE_PLANS } from '../config';
+import { AVAILABLE_PLANS, type PlanInfo } from '../config';
 
 import type { RenderedPlan } from '../types';
 
@@ -12,12 +12,16 @@ export interface RaceInputState {
 }
 
 interface PlanState {
+    availablePlans: PlanInfo[];
+    manifestLoaded: boolean;
     selectedPlanId: string;
     raceDate: Date | null;
     units: 'mi' | 'km';
     raceInput: RaceInputState | null;
     currentSchedule: RenderedPlan | null;
     workoutLogs: Record<string, WorkoutStatus>;
+    setAvailablePlans: (plans: PlanInfo[]) => void;
+    setManifestLoaded: (loaded: boolean) => void;
     setPlanId: (id: string) => void;
     setRaceDate: (date: Date | null) => void;
     setUnits: (units: 'mi' | 'km') => void;
@@ -59,6 +63,10 @@ interface PersistedState {
 export const usePlanStore = create<PlanState>()(
     persist(
         (set, get) => ({
+            availablePlans: AVAILABLE_PLANS,
+            manifestLoaded: false,
+            setAvailablePlans: (plans) => set({ availablePlans: plans }),
+            setManifestLoaded: (loaded) => set({ manifestLoaded: loaded }),
             selectedPlanId: 'pfitz_18_55_4th',
             raceDate: null,
             units: 'km',
@@ -66,9 +74,9 @@ export const usePlanStore = create<PlanState>()(
             currentSchedule: null,
             workoutLogs: {},
             setPlanId: (id) => {
-                const planInfo = AVAILABLE_PLANS.find(p => p.id === id);
+                const planInfo = get().availablePlans.find(p => p.id === id);
                 const newType = planInfo?.type;
-                const currentPlanInfo = AVAILABLE_PLANS.find(p => p.id === get().selectedPlanId);
+                const currentPlanInfo = get().availablePlans.find(p => p.id === get().selectedPlanId);
                 const currentType = currentPlanInfo?.type;
 
                 const updates: Partial<PlanState> = { selectedPlanId: id };
@@ -195,7 +203,7 @@ export const usePlanStore = create<PlanState>()(
                 let mergedRaceInput = pState.raceInput;
                 if (!mergedRaceInput && pState.goalTime) {
                     const planId = pState.selectedPlanId || currentState.selectedPlanId;
-                    const planType = AVAILABLE_PLANS.find(p => p.id === planId)?.type;
+                    const planType = (currentState.availablePlans || AVAILABLE_PLANS).find(p => p.id === planId)?.type;
                     if (planType === 'Half Marathon') {
                         mergedRaceInput = { distance: 'Half Marathon', time: pState.goalTime };
                     } else if (planType === '5K') {

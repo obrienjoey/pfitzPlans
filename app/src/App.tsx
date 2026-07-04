@@ -12,12 +12,31 @@ import { AVAILABLE_PLANS } from './config';
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const store = usePlanStore();
-  const { raceDate, setRaceDate, selectedPlanId, setPlanId } = store;
+  const { raceDate, setRaceDate, selectedPlanId, setPlanId, availablePlans, manifestLoaded, setAvailablePlans, setManifestLoaded } = store;
   const isInitializing = useRef(true);
+
+  // Load manifest on mount
+  useEffect(() => {
+    fetch('/plans/manifest.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch manifest');
+        return res.json();
+      })
+      .then(plans => {
+        setAvailablePlans(plans);
+        setManifestLoaded(true);
+      })
+      .catch(err => {
+        console.error(err);
+        // Fallback to static AVAILABLE_PLANS in config.ts
+        setAvailablePlans(AVAILABLE_PLANS);
+        setManifestLoaded(true);
+      });
+  }, [setAvailablePlans, setManifestLoaded]);
 
   // 1. Initialize store from URL params on mount
   useEffect(() => {
-    if (isInitializing.current) {
+    if (manifestLoaded && isInitializing.current) {
       const urlPlan = searchParams.get('plan');
       const urlDate = searchParams.get('date');
       const urlDist = searchParams.get('dist');
@@ -27,7 +46,12 @@ function App() {
       // Check if any URL params exist
       if (urlPlan || urlDate || urlDist || urlTime || urlUnits) {
         if (urlPlan) {
-          store.setPlanId(urlPlan);
+          if (availablePlans.some(p => p.id === urlPlan)) {
+            store.setPlanId(urlPlan);
+          } else {
+            // Use default plan if invalid or doesn't exist
+            store.setPlanId('pfitz_18_55_4th');
+          }
         }
         if (urlDate) {
           const parsed = parseISO(urlDate);
@@ -48,12 +72,12 @@ function App() {
       }
       isInitializing.current = false;
     }
-  }, [searchParams, store]);
+  }, [manifestLoaded, searchParams, store, availablePlans]);
 
   // 2. Sync store changes to URL params
   useEffect(() => {
     // Only sync if initialization is done
-    if (!isInitializing.current) {
+    if (manifestLoaded && !isInitializing.current) {
       const params: Record<string, string> = {};
       if (store.selectedPlanId) {
         params.plan = store.selectedPlanId;
@@ -75,6 +99,7 @@ function App() {
       setSearchParams(params, { replace: true });
     }
   }, [
+    manifestLoaded,
     store.selectedPlanId,
     store.raceDate,
     store.units,
@@ -83,8 +108,8 @@ function App() {
   ]);
 
   const defaultWeeks = useMemo(() => {
-    return AVAILABLE_PLANS.find(p => p.id === selectedPlanId)?.weeks || 18;
-  }, [selectedPlanId]);
+    return availablePlans.find(p => p.id === selectedPlanId)?.weeks || 18;
+  }, [selectedPlanId, availablePlans]);
 
   const defaultDate = useMemo(() => {
     const today = new Date();

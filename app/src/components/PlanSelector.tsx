@@ -1,9 +1,12 @@
-import { AVAILABLE_PLANS, type PlanInfo } from '../config';
+import { type PlanInfo } from '../config';
+import { usePlanStore } from '../store/usePlanStore';
 import clsx from 'clsx';
 
 export const PlanSelector = ({ selectedId, onSelect }: { selectedId: string, onSelect: (id: string) => void }) => {
+    const { availablePlans } = usePlanStore();
+
     // Group by type
-    const groupedPlans = AVAILABLE_PLANS.reduce((acc, plan) => {
+    const groupedPlans = availablePlans.reduce((acc, plan) => {
         if (!acc[plan.type]) acc[plan.type] = [];
         acc[plan.type].push(plan);
         return acc;

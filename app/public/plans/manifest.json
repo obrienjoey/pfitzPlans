@@ -1,0 +1,74 @@
+[
+  {
+    "id": "frr_5k_01",
+    "name": "Faster Road Racing: 5K Schedule 1",
+    "description": "\"5K Schedule 1: 30 to 40 Miles (48-63 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 25 to 35 miles per week. If you have been running fewer than 25 miles per week, you should follow the training schedule for building up to 30 miles per week outlined in chapter 8 before attempting this schedule. The schedule starts at 30 miles per week and gradually builds up to 40 miles with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "5K",
+    "weeks": 13,
+    "path": "plans/frr_5k_01.yaml"
+  },
+  {
+    "id": "frr_5k_02",
+    "name": "Faster Road Racing: 5K Schedule 2",
+    "description": "\"5K Schedule 2: 45 to 55 Miles (71-88 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 40 to 50 miles per week. If you have been running fewer than 40 miles per week, follow the base-training schedule in chapter 8 for building up to 45 miles per week before attempting this schedule, which starts at 45 miles per week and gradually builds up to 55 with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "5K",
+    "weeks": 13,
+    "path": "plans/frr_5k_02.yaml"
+  },
+  {
+    "id": "frr_5k_03",
+    "name": "Faster Road Racing: 5K Schedule 3",
+    "description": "\"5K Schedule 3: 60 to 70 Miles (94-111 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 55 to 65 miles per week. If you have been running fewer than 55 miles per week, you should follow the base-training schedule in chapter 8 for building up to 60 miles per week before attempting this schedule, which starts at 60 miles per week and gradually builds up to 70 miles with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "5K",
+    "weeks": 13,
+    "path": "plans/frr_5k_03.yaml"
+  },
+  {
+    "id": "frr_8k10k_01",
+    "name": "Faster Road Racing: 8K-10K Schedule 1",
+    "description": "\"8K-10K Schedule 1: 30 to 42 Miles (48-67 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 25 to 35 miles per week. If you have been running fewer than 25 miles per week, you should follow the base-training schedule in chapter 8 for building up to 30 miles per week before attempting this schedule. The schedule starts at 30 miles per week and gradually builds up to 42 miles with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "10K",
+    "weeks": 13,
+    "path": "plans/frr_8k10k_01.yaml"
+  },
+  {
+    "id": "frr_8k10k_02",
+    "name": "Faster Road Racing: 8K-10K Schedule 2",
+    "description": "\"8K-10K Schedule 2: 38 to 57 Miles (61-92 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 40 to 50 miles per week. If you have been running fewer than 40 miles per week, follow the base-training schedule in chapter 8 for building up to 45 miles per week before attempting this schedule. This schedule starts at 45 miles per week and gradually builds up to 57 miles with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "10K",
+    "weeks": 13,
+    "path": "plans/frr_8k10k_02.yaml"
+  },
+  {
+    "id": "frr_8k10k_03",
+    "name": "Faster Road Racing: 8K-10K Schedule 3",
+    "description": "\"8K-10K Schedule 3: 43 to 76 Miles (69-122 km) per Week\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete D. Pfitzinger and Philip Latter. \"This schedule is for runners who have been training 55 to 65 miles per week. If you have been running fewer than 55 miles per week, follow the base-training schedule in chapter 8 for building up to 60 miles per week before attempting this schedule. This schedule starts at 60 miles per week and gradually builds up to 76 miles with three weeks to go before your goal race. The training then tapers so you are fit and refreshed for race day.\"",
+    "type": "10K",
+    "weeks": 13,
+    "path": "plans/frr_8k10k_03.yaml"
+  },
+  {
+    "id": "pfitz_18_55_4th",
+    "name": "Pfitzinger/Douglas: Up to 55 miles per week, 18-week schedule",
+    "description": "\"Up to 55 miles per week, 18-week schedule\" from \"Advanced Marathoning (fourth edition)\" by Pete Pfitzinger and Scott Douglas",
+    "type": "Marathon",
+    "weeks": 18,
+    "path": "plans/pfitz_18_55_4th.yaml"
+  },
+  {
+    "id": "pfitz_18_70_4th",
+    "name": "Pfitzinger/Douglas: 55 to 70 Miles per Week, 18-week schedule",
+    "description": "\"55 to 70 Miles per Week, 18-week schedule\" from \"Advanced Marathoning\" (fourth edition) by Pete Pfitzinger and Scott Douglas",
+    "type": "Marathon",
+    "weeks": 18,
+    "path": "plans/pfitz_18_70_4th.yaml"
+  },
+  {
+    "id": "pfitz_half_12_63",
+    "name": "Pfitzinger/Latter: 47 to 63 Miles per Week, 12-week schedule",
+    "description": "\"46 to 63 Miles per Week, 12-week schedule\" from \"Faster Road Racing: 5K to Half Marathon\" by Pete Pfitzinger and Philip Latter",
+    "type": "Half Marathon",
+    "weeks": 12,
+    "path": "plans/pfitz_half_12_63.yaml"
+  }
+]
