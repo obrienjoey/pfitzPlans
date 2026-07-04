@@ -2,7 +2,7 @@ import type { RenderedWeek } from '../types';
 import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
 import type { TrainingPaces } from '../lib/paceCalculator';
-import { KM_PER_MILE } from '../lib/constants';
+import { calculateWeeklyVolume } from '../lib/calculator';
 
 export const WeekCard = ({
     week,
@@ -18,7 +18,6 @@ export const WeekCard = ({
     overId?: string
 }) => {
     const { units } = usePlanStore();
-    const isMetric = units === 'km';
 
     const today = new Date();
     const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
@@ -28,17 +27,7 @@ export const WeekCard = ({
     // unless we want to support dragging *between* weeks. 
     // For now, let's keep it simple.
 
-    // Calculate total volume (in source units, likely miles)
-    const totalDistSource = week.workouts.reduce((acc, day) => {
-        if (!day.distance) return acc;
-        if (typeof day.distance === 'number') return acc + day.distance;
-        return acc + ((day.distance[0] + day.distance[1]) / 2); // Average for range
-    }, 0);
-
-    // Convert total if needed
-    const displayTotal = isMetric
-        ? Math.round(totalDistSource * KM_PER_MILE * 10) / 10
-        : Math.round(totalDistSource);
+    const displayTotal = calculateWeeklyVolume(week, units);
 
     return (
         <div id={`week-card-${weekIndex}`} className={`scroll-mt-24 bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-800'}`}>
@@ -59,7 +48,7 @@ export const WeekCard = ({
                         {new Date(week.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(week.weekEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                 </div>
-                {totalDistSource > 0 && (
+                {displayTotal > 0 && (
                     <div className="text-right">
                         <div className="text-xl sm:text-2xl font-black text-slate-700">
                             {displayTotal}<span className="text-xs sm:text-sm ml-1">{units}</span>

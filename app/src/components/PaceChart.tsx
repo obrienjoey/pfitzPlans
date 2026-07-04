@@ -13,7 +13,7 @@ import clsx from 'clsx';
 
 export const PaceChart = ({ paces: initialPaces, equivalents: initialEquivs }: { paces?: TrainingPaces, equivalents?: EquivalentTimes }) => {
     const { raceInput, units, selectedPlanId } = usePlanStore();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     const planInfo = AVAILABLE_PLANS.find(p => p.id === selectedPlanId);
     const planType = planInfo?.type || 'Marathon';

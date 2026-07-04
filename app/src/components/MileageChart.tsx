@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { RenderedWeek } from '../types';
-import { KM_PER_MILE } from '../lib/constants';
+import { calculateWeeklyVolume } from '../lib/calculator';
 
 interface MileageChartProps {
     weeks: RenderedWeek[];
@@ -13,17 +13,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const chartData = useMemo(() => {
         const today = new Date();
         return weeks.map((week) => {
-            const isMetric = units === 'km';
-            const totalDistSource = week.workouts.reduce((acc, day) => {
-                if (!day.distance) return acc;
-                if (typeof day.distance === 'number') return acc + day.distance;
-                return acc + ((day.distance[0] + day.distance[1]) / 2);
-            }, 0);
-
-            const displayTotal = isMetric
-                ? Math.round(totalDistSource * KM_PER_MILE * 10) / 10
-                : Math.round(totalDistSource);
-
+            const displayTotal = calculateWeeklyVolume(week, units);
             const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
 
             return {
@@ -40,14 +30,21 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
         return max === 0 ? 1 : max;
     }, [chartData]);
 
+    const tickCount = 4;
+    const yAxisTicks = useMemo(() => {
+        const step = maxVolume / tickCount;
+        return Array.from({ length: tickCount + 1 }, (_, i) => Math.round(i * step));
+    }, [maxVolume]);
+
     const height = 140; // Height of chart area
     const barWidth = 32; // Width of each bar
     const gap = 12; // Gap between bars
-    const paddingX = 16;
+    const paddingLeft = 48; // Left padding to accommodate Y-axis labels
+    const paddingRight = 16;
     const paddingTop = 40;
     const paddingBottom = 20;
 
-    const svgWidth = chartData.length * (barWidth + gap) - gap + paddingX * 2;
+    const svgWidth = chartData.length * (barWidth + gap) - gap + paddingLeft + paddingRight;
     const svgHeight = height + paddingTop + paddingBottom;
 
     return (
@@ -73,9 +70,58 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
                         className="overflow-visible select-none"
                     >
+                        <defs>
+                            <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#818cf8" />
+                                <stop offset="100%" stopColor="#4f46e5" />
+                            </linearGradient>
+                            <linearGradient id="bar-grad-hover" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#a5b4fc" />
+                                <stop offset="100%" stopColor="#6366f1" />
+                            </linearGradient>
+                            <linearGradient id="bar-grad-current" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#f472b6" />
+                                <stop offset="100%" stopColor="#ec4899" />
+                            </linearGradient>
+                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#6366f1" floodOpacity="0.3"/>
+                            </filter>
+                            <filter id="glow-current" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#ec4899" floodOpacity="0.4"/>
+                            </filter>
+                        </defs>
+
+                        {/* Y-Axis Gridlines and Labels */}
+                        {yAxisTicks.map((val) => {
+                            const tickY = svgHeight - paddingBottom - (val / maxVolume) * height;
+                            return (
+                                <g key={`grid-group-${val}`}>
+                                    <line
+                                        x1={paddingLeft}
+                                        y1={tickY}
+                                        x2={svgWidth - paddingRight}
+                                        y2={tickY}
+                                        stroke={val === 0 ? "#475569" : "#334155"}
+                                        strokeWidth="1"
+                                        strokeDasharray={val === 0 ? undefined : "4 4"}
+                                        opacity={val === 0 ? "0.8" : "0.3"}
+                                    />
+                                    <text
+                                        x={paddingLeft - 8}
+                                        y={tickY + 3.5}
+                                        textAnchor="end"
+                                        fill="#94a3b8"
+                                        className="text-[10px] font-mono font-medium"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            );
+                        })}
+
                         {chartData.map((data, index) => {
                             const barHeight = (data.volume / maxVolume) * height;
-                            const x = paddingX + index * (barWidth + gap);
+                            const x = paddingLeft + index * (barWidth + gap);
                             const y = svgHeight - paddingBottom - barHeight;
                             const isHovered = hoveredIndex === index;
 
@@ -98,36 +144,12 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                     onMouseLeave={() => setHoveredIndex(null)}
                                     className="cursor-pointer group"
                                 >
-                                    {/* Definitions inside first item or root */}
-                                    {index === 0 && (
-                                        <defs>
-                                            <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#818cf8" />
-                                                <stop offset="100%" stopColor="#4f46e5" />
-                                            </linearGradient>
-                                            <linearGradient id="bar-grad-hover" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#a5b4fc" />
-                                                <stop offset="100%" stopColor="#6366f1" />
-                                            </linearGradient>
-                                            <linearGradient id="bar-grad-current" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#f472b6" />
-                                                <stop offset="100%" stopColor="#ec4899" />
-                                            </linearGradient>
-                                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#6366f1" floodOpacity="0.3"/>
-                                            </filter>
-                                            <filter id="glow-current" x="-20%" y="-20%" width="140%" height="140%">
-                                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#ec4899" floodOpacity="0.4"/>
-                                            </filter>
-                                        </defs>
-                                    )}
-
                                     {/* Hover tooltip / info helper overlay text */}
                                     {isHovered && (
                                         <g>
                                             {/* Tooltip Background */}
                                             <rect
-                                                x={Math.max(paddingX, x + barWidth / 2 - 50)}
+                                                x={Math.max(paddingLeft, x + barWidth / 2 - 50)}
                                                 y={y - 32}
                                                 width="100"
                                                 height="24"
@@ -139,7 +161,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                             />
                                             {/* Tooltip text */}
                                             <text
-                                                x={Math.max(paddingX + 50, x + barWidth / 2)}
+                                                x={Math.max(paddingLeft + 50, x + barWidth / 2)}
                                                 y={y - 16}
                                                 textAnchor="middle"
                                                 fill="#f8fafc"

@@ -1,5 +1,6 @@
 import { addDays, startOfDay, startOfWeek } from 'date-fns';
-import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout } from '../types';
+import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout, Week } from '../types';
+import { KM_PER_MILE } from './constants';
 
 export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
     // Normalize race date to start of day to avoid time zone weirdness
@@ -82,5 +83,17 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
         startDate: programStartDate,
         weeks
     };
+};
+
+export const calculateWeeklyVolume = (week: Week | RenderedWeek, units: 'mi' | 'km'): number => {
+    const totalDistSource = week.workouts.reduce((acc, day) => {
+        if (!day.distance) return acc;
+        if (typeof day.distance === 'number') return acc + day.distance;
+        return acc + ((day.distance[0] + day.distance[1]) / 2);
+    }, 0);
+
+    return units === 'km'
+        ? Math.round(totalDistSource * KM_PER_MILE * 10) / 10
+        : Math.round(totalDistSource);
 };
 

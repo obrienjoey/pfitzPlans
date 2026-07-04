@@ -39,24 +39,28 @@ interface DayCardProps {
     dayIndex?: number;
 }
 
-export const DayCard = ({ workout, units, id, date, paces, isOver, isActive, weekIndex, dayIndex }: DayCardProps) => {
-    // If id is provided, we hook into useSortable. If not (e.g. DragOverlay), we just render.
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging
-    } = useSortable({ id: id || '' }); // fallback empty string if no id (shouldn't happen for active items)
+interface DayCardContentProps extends DayCardProps {
+    setNodeRef?: (node: HTMLElement | null) => void;
+    style?: React.CSSProperties;
+    attributes?: any;
+    listeners?: any;
+}
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.3 : 1,
-        zIndex: isDragging ? 10 : undefined,
-        touchAction: isDragging ? 'none' : 'auto',
-    };
+const DayCardContent = ({
+    workout,
+    units,
+    id,
+    date,
+    paces,
+    isOver,
+    isActive,
+    weekIndex,
+    dayIndex,
+    setNodeRef,
+    style,
+    attributes,
+    listeners
+}: DayCardContentProps) => {
 
     const isRest = workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
     const isRace = workout.tags?.includes('Race');
@@ -184,8 +188,8 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive, wee
         );
     };
 
-    // If no ID is passed, this is likely the DragOverlay copy, so we render a "clean" div without ref/listeners
-    const wrapperProps = id ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
+    // If setNodeRef is passed, we bind the drag-and-drop properties
+    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
 
     return (
         <div
@@ -271,4 +275,40 @@ export const DayCard = ({ workout, units, id, date, paces, isOver, isActive, wee
             )}
         </div>
     );
+};
+
+const DraggableDayCard = (props: DayCardProps & { id: string }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: props.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+        zIndex: isDragging ? 10 : undefined,
+        touchAction: isDragging ? 'none' : 'auto',
+    };
+
+    return (
+        <DayCardContent
+            {...props}
+            setNodeRef={setNodeRef}
+            style={style}
+            attributes={attributes}
+            listeners={listeners}
+        />
+    );
+};
+
+export const DayCard = (props: DayCardProps) => {
+    if (props.id) {
+        return <DraggableDayCard {...props} id={props.id} />;
+    }
+    return <DayCardContent {...props} />;
 };
