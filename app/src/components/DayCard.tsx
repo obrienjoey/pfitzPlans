@@ -42,14 +42,13 @@ interface DayCardProps {
 interface DayCardContentProps extends DayCardProps {
     setNodeRef?: (node: HTMLElement | null) => void;
     style?: React.CSSProperties;
-    attributes?: any;
-    listeners?: any;
+    attributes?: Record<string, unknown>;
+    listeners?: Record<string, unknown>;
 }
 
 const DayCardContent = ({
     workout,
     units,
-    id,
     date,
     paces,
     isOver,
