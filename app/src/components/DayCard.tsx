@@ -42,8 +42,10 @@ interface DayCardProps {
 interface DayCardContentProps extends DayCardProps {
     setNodeRef?: (node: HTMLElement | null) => void;
     style?: React.CSSProperties;
-    attributes?: Record<string, unknown>;
-    listeners?: Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    attributes?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    listeners?: any;
 }
 
 const DayCardContent = ({
