@@ -4,6 +4,8 @@ import { AVAILABLE_PLANS } from '../config';
 
 import type { RenderedPlan } from '../types';
 
+export type WorkoutStatus = 'completed' | 'skipped' | 'modified' | 'none';
+
 export interface RaceInputState {
   distance: '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon';
   time: string; // "H:MM:SS" or "MM:SS"
@@ -15,12 +17,14 @@ interface PlanState {
     units: 'mi' | 'km';
     raceInput: RaceInputState | null;
     currentSchedule: RenderedPlan | null;
+    workoutLogs: Record<string, WorkoutStatus>;
     setPlanId: (id: string) => void;
     setRaceDate: (date: Date | null) => void;
     setUnits: (units: 'mi' | 'km') => void;
     setRaceInput: (input: RaceInputState | null) => void;
     setSchedule: (schedule: RenderedPlan | null) => void;
     moveWorkout: (fromWeekIndex: number, fromDayIndex: number, toWeekIndex: number, toDayIndex: number) => void;
+    setWorkoutStatus: (weekIndex: number, dayIndex: number, status: WorkoutStatus) => void;
 }
 
 interface PersistedWorkout {
@@ -49,6 +53,7 @@ interface PersistedState {
     raceInput?: RaceInputState | null;
     currentSchedule?: PersistedSchedule | null;
     goalTime?: string;
+    workoutLogs?: Record<string, WorkoutStatus>;
 }
 
 export const usePlanStore = create<PlanState>()(
@@ -59,6 +64,7 @@ export const usePlanStore = create<PlanState>()(
             units: 'km',
             raceInput: { distance: '10K', time: '0:45:00' },
             currentSchedule: null,
+            workoutLogs: {},
             setPlanId: (id) => {
                 const planInfo = AVAILABLE_PLANS.find(p => p.id === id);
                 const newType = planInfo?.type;
@@ -117,7 +123,39 @@ export const usePlanStore = create<PlanState>()(
                 toDay.distance = tempDist;
                 toDay.tags = tempTags;
 
-                return { currentSchedule: newSchedule };
+                // Swap completion status logs
+                const fromKey = `${state.selectedPlanId}-w${fromWeekIndex}-d${fromDayIndex}`;
+                const toKey = `${state.selectedPlanId}-w${toWeekIndex}-d${toDayIndex}`;
+                const newLogs = { ...state.workoutLogs };
+                const fromStatus = newLogs[fromKey];
+                const toStatus = newLogs[toKey];
+
+                if (fromStatus) {
+                    newLogs[toKey] = fromStatus;
+                } else {
+                    delete newLogs[toKey];
+                }
+
+                if (toStatus) {
+                    newLogs[fromKey] = toStatus;
+                } else {
+                    delete newLogs[fromKey];
+                }
+
+                return { 
+                    currentSchedule: newSchedule,
+                    workoutLogs: newLogs
+                };
+            }),
+            setWorkoutStatus: (weekIndex, dayIndex, status) => set((state) => {
+                const key = `${state.selectedPlanId}-w${weekIndex}-d${dayIndex}`;
+                const newLogs = { ...state.workoutLogs };
+                if (status === 'none') {
+                    delete newLogs[key];
+                } else {
+                    newLogs[key] = status;
+                }
+                return { workoutLogs: newLogs };
             }),
         }),
         {
@@ -131,6 +169,7 @@ export const usePlanStore = create<PlanState>()(
                     units: state.units,
                     raceInput: state.raceInput,
                     currentSchedule: state.currentSchedule,
+                    workoutLogs: state.workoutLogs,
                 };
             },
             merge: (persistedState: unknown, currentState) => {
@@ -185,6 +224,7 @@ export const usePlanStore = create<PlanState>()(
                     raceDate: revivedRaceDate,
                     currentSchedule: finalRevivedSchedule as unknown as RenderedPlan,
                     raceInput: mergedRaceInput || currentState.raceInput,
+                    workoutLogs: pState.workoutLogs || {},
                 }
             }
         }

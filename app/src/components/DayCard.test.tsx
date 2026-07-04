@@ -72,4 +72,19 @@ describe('DayCard Component', () => {
         // 300s is 5:00, 330s is 5:30 (handles en-dash separator)
         expect(screen.getByText(/5:00.*5:30/)).toBeInTheDocument();
     });
+
+    it('renders the status trigger button when weekIndex and dayIndex are passed', () => {
+        render(
+            <DayCard
+                workout={defaultWorkout}
+                units="mi"
+                id="week-0-day-1"
+                weekIndex={0}
+                dayIndex={1}
+            />
+        );
+
+        const trigger = screen.getByTitle('Mark workout status');
+        expect(trigger).toBeInTheDocument();
+    });
 });

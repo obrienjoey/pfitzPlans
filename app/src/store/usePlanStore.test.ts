@@ -77,4 +77,37 @@ describe('usePlanStore', () => {
         expect(usePlanStore.getState().raceInput?.distance).toBe('15K');
         expect(usePlanStore.getState().raceInput?.time).toBe('1:10:00');
     });
+
+    it('sets workout completion status', () => {
+        const { setWorkoutStatus } = usePlanStore.getState();
+        
+        // Initially empty
+        usePlanStore.setState({ workoutLogs: {} });
+        expect(usePlanStore.getState().workoutLogs).toEqual({});
+
+        // Set status
+        setWorkoutStatus(0, 0, 'completed');
+        const planId = usePlanStore.getState().selectedPlanId;
+        expect(usePlanStore.getState().workoutLogs[`${planId}-w0-d0`]).toBe('completed');
+
+        // Reset/clear status
+        setWorkoutStatus(0, 0, 'none');
+        expect(usePlanStore.getState().workoutLogs[`${planId}-w0-d0`]).toBeUndefined();
+    });
+
+    it('swaps workout completion status when moveWorkout is called', () => {
+        const { setWorkoutStatus, moveWorkout } = usePlanStore.getState();
+        const planId = usePlanStore.getState().selectedPlanId;
+
+        usePlanStore.setState({ workoutLogs: {} });
+        setWorkoutStatus(0, 0, 'completed');
+        setWorkoutStatus(0, 1, 'skipped');
+
+        // Swap workouts
+        moveWorkout(0, 0, 0, 1);
+
+        const state = usePlanStore.getState();
+        expect(state.workoutLogs[`${planId}-w0-d0`]).toBe('skipped');
+        expect(state.workoutLogs[`${planId}-w0-d1`]).toBe('completed');
+    });
 });

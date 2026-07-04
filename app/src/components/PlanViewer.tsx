@@ -84,6 +84,16 @@ export const PlanViewer = () => {
         }
     }, [plan, raceDate, setSchedule]);
 
+    const currentWeekIndex = useMemo(() => {
+        if (!currentSchedule) return -1;
+        const today = new Date();
+        return currentSchedule.weeks.findIndex(week => {
+            const start = new Date(week.weekStart);
+            const end = new Date(week.weekEnd);
+            return today >= start && today <= end;
+        });
+    }, [currentSchedule]);
+
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
     };
@@ -200,6 +210,19 @@ export const PlanViewer = () => {
                     </div>
                 ) : null}
             </DragOverlay>
+
+            {currentWeekIndex !== -1 && (
+                <button
+                    onClick={() => {
+                        document.getElementById(`week-card-${currentWeekIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-sm rounded-full shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 border border-indigo-500/30"
+                    aria-label="Jump to current week"
+                >
+                    <span>📅</span>
+                    <span>Jump to Current Week</span>
+                </button>
+            )}
         </DndContext>
     );
 };

@@ -41,7 +41,7 @@ export const WeekCard = ({
         : Math.round(totalDistSource);
 
     return (
-        <div className={`bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-800'}`}>
+        <div id={`week-card-${weekIndex}`} className={`scroll-mt-24 bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-800'}`}>
             <div className={`px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b ${isCurrentWeek ? 'bg-indigo-950/20 border-indigo-500/20' : 'bg-slate-950/50 border-slate-800'}`}>
                 <div>
                     <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 sm:gap-3">
@@ -78,6 +78,8 @@ export const WeekCard = ({
                             workout={workout}
                             units={units}
                             id={dayId}
+                            weekIndex={weekIndex}
+                            dayIndex={dayIndex}
                             paces={paces}
                             isOver={overId === dayId}
                             isActive={activeId === dayId}

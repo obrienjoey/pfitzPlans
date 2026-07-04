@@ -45,8 +45,11 @@ export const PlanSelector = ({ selectedId, onSelect }: { selectedId: string, onS
                                                 </div>
                                             )}
                                         </div>
+                                        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                            {plan.description}
+                                        </p>
                                     </div>
-                                    <div className="text-sm font-medium text-slate-400 mt-2">
+                                    <div className="text-xs font-semibold text-rose-400/80 mt-3 uppercase tracking-wider">
                                         {plan.weeks} weeks
                                     </div>
                                 </button>
