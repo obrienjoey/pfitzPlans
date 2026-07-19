@@ -116,9 +116,9 @@ export const Header = () => {
                     />
                     
                     {/* Drawer Panel */}
-                    <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up z-50">
+                    <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 rounded-t-2xl shadow-2xl p-6 space-y-6 max-h-[85vh] overflow-y-auto animate-slide-up z-50">
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-slate-800 p-6 pb-3">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                             <div>
                                 <h2 className="text-lg font-bold text-white">Plan Settings</h2>
                                 <p className="text-xs text-slate-400">Configure your training parameters</p>
@@ -134,8 +134,8 @@ export const Header = () => {
                             </button>
                         </div>
 
-                        {/* Fields (Scrollable) */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                        {/* Fields */}
+                        <div className="space-y-4">
                             {/* Plan Selector */}
                             <div className="flex flex-col gap-1.5 text-left">
                                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Training Plan</label>
@@ -215,15 +215,13 @@ export const Header = () => {
                             )}
                         </div>
 
-                        {/* Footer (Apply & Close) */}
-                        <div className="p-6 border-t border-slate-800 bg-slate-900 rounded-b-2xl">
-                            <button
-                                onClick={() => setIsDrawerOpen(false)}
-                                className="w-full py-3 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-wider shadow-lg shadow-rose-500/10"
-                            >
-                                Apply & Close
-                            </button>
-                        </div>
+                        {/* Apply & Close */}
+                        <button
+                            onClick={() => setIsDrawerOpen(false)}
+                            className="w-full py-3 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-wider shadow-lg shadow-rose-500/10"
+                        >
+                            Apply & Close
+                        </button>
                     </div>
                 </div>
             )}
