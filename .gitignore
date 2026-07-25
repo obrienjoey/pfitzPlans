@@ -21,3 +21,6 @@ MULTI_PLAN_IMPLEMENTATION_PLAN.md
 PHASE_2_IMPLEMENTATION_PLAN.md
 PHASE_3_IMPLEMENTATION_PLAN.md
 implementation_plan.md
+
+# Agent scratch directory
+.scratch/
