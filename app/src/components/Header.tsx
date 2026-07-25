@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
 import { DatePicker } from './DatePicker';
 import { TimeInput } from './TimeInput';
+import { ThemeToggle } from './ThemeToggle';
 
 export const Header = () => {
     const { selectedPlanId, setPlanId, raceDate, setRaceDate, availablePlans } = usePlanStore();
@@ -12,7 +13,7 @@ export const Header = () => {
     const planInfo = availablePlans.find(p => p.id === selectedPlanId);
 
     return (
-        <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/60 shadow-sm transition-all text-left">
+        <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/60 shadow-sm transition-colors text-left">
             <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4 max-w-5xl">
                 {/* Brand Logo & Title */}
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -22,11 +23,11 @@ export const Header = () => {
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl shadow-lg shadow-rose-500/20 object-cover"
                     />
                     <div className="flex flex-col sm:block">
-                        <h1 className="text-lg sm:text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 leading-none sm:leading-normal">
+                        <h1 className="text-lg sm:text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-400 leading-none sm:leading-normal">
                             RacePlans
                         </h1>
                         {planInfo && (
-                            <span className="text-[10px] sm:hidden text-rose-400 font-semibold leading-none mt-0.5 max-w-[150px] truncate">
+                            <span className="text-[10px] sm:hidden text-rose-500 dark:text-rose-400 font-semibold leading-none mt-0.5 max-w-[150px] truncate">
                                 {planInfo.type} · {planInfo.name}
                             </span>
                         )}
@@ -39,7 +40,7 @@ export const Header = () => {
                         value={selectedPlanId}
                         onChange={(e) => setPlanId(e.target.value)}
                         aria-label="Select training plan"
-                        className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                        className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                     >
                         {availablePlans.map(plan => (
                             <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
@@ -49,17 +50,19 @@ export const Header = () => {
                     <button
                         onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
                         aria-label="Toggle units of measurement"
-                        className="flex-none px-3 py-2 bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg text-sm font-medium text-slate-300 transition-colors w-12"
+                        className="flex-none px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors w-12"
                         title="Toggle Units"
                     >
                         {units}
                     </button>
 
+                    <ThemeToggle />
+
                     {raceDate && (
                         <div className="flex gap-1 items-center">
                             <select 
                                 aria-label="Select race distance"
-                                className="bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                                 value={raceInput?.distance}
                                 onChange={(e) => {
                                     const state = usePlanStore.getState();
@@ -162,6 +165,15 @@ export const Header = () => {
                                 >
                                     {units === 'mi' ? 'Miles (mi)' : 'Kilometers (km)'}
                                 </button>
+                            </div>
+
+                            {/* Theme Toggle */}
+                            <div className="flex items-center justify-between bg-slate-950/40 p-3 rounded-xl border border-slate-800/80 text-left">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-slate-200">Appearance</span>
+                                    <span className="text-xs text-slate-500">Switch color theme</span>
+                                </div>
+                                <ThemeToggle />
                             </div>
 
                             {/* Race Details */}

@@ -30,28 +30,28 @@ export const WeekCard = ({
     const displayTotal = calculateWeeklyVolume(week, units);
 
     return (
-        <div id={`week-card-${weekIndex}`} className={`scroll-mt-24 bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-800'}`}>
-            <div className={`px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b ${isCurrentWeek ? 'bg-indigo-950/20 border-indigo-500/20' : 'bg-slate-950/50 border-slate-800'}`}>
+        <div id={`week-card-${weekIndex}`} className={`scroll-mt-24 bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-500/10 dark:shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-200 dark:border-slate-800'}`}>
+            <div className={`px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b ${isCurrentWeek ? 'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-500/20' : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800'}`}>
                 <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 sm:gap-3">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
                         <span>Week {week.weekNumber}</span>
                         {isCurrentWeek && (
-                            <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-[10px] sm:text-xs rounded-full font-bold whitespace-nowrap animate-pulse">
+                            <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-[10px] sm:text-xs rounded-full font-bold whitespace-nowrap animate-pulse">
                                 CURRENT WEEK
                             </span>
                         )}
-                        <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] sm:text-xs rounded-full font-normal whitespace-nowrap">
+                        <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] sm:text-xs rounded-full font-normal whitespace-nowrap">
                             {week.weeksToGoal < 1 ? 'Recovery Week' : week.weeksToGoal === 1 ? 'Race Week' : `${week.weeksToGoal} Weeks to Goal`}
                         </span>
                     </h3>
-                    <div className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                         {new Date(week.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(week.weekEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                 </div>
                 {displayTotal.average > 0 && (
                     <div className="text-right">
-                        <div className="text-xl sm:text-2xl font-black text-slate-700">
-                            {displayTotal.formatted}<span className="text-xs sm:text-sm ml-1">{units}</span>
+                        <div className="text-xl sm:text-2xl font-black text-rose-500 dark:text-rose-400">
+                            {displayTotal.formatted}<span className="text-xs sm:text-sm ml-1 text-slate-500 dark:text-slate-400">{units}</span>
                         </div>
                     </div>
                 )}

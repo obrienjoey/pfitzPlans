@@ -84,26 +84,26 @@ export const PaceChart = ({
     };
 
     return (
-        <div className="w-full bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden mb-8 transition-all">
+        <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl mb-8 overflow-hidden transition-all shadow-xl">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle training paces details"
                 aria-expanded={isOpen}
-                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-800/50 transition-colors"
+                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                 title="Toggle Pace Chart"
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.732 6.232a2.5 2.5 0 013.536 0 .75.75 0 101.06-1.06A4 4 0 006.5 8v.165c0 .364.034.728.1 1.085h-.35a.75.75 0 000 1.5h.737a5.25 5.25 0 01-.367 3.072.75.75 0 001.372.608 3.75 3.75 0 00.358-2.18H10a.75.75 0 000-1.5h-1.5v-.165a2.5 2.5 0 01.232-1.048z" clipRule="evenodd" />
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-100">Training Paces</h3>
-                        <p className="text-xs text-slate-400">Based on {raceInput?.time} {raceInput?.distance} race</p>
+                        <h3 className="font-bold text-slate-900 dark:text-slate-100">Training Paces</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Based on {raceInput?.time} {raceInput?.distance} race</p>
                     </div>
                 </div>
-                <div className={clsx("text-slate-500 transition-transform duration-200", isOpen && "rotate-180")}>
+                <div className={clsx("text-slate-400 dark:text-slate-500 transition-transform duration-200", isOpen && "rotate-180")}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                         <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                     </svg>
@@ -124,19 +124,19 @@ export const PaceChart = ({
                                         className={clsx(
                                             "p-3 rounded-lg border flex flex-col gap-1 transition-colors",
                                             isGoal
-                                                ? "bg-indigo-500/10 border-indigo-500/40 ring-1 ring-indigo-500/20"
-                                                : "bg-slate-950 border-slate-800 hover:border-slate-700"
+                                                ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-500/40 ring-1 ring-indigo-500/20"
+                                                : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                                         )}
                                     >
                                         <span className={clsx(
                                             "text-xs font-bold uppercase tracking-wider",
-                                            isGoal ? "text-indigo-400" : "text-slate-500"
+                                            isGoal ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500"
                                         )}>
                                             {label}{isGoal && " ★"}
                                         </span>
                                         <span className={clsx(
                                             "font-mono font-bold text-base leading-none",
-                                            isGoal ? "text-indigo-200" : "text-slate-200"
+                                            isGoal ? "text-indigo-900 dark:text-indigo-200" : "text-slate-800 dark:text-slate-200"
                                         )}>
                                             {formatRacePace(paceKm)}
                                         </span>
@@ -156,19 +156,19 @@ export const PaceChart = ({
                             {Object.entries(filteredPaces).map(([zone, range]) => {
                                 if (!range) return null;
                                 return (
-                                    <div key={zone} className="bg-slate-950 border border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-700 transition-colors">
+                                    <div key={zone} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-lg flex justify-between items-center group hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                                         <span className={clsx(
                                             "text-sm font-medium",
-                                            zone === 'Recovery' && "text-slate-400",
-                                            zone === 'General Aerobic' && "text-slate-300",
-                                            zone === 'Long Run' && "text-amber-400",
-                                            zone === 'Marathon' && "text-emerald-400 font-bold",
-                                            zone === 'Race Equivalent' && "text-emerald-400 font-bold",
-                                            zone === 'Lactate Threshold' && "text-orange-400",
-                                            zone === 'VO2 Max' && "text-rose-400",
-                                            zone.includes('Speed') && "text-purple-400"
+                                            zone === 'Recovery' && "text-slate-500 dark:text-slate-400",
+                                            zone === 'General Aerobic' && "text-slate-700 dark:text-slate-300",
+                                            zone === 'Long Run' && "text-amber-700 dark:text-amber-400",
+                                            zone === 'Marathon' && "text-emerald-700 dark:text-emerald-400 font-bold",
+                                            zone === 'Race Equivalent' && "text-emerald-700 dark:text-emerald-400 font-bold",
+                                            zone === 'Lactate Threshold' && "text-orange-700 dark:text-orange-400",
+                                            zone === 'VO2 Max' && "text-rose-700 dark:text-rose-400",
+                                            zone.includes('Speed') && "text-purple-700 dark:text-purple-400"
                                         )}>{zone}</span>
-                                        <span className="font-mono font-bold text-slate-200 bg-slate-900 px-2 py-1 rounded text-sm">
+                                        <span className="font-mono font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-none px-2 py-1 rounded text-sm">
                                             {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
                                         </span>
                                     </div>

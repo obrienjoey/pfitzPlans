@@ -49,17 +49,17 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const svgHeight = height + paddingTop + paddingBottom;
 
     return (
-        <div className="w-full bg-slate-900/40 border border-slate-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 mb-8 transition-all shadow-xl">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-slate-800/50 pb-4">
+        <div className="w-full bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 mb-8 transition-all shadow-xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/50 pb-4">
                 <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
                         Weekly Volume Progression
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Visual representation of weekly mileage builds and tapers</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Visual representation of weekly mileage builds and tapers</p>
                 </div>
-                <div className="text-xs font-mono font-semibold text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-700/30">
-                    Units: <span className="text-indigo-400 font-bold">{units}</span>
+                <div className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700/30">
+                    Units: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{units}</span>
                 </div>
             </div>
 

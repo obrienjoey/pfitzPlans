@@ -200,18 +200,18 @@ const DayCardContent = ({
             className={clsx(
                 "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none",
                 isRest
-                    ? "bg-slate-900/30 border-slate-800/50 text-slate-500"
-                    : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60 text-slate-200",
+                    ? "bg-slate-100/60 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/50 text-slate-400 dark:text-slate-500"
+                    : "bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200",
                 isRace && "border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 ring-1 ring-rose-500/20",
                 isLongRun && "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10",
                 
                 // Status styles
-                status === 'completed' && "border-emerald-500/40 bg-emerald-950/10 hover:bg-emerald-950/20",
-                status === 'modified' && "border-amber-500/40 bg-amber-950/10 hover:bg-amber-950/20",
+                status === 'completed' && "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/10 hover:bg-emerald-100 dark:hover:bg-emerald-950/20",
+                status === 'modified' && "border-amber-500/40 bg-amber-50 dark:bg-amber-950/10 hover:bg-amber-100 dark:hover:bg-amber-950/20",
                 status === 'skipped' && "opacity-45 hover:opacity-60",
 
-                isToday && "border-indigo-500 bg-slate-850 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-950/40 z-10 text-white",
-                isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
+                isToday && "border-indigo-500 bg-indigo-50/50 dark:bg-slate-850 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/40 z-10 text-slate-900 dark:text-white",
+                isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-100 dark:bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
                 isActive && "opacity-20 grayscale-[0.5]"
             )}
         >
@@ -230,9 +230,9 @@ const DayCardContent = ({
                     {workout.distance && (
                         <div className={clsx(
                             "text-sm font-bold font-mono px-2 py-0.5 rounded",
-                            isRest ? "bg-slate-800" : "bg-slate-700 text-white",
-                            isRace && "bg-rose-500 text-white",
-                            isLongRun && "bg-amber-500/20 text-amber-200"
+                            isRest ? "bg-slate-200 dark:bg-slate-800 text-slate-500" : "bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-600",
+                            isRace && "bg-rose-500 text-white border-none",
+                            isLongRun && "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-none"
                         )}>
                             {formatDistance(workout.distance, units)}
                         </div>
@@ -243,23 +243,23 @@ const DayCardContent = ({
 
             {/* Content */}
             <div className="flex-1">
-                <h4 className={clsx("font-semibold mb-1 leading-snug", isRest ? "text-slate-500" : "text-white", status === 'skipped' && "line-through opacity-60")}>
+                <h4 className={clsx("font-semibold mb-1 leading-snug", isRest ? "text-slate-400 dark:text-slate-500" : "text-slate-900 dark:text-white", status === 'skipped' && "line-through opacity-60")}>
                     {displayTitle}
                 </h4>
                 {workout.description && (
-                    <p className={clsx("text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed", status === 'skipped' && "line-through opacity-60")}>
+                    <p className={clsx("text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors leading-relaxed", status === 'skipped' && "line-through opacity-60")}>
                         {formatPlanLabel(workout.description, units)}
                     </p>
                 )}
                 {paceString && (
                     <div className={clsx(
                         "mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-tight border shadow-sm",
-                        zone === 'Marathon' && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-                        zone === 'Lactate Threshold' && "bg-orange-500/10 text-orange-400 border-orange-500/20",
-                        zone === 'VO2 Max' && "bg-rose-500/10 text-rose-400 border-rose-500/20",
-                        zone === 'Long Run' && "bg-amber-500/10 text-amber-400 border-amber-500/20",
-                        zone === 'General Aerobic' && "bg-slate-700/30 text-slate-300 border-slate-600/30",
-                        zone === 'Recovery' && "bg-slate-800/50 text-slate-400 border-slate-700/30"
+                        zone === 'Marathon' && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+                        zone === 'Lactate Threshold' && "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
+                        zone === 'VO2 Max' && "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20",
+                        zone === 'Long Run' && "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+                        zone === 'General Aerobic' && "bg-slate-100 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600/30",
+                        zone === 'Recovery' && "bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700/30"
                     )}>
                         <span className="opacity-70">🎯</span> {paceString}/{units}
                     </div>
@@ -270,7 +270,7 @@ const DayCardContent = ({
             {workout.tags && workout.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3">
                     {workout.tags.map(tag => (
-                        <span key={tag} className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-400 border border-slate-600/30">
+                        <span key={tag} className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600/30">
                             {tag}
                         </span>
                     ))}

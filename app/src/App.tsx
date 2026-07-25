@@ -124,20 +124,20 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-rose-500 selection:text-white">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans selection:bg-rose-500 selection:text-white transition-colors duration-300">
         <Header />
 
         <main className="container mx-auto px-4 py-8 max-w-5xl">
           {!raceDate ? (
-            <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-700/50 shadow-2xl mt-12 sm:mt-16 w-full max-w-4xl mx-auto">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent mb-10 text-center">
+            <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-2xl mt-12 sm:mt-16 w-full max-w-4xl mx-auto">
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-rose-500 to-orange-500 dark:from-rose-400 dark:to-orange-400 bg-clip-text text-transparent mb-10 text-center">
                 Start Your Training
               </h2>
 
               <PlanSelector selectedId={selectedPlanId} onSelect={setPlanId} />
 
-              <div className="w-full max-w-sm mt-8 p-6 bg-slate-900/50 rounded-2xl border border-slate-700 flex flex-col items-center">
-                <p className="text-slate-300 mb-4 font-medium text-center">
+              <div className="w-full max-w-sm mt-8 p-6 bg-slate-100/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center">
+                <p className="text-slate-700 dark:text-slate-300 mb-4 font-medium text-center">
                   Select your target race date to generate your personalized schedule.
                 </p>
                 <DatePicker

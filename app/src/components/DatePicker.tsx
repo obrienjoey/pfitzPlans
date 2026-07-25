@@ -83,18 +83,17 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     type="text"
                     value={inputValue}
                     onChange={handleInputChange}
-                    onClick={() => setIsOpen(true)}
+                    onFocus={() => setIsOpen(true)}
                     placeholder={placeholder}
-                    aria-label="Target race date"
                     aria-expanded={isOpen}
                     aria-haspopup="grid"
                     className={clsx(
-                        "w-full bg-slate-950 border border-slate-700 group-hover:border-slate-600 rounded-xl pr-4 text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
+                        "w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-xl pr-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
                         isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
                     )}
                 />
                 <div className={clsx(
-                    "absolute top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none",
+                    "absolute top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none",
                     isCompact ? "left-3" : "left-4"
                 )}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={isCompact ? "w-4 h-4" : "w-5 h-5"}>
@@ -104,24 +103,24 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
             </div>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute top-full right-0 mt-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between mb-4">
-                        <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
+                        <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
                             </svg>
                         </button>
-                        <span className="font-bold text-white">
+                        <span className="font-bold text-slate-900 dark:text-white">
                             {format(currentMonth, 'MMMM yyyy')}
                         </span>
-                        <button onClick={nextMonth} aria-label="Next month" className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
+                        <button onClick={nextMonth} aria-label="Next month" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-7 mb-2 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <div className="grid grid-cols-7 mb-2 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                         {weeks.map(day => <div key={day}>{day}</div>)}
                     </div>
 
@@ -140,10 +139,10 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                                     }}
                                     className={clsx(
                                         "h-8 w-8 text-sm rounded-lg flex items-center justify-center transition-all",
-                                        !isCurrentMonth && "text-slate-600",
-                                        isCurrentMonth && !isSelected && "text-slate-300 hover:bg-slate-800 hover:text-white",
+                                        !isCurrentMonth && "text-slate-300 dark:text-slate-600",
+                                        isCurrentMonth && !isSelected && "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white",
                                         isSelected && "bg-rose-500 text-white font-bold shadow-lg shadow-rose-500/20",
-                                        isToday && !isSelected && "ring-1 ring-rose-500/30 text-rose-400"
+                                        isToday && !isSelected && "ring-1 ring-rose-500/30 text-rose-500"
                                     )}
                                 >
                                     {format(day, 'd')}
