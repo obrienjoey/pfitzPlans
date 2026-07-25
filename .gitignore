@@ -24,3 +24,6 @@ implementation_plan.md
 
 # Agent scratch directory
 .scratch/
+
+# Local agent rules
+AGENTS.md
