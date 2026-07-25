@@ -165,54 +165,52 @@ export const Header = () => {
                             </div>
 
                             {/* Race Details */}
-                            {raceDate && (
-                                <div className="border-t border-slate-800/60 pt-4 space-y-4 text-left">
-                                    {/* Distance */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
-                                        <select 
-                                            className="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
-                                            value={raceInput?.distance}
-                                            onChange={(e) => {
-                                                const state = usePlanStore.getState();
-                                                const val = e.target.value as '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon';
-                                                state.setRaceInput(state.raceInput ? { ...state.raceInput, distance: val } : { distance: val, time: '45:00' });
-                                            }}
-                                        >
-                                            <option>5K</option>
-                                            <option>10K</option>
-                                            <option>15K</option>
-                                            <option>Half Marathon</option>
-                                            <option>Marathon</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Time */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Time</label>
-                                        <TimeInput
-                                            value={raceInput?.time || ''}
-                                            onChange={(val) => {
-                                                const state = usePlanStore.getState();
-                                                state.setRaceInput(state.raceInput ? { ...state.raceInput, time: val } : { distance: '10K', time: val });
-                                            }}
-                                            raceDistance={raceInput?.distance}
-                                            className="w-full text-base"
-                                        />
-                                    </div>
-
-                                    {/* Date */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Target Race Date</label>
-                                        <DatePicker
-                                            value={raceDate}
-                                            onChange={setRaceDate}
-                                            className="w-full text-base"
-                                            placeholder="Race Date"
-                                        />
-                                    </div>
+                            <div className="border-t border-slate-800/60 pt-4 space-y-4 text-left">
+                                {/* Distance */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
+                                    <select 
+                                        className="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                        value={raceInput?.distance || '10K'}
+                                        onChange={(e) => {
+                                            const state = usePlanStore.getState();
+                                            const val = e.target.value as '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon';
+                                            state.setRaceInput(state.raceInput ? { ...state.raceInput, distance: val } : { distance: val, time: '0:45:00' });
+                                        }}
+                                    >
+                                        <option>5K</option>
+                                        <option>10K</option>
+                                        <option>15K</option>
+                                        <option>Half Marathon</option>
+                                        <option>Marathon</option>
+                                    </select>
                                 </div>
-                            )}
+
+                                {/* Time */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Time</label>
+                                    <TimeInput
+                                        value={raceInput?.time || ''}
+                                        onChange={(val) => {
+                                            const state = usePlanStore.getState();
+                                            state.setRaceInput(state.raceInput ? { ...state.raceInput, time: val } : { distance: '10K', time: val });
+                                        }}
+                                        raceDistance={raceInput?.distance}
+                                        className="w-full text-base"
+                                    />
+                                </div>
+
+                                {/* Date */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Target Race Date</label>
+                                    <DatePicker
+                                        value={raceDate}
+                                        onChange={setRaceDate}
+                                        className="w-full text-base"
+                                        placeholder="Race Date"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         {/* Apply & Close */}
