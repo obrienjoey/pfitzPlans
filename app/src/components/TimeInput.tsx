@@ -125,7 +125,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-lg px-3 py-2 text-sm text-center text-slate-900 dark:text-slate-100 font-mono cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
+                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-lg px-3 py-2 text-sm text-center text-slate-900 dark:text-slate-100 cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
                         isOpen && "ring-2 ring-rose-500/50 border-rose-500/50"
                     )}
                 />
