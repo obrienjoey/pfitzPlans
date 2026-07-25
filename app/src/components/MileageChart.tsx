@@ -18,7 +18,8 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
 
             return {
                 weekNumber: week.weekNumber,
-                volume: displayTotal,
+                volume: displayTotal.average,
+                volumeFormatted: displayTotal.formatted,
                 isCurrentWeek,
                 label: `Week ${week.weekNumber}`
             };
@@ -167,7 +168,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                                 fill="#f8fafc"
                                                 className="text-[11px] font-mono font-bold"
                                             >
-                                                {data.volume} {units}
+                                                {data.volumeFormatted} {units}
                                             </text>
                                         </g>
                                     )}

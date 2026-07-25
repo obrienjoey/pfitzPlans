@@ -48,10 +48,10 @@ export const WeekCard = ({
                         {new Date(week.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(week.weekEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                 </div>
-                {displayTotal > 0 && (
+                {displayTotal.average > 0 && (
                     <div className="text-right">
                         <div className="text-xl sm:text-2xl font-black text-slate-700">
-                            {displayTotal}<span className="text-xs sm:text-sm ml-1">{units}</span>
+                            {displayTotal.formatted}<span className="text-xs sm:text-sm ml-1">{units}</span>
                         </div>
                     </div>
                 )}

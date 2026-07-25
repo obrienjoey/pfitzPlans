@@ -8,6 +8,13 @@ export interface Workout {
     zone?: string;
 }
 
+export interface WeeklyVolume {
+    min: number;
+    max: number;
+    average: number;
+    formatted: string;
+}
+
 export interface Week {
     description?: string;
     distance?: number;

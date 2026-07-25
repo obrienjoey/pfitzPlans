@@ -1,5 +1,5 @@
 import { addDays, startOfDay, startOfWeek } from 'date-fns';
-import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout, Week } from '../types';
+import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout, Week, WeeklyVolume } from '../types';
 import { KM_PER_MILE } from './constants';
 
 export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
@@ -85,15 +85,39 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
     };
 };
 
-export const calculateWeeklyVolume = (week: Week | RenderedWeek, units: 'mi' | 'km'): number => {
-    const totalDistSource = week.workouts.reduce((acc, day) => {
-        if (!day.distance) return acc;
-        if (typeof day.distance === 'number') return acc + day.distance;
-        return acc + ((day.distance[0] + day.distance[1]) / 2);
-    }, 0);
 
-    return units === 'km'
-        ? Math.round(totalDistSource * KM_PER_MILE * 10) / 10
-        : Math.round(totalDistSource);
+
+export const calculateWeeklyVolume = (week: Week | RenderedWeek, units: 'mi' | 'km'): WeeklyVolume => {
+    let minDistSource = 0;
+    let maxDistSource = 0;
+
+    for (const day of week.workouts) {
+        if (!day.distance) continue;
+        if (typeof day.distance === 'number') {
+            minDistSource += day.distance;
+            maxDistSource += day.distance;
+        } else {
+            minDistSource += day.distance[0];
+            maxDistSource += day.distance[1];
+        }
+    }
+
+    const formatValue = (val: number): number => {
+        return units === 'km'
+            ? Math.round(val * KM_PER_MILE * 10) / 10
+            : Math.round(val);
+    };
+
+    const min = formatValue(minDistSource);
+    const max = formatValue(maxDistSource);
+    const average = Math.round(((min + max) / 2) * 10) / 10;
+    const formatted = min === max ? `${min}` : `${min} - ${max}`;
+
+    return {
+        min,
+        max,
+        average,
+        formatted
+    };
 };
 

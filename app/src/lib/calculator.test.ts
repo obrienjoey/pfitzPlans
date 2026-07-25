@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateSchedule } from './calculator';
+import { calculateSchedule, calculateWeeklyVolume } from './calculator';
 import type { Plan } from '../types';
 import { startOfDay } from 'date-fns';
 
@@ -58,5 +58,56 @@ describe('calculateSchedule', () => {
         expect(schedule.weeks[0].weeksToGoal).toBe(2); // 1 week before goal week
         expect(schedule.weeks[1].weeksToGoal).toBe(1); // Goal week (Race Week)
         expect(schedule.weeks[2].weeksToGoal).toBe(0); // Post-race week
+    });
+});
+
+describe('calculateWeeklyVolume', () => {
+    it('calculates single volume when all workouts have fixed numbers', () => {
+        const week = {
+            workouts: [
+                { title: 'Easy Run', distance: 10 },
+                { title: 'Tempo Run', distance: 15 }
+            ]
+        };
+        const volumeMi = calculateWeeklyVolume(week, 'mi');
+        expect(volumeMi).toEqual({
+            min: 25,
+            max: 25,
+            average: 25,
+            formatted: '25'
+        });
+
+        const volumeKm = calculateWeeklyVolume(week, 'km');
+        expect(volumeKm).toEqual({
+            min: 40.2,
+            max: 40.2,
+            average: 40.2,
+            formatted: '40.2'
+        });
+    });
+
+    it('calculates volume ranges when workouts have distance ranges', () => {
+        const week = {
+            workouts: [
+                { title: 'LT Run', distance: [12.9, 14.5] as [number, number] },
+                { title: 'Easy Run', distance: 10 }
+            ]
+        };
+
+        const volumeMi = calculateWeeklyVolume(week, 'mi');
+        expect(volumeMi).toEqual({
+            min: 23,
+            max: 25,
+            average: 24,
+            formatted: '23 - 25'
+        });
+
+        const volumeKm = calculateWeeklyVolume(week, 'km');
+        expect(volumeKm).toEqual({
+            min: 36.9,
+            max: 39.4,
+            average: 38.2,
+            formatted: '36.9 - 39.4'
+        });
     });
 });
