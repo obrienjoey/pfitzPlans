@@ -22,7 +22,6 @@ export const Header = () => {
             document.body.classList.add('drawer-open');
         } else {
             document.body.classList.remove('drawer-open');
-            setDragOffset(0);
         }
         return () => document.body.classList.remove('drawer-open');
     }, [isDrawerOpen]);
@@ -37,9 +36,14 @@ export const Header = () => {
         if (delta > 0) setDragOffset(delta); // only allow dragging down
     };
 
+    const closeDrawer = () => {
+        setIsDrawerOpen(false);
+        setDragOffset(0);
+    };
+
     const handleDragEnd = () => {
         if (dragOffset > 80) {
-            setIsDrawerOpen(false);
+            closeDrawer();
         } else {
             setDragOffset(0);
         }
@@ -53,7 +57,7 @@ export const Header = () => {
             {/* Backdrop */}
             <div
                 className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
-                onClick={() => setIsDrawerOpen(false)}
+                onClick={closeDrawer}
             />
 
             {/* Sheet Panel */}
@@ -84,7 +88,7 @@ export const Header = () => {
                         <p className="text-xs text-slate-400">Configure your training parameters</p>
                     </div>
                     <button
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={closeDrawer}
                         aria-label="Close settings drawer"
                         className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
                     >
@@ -187,7 +191,7 @@ export const Header = () => {
                 {/* Pinned Apply & Close */}
                 <div className="flex-none px-4 py-4 border-t border-slate-800 bg-slate-900">
                     <button
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={closeDrawer}
                         className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-wider shadow-lg shadow-rose-500/20"
                     >
                         Apply &amp; Close
