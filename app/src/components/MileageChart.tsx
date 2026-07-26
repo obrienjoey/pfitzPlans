@@ -64,7 +64,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
             </div>
 
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-                <div className="min-w-[600px] flex justify-center pb-2">
+                <div className="min-w-max pb-2">
                     <svg
                         width={svgWidth}
                         height={svgHeight}

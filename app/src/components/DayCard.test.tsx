@@ -86,7 +86,7 @@ describe('DayCard Component', () => {
 
         const trigger = screen.getByTitle('Mark workout status');
         expect(trigger).toBeInTheDocument();
-        // Status trigger button should be rendered inside the top header row container
+        // Status trigger button should be rendered inside the top header container
         expect(trigger.closest('.flex.justify-between.items-start')).not.toBeNull();
     });
 });
