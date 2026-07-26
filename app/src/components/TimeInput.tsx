@@ -6,12 +6,14 @@ interface TimeInputProps {
     onChange: (value: string) => void;
     className?: string;
     raceDistance?: string;
+    popupFixed?: boolean;
 }
 
-export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInputProps) => {
+export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed }: TimeInputProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const firstInputRef = useRef<HTMLInputElement>(null);
+    const [popupCoords, setPopupCoords] = useState<{ top: number; right: number } | null>(null);
 
     const parseValue = (val: string) => {
         if (!val) return { hours: 0, mins: 0, secs: 0 };
@@ -57,6 +59,17 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const openPopup = () => {
+        if (popupFixed && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setPopupCoords({
+                top: rect.bottom + 8,
+                right: window.innerWidth - rect.right,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
 
     // Focus first input when opening
     useEffect(() => {
@@ -120,7 +133,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
                     type="text"
                     readOnly
                     value={displayValue}
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={openPopup}
                     aria-label="Race result time"
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
@@ -137,7 +150,13 @@ export const TimeInput = ({ value, onChange, className, raceDistance }: TimeInpu
             </div>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 w-[240px] animate-in fade-in zoom-in-95 duration-200">
+                <div
+                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[200] w-[240px]"
+                    style={popupFixed && popupCoords
+                        ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right }
+                        : { position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem' }
+                    }
+                >
                     <div className="flex items-center justify-center gap-2 mb-4">
                         <div className="flex flex-col items-center">
                             <label className="text-[10px] uppercase text-slate-500 font-bold mb-1">Hrs</label>

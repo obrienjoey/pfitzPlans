@@ -20,14 +20,16 @@ interface DatePickerProps {
     onChange: (date: Date) => void;
     className?: string;
     placeholder?: string;
+    popupFixed?: boolean;
 }
 
-export const DatePicker = ({ value, onChange, className, placeholder = "Select date..." }: DatePickerProps) => {
+export const DatePicker = ({ value, onChange, className, placeholder = "Select date...", popupFixed }: DatePickerProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value || new Date());
     const [prevValue, setPrevValue] = useState<Date | null>(value);
     const [inputValue, setInputValue] = useState(value ? format(value, 'MMM d, yyyy') : '');
     const containerRef = useRef<HTMLDivElement>(null);
+    const [popupCoords, setPopupCoords] = useState<{ top: number; right: number } | null>(null);
 
     if (value !== prevValue) {
         setPrevValue(value);
@@ -74,6 +76,17 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
 
     const weeks = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
+    const handleFocus = () => {
+        if (popupFixed && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setPopupCoords({
+                top: rect.bottom + 8,
+                right: window.innerWidth - rect.right,
+            });
+        }
+        setIsOpen(true);
+    };
+
     const isCompact = className?.includes('text-sm');
 
     return (
@@ -83,7 +96,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     type="text"
                     value={inputValue}
                     onChange={handleInputChange}
-                    onFocus={() => setIsOpen(true)}
+                    onFocus={handleFocus}
                     placeholder={placeholder}
                     aria-expanded={isOpen}
                     aria-haspopup="grid"
@@ -103,7 +116,13 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
             </div>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 w-[300px] animate-in fade-in zoom-in-95 duration-200">
+                <div
+                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[200] w-[300px]"
+                    style={popupFixed && popupCoords
+                        ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right }
+                        : { position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem' }
+                    }
+                >
                     <div className="flex items-center justify-between mb-4">
                         <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
