@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     format,
     addMonths,
@@ -9,9 +10,7 @@ import {
     endOfWeek,
     eachDayOfInterval,
     isSameMonth,
-    isSameDay,
-    isValid,
-    parse
+    isSameDay
 } from 'date-fns';
 import clsx from 'clsx';
 
@@ -20,51 +19,84 @@ interface DatePickerProps {
     onChange: (date: Date) => void;
     className?: string;
     placeholder?: string;
-    popupFixed?: boolean;
 }
 
-export const DatePicker = ({ value, onChange, className, placeholder = "Select date...", popupFixed }: DatePickerProps) => {
+const POPUP_WIDTH = 300;
+const POPUP_GAP = 8;
+// Estimate used to decide whether to flip the popup above instead of below the input when
+// there is not enough room on screen for the (fixed) calendar.
+const POPUP_ESTIMATED_HEIGHT = 340;
+
+export const DatePicker = ({ value, onChange, className, placeholder = "Select date..." }: DatePickerProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value || new Date());
     const [prevValue, setPrevValue] = useState<Date | null>(value);
-    const [inputValue, setInputValue] = useState(value ? format(value, 'MMM d, yyyy') : '');
+    const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [popupCoords, setPopupCoords] = useState<{ top: number; right: number } | null>(null);
+    const popupRef = useRef<HTMLDivElement>(null);
 
+    // Keep the browsed month in sync with an externally-changed value. This is React's
+    // documented "adjusting state during render" pattern (legal for a component's own state,
+    // and not an effect), so it avoids the react-hooks/set-state-in-effect rule.
     if (value !== prevValue) {
         setPrevValue(value);
-        setInputValue(value ? format(value, 'MMM d, yyyy') : '');
         if (value) {
             setCurrentMonth(value);
         }
     }
 
+    const inputValue = value ? format(value, 'MMM d, yyyy') : '';
+
+    // The popup is portaled to <body> and `position: fixed`, so it must be positioned from the
+    // input's viewport rect and kept on-screen. This also escapes the mobile settings drawer,
+    // whose sheet carries a persistent `transform` (from `animate-sheet-slide-up`) that would
+    // otherwise become the containing block and misplace a fixed popup.
+    const computeCoords = () => {
+        const input = containerRef.current;
+        if (!input) return;
+        const rect = input.getBoundingClientRect();
+
+        let left = rect.left;
+        if (left + POPUP_WIDTH > window.innerWidth - POPUP_GAP) {
+            left = Math.max(POPUP_GAP, window.innerWidth - POPUP_WIDTH - POPUP_GAP);
+        }
+
+        let top = rect.bottom + POPUP_GAP;
+        if (top + POPUP_ESTIMATED_HEIGHT > window.innerHeight - POPUP_GAP) {
+            top = Math.max(POPUP_GAP, rect.top - POPUP_ESTIMATED_HEIGHT - POPUP_GAP);
+        }
+
+        setCoords({ top, left });
+    };
+
+    const openPicker = () => {
+        computeCoords();
+        setIsOpen(true);
+    };
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
+            const target = event.target as Node;
+            if (containerRef.current?.contains(target)) return;
+            if (popupRef.current?.contains(target)) return;
+            setIsOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setInputValue(val);
-
-        // Attempt to parse various formats
-        const parsed = parse(val, 'yyyy-MM-dd', new Date());
-        const parsedNicer = parse(val, 'MMM d, yyyy', new Date());
-
-        if (isValid(parsed)) {
-            onChange(parsed);
-            setCurrentMonth(parsed);
-        } else if (isValid(parsedNicer)) {
-            onChange(parsedNicer);
-            setCurrentMonth(parsedNicer);
-        }
-    };
+    // Reposition the fixed popup whenever the page or the drawer's scroll container scrolls
+    // or the viewport resizes while the popup is open.
+    useEffect(() => {
+        if (!isOpen) return;
+        const reposition = () => computeCoords();
+        window.addEventListener('scroll', reposition, true);
+        window.addEventListener('resize', reposition);
+        return () => {
+            window.removeEventListener('scroll', reposition, true);
+            window.removeEventListener('resize', reposition);
+        };
+    }, [isOpen]);
 
     const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
     const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
@@ -76,17 +108,6 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
 
     const weeks = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-    const handleFocus = () => {
-        if (popupFixed && containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            setPopupCoords({
-                top: rect.bottom + 8,
-                right: window.innerWidth - rect.right,
-            });
-        }
-        setIsOpen(true);
-    };
-
     const isCompact = className?.includes('text-sm');
 
     return (
@@ -94,14 +115,17 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
             <div className="relative group">
                 <input
                     type="text"
+                    readOnly
+                    inputMode="none"
+                    autoComplete="off"
                     value={inputValue}
-                    onChange={handleInputChange}
-                    onFocus={handleFocus}
+                    onFocus={openPicker}
+                    onClick={openPicker}
                     placeholder={placeholder}
                     aria-expanded={isOpen}
-                    aria-haspopup="grid"
+                    aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-xl pr-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all",
+                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-xl pr-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none shadow-lg transition-all cursor-pointer",
                         isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
                     )}
                 />
@@ -115,13 +139,13 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                 </div>
             </div>
 
-            {isOpen && (
+            {isOpen && createPortal(
                 <div
-                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[200] w-[300px]"
-                    style={popupFixed && popupCoords
-                        ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right }
-                        : { position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem' }
-                    }
+                    ref={popupRef}
+                    role="dialog"
+                    aria-label="Choose a date"
+                    className="animate-in fade-in zoom-in-95 duration-200 fixed p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[300] w-[300px]"
+                    style={{ top: coords?.top ?? 0, left: coords?.left ?? 0 }}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
@@ -169,7 +193,8 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                             );
                         })}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
