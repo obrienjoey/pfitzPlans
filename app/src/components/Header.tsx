@@ -107,7 +107,7 @@ export const Header = () => {
                             <select
                                 value={selectedPlanId}
                                 onChange={(e) => setPlanId(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                             >
                                 {availablePlans.map(plan => (
                                     <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
@@ -116,33 +116,33 @@ export const Header = () => {
                         </div>
 
                         {/* Units Toggle */}
-                        <div className="flex items-center justify-between bg-slate-950/40 p-3 rounded-xl border border-slate-800/80 text-left">
+                        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-300 dark:border-slate-800/80 text-left">
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-200">Distance Units</span>
+                                <span className="text-sm font-medium text-slate-900 dark:text-slate-200">Distance Units</span>
                                 <span className="text-xs text-slate-500">Toggle mileage display</span>
                             </div>
                             <button
                                 onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
-                                className="px-3 py-1.5 bg-slate-900 border border-slate-700 hover:border-slate-600 rounded-xl text-xs font-bold text-indigo-400 transition-colors uppercase"
+                                className="px-3 py-1.5 bg-slate-200/70 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-colors uppercase"
                             >
                                 {units === 'mi' ? 'Miles (mi)' : 'KM (km)'}
                             </button>
                         </div>
 
                         {/* Theme Toggle */}
-                        <div className="flex items-center justify-between bg-slate-950/40 p-3 rounded-xl border border-slate-800/80 text-left">
+                        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-300 dark:border-slate-800/80 text-left">
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-200">Appearance</span>
+                                <span className="text-sm font-medium text-slate-900 dark:text-slate-200">Appearance</span>
                                 <span className="text-xs text-slate-500">Switch color theme</span>
                             </div>
-                            <ThemeToggle />
+                            <ThemeToggle className="bg-slate-200/70 dark:bg-slate-900" />
                         </div>
 
                         {/* Race Distance */}
                         <div className="flex flex-col gap-1.5 text-left">
                             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                                 value={raceInput?.distance || '10K'}
                                 onChange={(e) => {
                                     const state = usePlanStore.getState();
@@ -179,9 +179,8 @@ export const Header = () => {
                             <DatePicker
                                 value={raceDate}
                                 onChange={setRaceDate}
-                                className="w-full text-base"
+                                className="w-full text-sm"
                                 placeholder="Race Date"
-                                popupFixed
                             />
                         </div>
                     </div>

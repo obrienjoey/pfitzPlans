@@ -1,4 +1,5 @@
 import { useTheme } from '../hooks/useTheme';
+import { twMerge } from 'tailwind-merge';
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, setTheme } = useTheme();
@@ -14,7 +15,10 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       onClick={toggle}
       aria-label="Toggle theme mode"
       title={`Current Theme: ${theme.toUpperCase()}`}
-      className={`px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-1.5 ${className}`}
+      className={twMerge(
+        'px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-1.5',
+        className
+      )}
     >
       {theme === 'dark' && (
         <svg className="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

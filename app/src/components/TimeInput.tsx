@@ -138,11 +138,11 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-lg px-3 py-2 text-sm text-center text-slate-900 dark:text-slate-100 cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
+                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-lg pl-9 pr-3 py-2 text-sm text-left text-slate-900 dark:text-slate-100 cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
                         isOpen && "ring-2 ring-rose-500/50 border-rose-500/50"
                     )}
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
                     </svg>
