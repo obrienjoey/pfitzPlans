@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
 import { calculateSchedule } from '../lib/calculator';
+import { scheduleMatchesValid } from '../lib/scheduleGuard';
 import type { Plan } from '../types';
 import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
 import { WeekCard } from './WeekCard';
@@ -22,6 +23,11 @@ import {
 } from '@dnd-kit/core';
 import { DayCard } from './DayCard';
 
+const parseWorkoutId = (id: string) => {
+    const parts = id.split('-');
+    return { week: parseInt(parts[1], 10), day: parseInt(parts[3], 10) };
+};
+
 export const PlanViewer = () => {
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
@@ -29,6 +35,13 @@ export const PlanViewer = () => {
     const [overId, setOverId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Derived valid schedule: returns currentSchedule iff its fingerprint matches
+    // selectedPlanId and raceDate by value. Immediately null when config changes,
+    // preventing any 1-frame render flash of a mismatched schedule.
+    const validSchedule = useMemo(() => {
+        return scheduleMatchesValid(currentSchedule, selectedPlanId, raceDate) ? currentSchedule : null;
+    }, [currentSchedule, selectedPlanId, raceDate]);
 
     // Sensors for better UX (especially avoiding conflict with scrolling)
     const sensors = useSensors(
@@ -47,7 +60,9 @@ export const PlanViewer = () => {
             const planInfo = availablePlans.find(p => p.id === selectedPlanId);
             if (!planInfo) return;
 
-            setSchedule(null);
+            // Do NOT clear the schedule here. Unconditionally setting it to null on load
+            // is what once discarded a reordered schedule on every page refresh (issue #14).
+            // The persisted schedule is trusted (or regenerated) by the guarded effect below.
             setLoading(true);
             setError(null);
             try {
@@ -55,13 +70,13 @@ export const PlanViewer = () => {
                 setPlan(data);
             } catch (err) {
                 console.error(err);
-                setError('Failed to load plan. Ensure the plan file exists in /public/plans.');
+                setError('Failed to load training plan');
             } finally {
                 setLoading(false);
             }
         };
         load();
-    }, [selectedPlanId, setSchedule, availablePlans]);
+    }, [selectedPlanId, availablePlans]);
 
     const data = useMemo(() => {
         if (!raceInput || !plan) return null;
@@ -74,24 +89,30 @@ export const PlanViewer = () => {
     const paces = data?.paces;
     const equivalents = data?.equivalents;
 
-    // Calculate canonical schedule when inputs change
+    // Calculate canonical schedule when inputs change — but only when the currently stored
+    // schedule is NOT valid for reuse. Guard-based TRUST (issue #14): a persisted schedule
+    // whose fingerprint matches the current configuration (same plan, same race date) is kept
+    // as-is, preserving any reordered workouts across reloads. A mismatch or absence is a
+    // deliberate fresh start: regenerate canonical (which resets reorders).
     useEffect(() => {
         if (plan && raceDate) {
+            if (validSchedule) {
+                return;
+            }
             const canonical = calculateSchedule(plan, raceDate);
-            // Initialize store with fresh schedule
             setSchedule(canonical);
         }
-    }, [plan, raceDate, setSchedule]);
+    }, [plan, raceDate, validSchedule, setSchedule]);
 
     const currentWeekIndex = useMemo(() => {
-        if (!currentSchedule) return -1;
+        if (!validSchedule) return -1;
         const today = new Date();
-        return currentSchedule.weeks.findIndex(week => {
+        return validSchedule.weeks.findIndex(week => {
             const start = new Date(week.weekStart);
             const end = new Date(week.weekEnd);
             return today >= start && today <= end;
         });
-    }, [currentSchedule]);
+    }, [validSchedule]);
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
@@ -110,23 +131,16 @@ export const PlanViewer = () => {
         if (active.id === over.id) return;
 
         // IDs are formatted as: "week-{w}-day-{d}"
-        const parseId = (id: string) => {
-            const parts = id.split('-');
-            return { week: parseInt(parts[1]), day: parseInt(parts[3]) };
-        };
-
-        const src = parseId(active.id as string);
-        const dest = parseId(over.id as string);
+        const src = parseWorkoutId(active.id as string);
+        const dest = parseWorkoutId(over.id as string);
 
         moveWorkout(src.week, src.day, dest.week, dest.day);
     };
 
     // Find the active workout data for the DragOverlay
-    const activeWorkout = activeId && currentSchedule ? (() => {
-        const parts = activeId.split('-');
-        const week = parseInt(parts[1]);
-        const day = parseInt(parts[3]);
-        return currentSchedule.weeks[week]?.workouts[day];
+    const activeWorkout = activeId && validSchedule ? (() => {
+        const { week, day } = parseWorkoutId(activeId);
+        return validSchedule.weeks[week]?.workouts[day];
     })() : null;
 
     if (loading) return (
@@ -141,7 +155,7 @@ export const PlanViewer = () => {
         </div>
     );
 
-    if (!currentSchedule) return null;
+    if (!validSchedule) return null;
 
     return (
         <DndContext
@@ -157,8 +171,8 @@ export const PlanViewer = () => {
                         <div className="inline-block px-2 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider rounded mb-2">
                             Running Plan
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{currentSchedule.originalPlan.name}</h2>
-                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">{currentSchedule.originalPlan.description}</p>
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{validSchedule.originalPlan.name}</h2>
+                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">{validSchedule.originalPlan.description}</p>
                     </div>
                     <div className="text-left md:text-right bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 min-w-[140px] shadow-sm">
                         <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Race Date</div>
@@ -178,7 +192,7 @@ export const PlanViewer = () => {
                     </div>
                 </div>
 
-                <MileageChart weeks={currentSchedule.weeks} units={units} />
+                <MileageChart weeks={validSchedule.weeks} units={units} />
 
                 <PaceChart
                     paces={paces || undefined}
@@ -189,7 +203,7 @@ export const PlanViewer = () => {
                 />
 
                 <div className="space-y-6">
-                    {currentSchedule.weeks.map((week, idx) => (
+                    {validSchedule.weeks.map((week, idx) => (
                         <WeekCard
                             key={week.weeksToGoal}
                             week={week}
