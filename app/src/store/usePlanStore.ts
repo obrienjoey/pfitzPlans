@@ -82,6 +82,10 @@ export const usePlanStore = create<PlanState>()(
 
                 const updates: Partial<PlanState> = { selectedPlanId: id };
 
+                if (id !== get().selectedPlanId) {
+                    updates.workoutLogs = {};
+                }
+
                 const DEFAULT_RACE_INPUTS: Record<string, RaceInputState> = {
                     'Marathon': { distance: 'Marathon', time: '3:30:00' },
                     'Half Marathon': { distance: 'Half Marathon', time: '1:45:00' },
@@ -96,7 +100,15 @@ export const usePlanStore = create<PlanState>()(
 
                 set(updates);
             },
-            setRaceDate: (date) => set({ raceDate: date }),
+            setRaceDate: (date) => set((state) => {
+                const currentDateKey = state.raceDate ? state.raceDate.toISOString().slice(0, 10) : null;
+                const newDateKey = date ? date.toISOString().slice(0, 10) : null;
+                const changed = currentDateKey !== newDateKey;
+                return {
+                    raceDate: date,
+                    workoutLogs: changed ? {} : state.workoutLogs,
+                };
+            }),
             setUnits: (units) => set({ units }),
             setRaceInput: (input) => set({ raceInput: input }),
             setSchedule: (schedule) => set({ currentSchedule: schedule }),
@@ -252,7 +264,7 @@ export const usePlanStore = create<PlanState>()(
                     raceDate: revivedRaceDate,
                     currentSchedule: finalRevivedSchedule as unknown as RenderedPlan,
                     raceInput: mergedRaceInput || currentState.raceInput,
-                    workoutLogs: pState.workoutLogs || {},
+                    workoutLogs: finalRevivedSchedule ? (pState.workoutLogs || {}) : {},
                 }
             }
         }

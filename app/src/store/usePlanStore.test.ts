@@ -113,6 +113,26 @@ describe('usePlanStore', () => {
         expect(state.workoutLogs[`${planId}-w0-d1`]).toBe('completed');
     });
 
+    it('clears completion marks when plan changes', () => {
+        const { setWorkoutStatus, setPlanId } = usePlanStore.getState();
+        usePlanStore.setState({ selectedPlanId: 'planA', workoutLogs: {} });
+        setWorkoutStatus(0, 0, 'completed');
+
+        setPlanId('planB');
+
+        expect(usePlanStore.getState().workoutLogs).toEqual({});
+    });
+
+    it('clears completion marks when race date changes', () => {
+        const { setWorkoutStatus, setRaceDate } = usePlanStore.getState();
+        usePlanStore.setState({ raceDate: new Date('2026-06-07'), workoutLogs: {} });
+        setWorkoutStatus(0, 0, 'completed');
+
+        setRaceDate(new Date('2026-08-01'));
+
+        expect(usePlanStore.getState().workoutLogs).toEqual({});
+    });
+
     it('persists the schedule fingerprint alongside the saved schedule', () => {
         usePlanStore.setState({
             selectedPlanId: 'test',
@@ -153,8 +173,8 @@ describe('usePlanStore', () => {
         expect(revived!.fp).toEqual({ planId: 'test', raceDateKey: '2026-01-01' });
     });
 
-    it('drops a persisted schedule that carries no fingerprint (legacy) instead of reusing it', async () => {
-        usePlanStore.setState({ currentSchedule: structuredClone(mockPlan) });
+    it('drops a persisted schedule and clears logs when carrying no fingerprint (legacy)', async () => {
+        usePlanStore.setState({ currentSchedule: structuredClone(mockPlan), workoutLogs: { 'legacy-w0-d0': 'completed' } });
 
         localStorage.setItem('plan-storage', JSON.stringify({
             state: {
@@ -164,7 +184,7 @@ describe('usePlanStore', () => {
                     startDate: '2025-12-01',
                     weeks: []
                 },
-                workoutLogs: {}
+                workoutLogs: { 'legacy-w0-d0': 'completed' }
             },
             version: 0
         }));
@@ -172,6 +192,7 @@ describe('usePlanStore', () => {
         await usePlanStore.persist.rehydrate();
 
         expect(usePlanStore.getState().currentSchedule).toBeNull();
+        expect(usePlanStore.getState().workoutLogs).toEqual({});
     });
 
     it('slims persisted schedule by omitting redundant originalPlan and originalWeek', () => {

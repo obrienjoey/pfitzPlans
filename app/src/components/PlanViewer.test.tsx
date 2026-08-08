@@ -143,4 +143,18 @@ describe('PlanViewer reseed guard', () => {
         const order = usePlanStore.getState().currentSchedule!.weeks[0].workouts.map(w => w.title);
         expect(order).toEqual(['Run C', 'Run A', 'Run B']);
     });
+
+    it('clears workout logs when the race date changes', async () => {
+        persistReorderedSchedule(['Run A', 'Run B', 'Run C']);
+        usePlanStore.setState({ workoutLogs: { 'test_plan-w0-d0': 'completed' } });
+        await usePlanStore.persist.rehydrate();
+
+        usePlanStore.getState().setRaceDate(new Date('2026-08-02'));
+
+        mockFetchPlan.mockResolvedValueOnce(plan);
+        render(<PlanViewer />);
+
+        await waitFor(() => expect(mockFetchPlan).toHaveBeenCalled());
+        await waitFor(() => expect(usePlanStore.getState().workoutLogs).toEqual({}));
+    });
 });
