@@ -173,4 +173,15 @@ describe('usePlanStore', () => {
 
         expect(usePlanStore.getState().currentSchedule).toBeNull();
     });
+
+    it('slims persisted schedule by omitting redundant originalPlan and originalWeek', () => {
+        usePlanStore.setState({
+            selectedPlanId: 'test',
+            currentSchedule: structuredClone(mockPlan)
+        });
+
+        const raw = JSON.parse(localStorage.getItem('plan-storage') || '{}');
+        expect(raw.state.currentSchedule.originalPlan).toBeUndefined();
+        expect(raw.state.currentSchedule.weeks[0].originalWeek).toBeUndefined();
+    });
 });

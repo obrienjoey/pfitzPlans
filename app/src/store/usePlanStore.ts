@@ -171,13 +171,26 @@ export const usePlanStore = create<PlanState>()(
             name: 'plan-storage',
             // Custom serialization for Date
             partialize: (state) => {
-                // Backward compatibility: map old 'goalTime' to 'raceInput' if saving over an old session
+                let slimSchedule = null;
+                if (state.currentSchedule) {
+                    slimSchedule = {
+                        raceDate: state.currentSchedule.raceDate,
+                        startDate: state.currentSchedule.startDate,
+                        weeks: state.currentSchedule.weeks.map(week => {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            const { originalWeek, ...slimWeek } = week;
+                            return slimWeek;
+                        }),
+                        fp: state.currentSchedule.fp,
+                    };
+                }
+
                 return {
                     selectedPlanId: state.selectedPlanId,
                     raceDate: state.raceDate ? state.raceDate.toISOString() : null,
                     units: state.units,
                     raceInput: state.raceInput,
-                    currentSchedule: state.currentSchedule,
+                    currentSchedule: slimSchedule,
                     workoutLogs: state.workoutLogs,
                 };
             },

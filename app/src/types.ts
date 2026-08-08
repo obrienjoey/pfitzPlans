@@ -53,7 +53,7 @@ export interface RenderedWeek {
     weekEnd: Date;
     weeksToGoal: number;
     weekNumber: number;
-    originalWeek: Week;
+    originalWeek?: Week;
     workouts: RenderedWorkout[];
 }
 
@@ -65,7 +65,7 @@ export interface ScheduleFingerprint {
 }
 
 export interface RenderedPlan {
-    originalPlan: Plan;
+    originalPlan?: Plan;
     raceDate: Date;
     startDate: Date;
     weeks: RenderedWeek[];

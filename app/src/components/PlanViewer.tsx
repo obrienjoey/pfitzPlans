@@ -36,6 +36,10 @@ export const PlanViewer = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const planInfo = useMemo(() => {
+        return availablePlans.find(p => p.id === selectedPlanId);
+    }, [availablePlans, selectedPlanId]);
+
     // Derived valid schedule: returns currentSchedule iff its fingerprint matches
     // selectedPlanId and raceDate by value. Immediately null when config changes,
     // preventing any 1-frame render flash of a mismatched schedule.
@@ -171,8 +175,8 @@ export const PlanViewer = () => {
                         <div className="inline-block px-2 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider rounded mb-2">
                             Running Plan
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{validSchedule.originalPlan.name}</h2>
-                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">{validSchedule.originalPlan.description}</p>
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{plan?.name || planInfo?.name || validSchedule.originalPlan?.name}</h2>
+                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">{plan?.description || planInfo?.description || validSchedule.originalPlan?.description}</p>
                     </div>
                     <div className="text-left md:text-right bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 min-w-[140px] shadow-sm">
                         <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Race Date</div>
