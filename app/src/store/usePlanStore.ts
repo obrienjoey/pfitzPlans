@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AVAILABLE_PLANS, type PlanInfo } from '../config';
 
-import type { RenderedPlan } from '../types';
+import type { RenderedPlan, ScheduleFingerprint } from '../types';
 
 export type WorkoutStatus = 'completed' | 'skipped' | 'modified' | 'none';
 
@@ -47,6 +47,7 @@ interface PersistedSchedule {
     raceDate: string;
     startDate: string;
     weeks: PersistedWeek[];
+    fp?: ScheduleFingerprint;
     [key: string]: unknown;
 }
 
@@ -223,6 +224,12 @@ export const usePlanStore = create<PlanState>()(
                 // If the schedule date is corrupted, discard the schedule too
                 let finalRevivedSchedule = revivedSchedule;
                 if (revivedSchedule && revivedSchedule.raceDate && (isNaN(revivedSchedule.raceDate.getTime()) || revivedSchedule.raceDate.getFullYear() < 2020 || revivedSchedule.raceDate.getFullYear() > 2050)) {
+                    finalRevivedSchedule = null;
+                }
+
+                // A persisted schedule without a complete fingerprint is legacy pre-fix data:
+                // never reuse it — the current configuration cannot be verified against it.
+                if (finalRevivedSchedule && (!finalRevivedSchedule.fp || !finalRevivedSchedule.fp.planId || !finalRevivedSchedule.fp.raceDateKey)) {
                     finalRevivedSchedule = null;
                 }
 

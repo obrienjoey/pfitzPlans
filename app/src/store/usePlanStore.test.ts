@@ -7,6 +7,7 @@ describe('usePlanStore', () => {
         originalPlan: { id: 'test', name: 'Test Plan', type: 'Marathon', units: 'mi', schedule: [] },
         raceDate: new Date('2026-01-01'),
         startDate: new Date('2025-12-01'),
+        fp: { planId: 'test', raceDateKey: '2026-01-01' },
         weeks: [
             {
                 weekStart: new Date('2025-12-01'),
@@ -23,6 +24,7 @@ describe('usePlanStore', () => {
     };
 
     beforeEach(() => {
+        localStorage.clear();
         usePlanStore.setState({
             currentSchedule: structuredClone(mockPlan),
             units: 'mi'
@@ -109,5 +111,66 @@ describe('usePlanStore', () => {
         const state = usePlanStore.getState();
         expect(state.workoutLogs[`${planId}-w0-d0`]).toBe('skipped');
         expect(state.workoutLogs[`${planId}-w0-d1`]).toBe('completed');
+    });
+
+    it('persists the schedule fingerprint alongside the saved schedule', () => {
+        usePlanStore.setState({
+            selectedPlanId: 'test',
+            currentSchedule: { ...structuredClone(mockPlan), fp: { planId: 'test', raceDateKey: '2026-03-15' } }
+        });
+
+        const raw = JSON.parse(localStorage.getItem('plan-storage') || '{}');
+        expect(raw.state.currentSchedule.fp).toEqual({ planId: 'test', raceDateKey: '2026-03-15' });
+    });
+
+    it('revives a saved schedule and keeps its fingerprint', async () => {
+        usePlanStore.setState({ currentSchedule: null });
+
+        localStorage.setItem('plan-storage', JSON.stringify({
+            state: {
+                selectedPlanId: 'test',
+                currentSchedule: {
+                    raceDate: '2026-01-01',
+                    startDate: '2025-12-01',
+                    weeks: [{
+                        weekStart: '2025-12-01',
+                        weekEnd: '2025-12-07',
+                        weekNumber: 1,
+                        weeksToGoal: 1,
+                        workouts: [{ title: 'Run A', date: '2025-12-01', dayOfWeek: 1 }]
+                    }],
+                    fp: { planId: 'test', raceDateKey: '2026-01-01' }
+                },
+                workoutLogs: {}
+            },
+            version: 0
+        }));
+
+        await usePlanStore.persist.rehydrate();
+
+        const revived = usePlanStore.getState().currentSchedule;
+        expect(revived).not.toBeNull();
+        expect(revived!.fp).toEqual({ planId: 'test', raceDateKey: '2026-01-01' });
+    });
+
+    it('drops a persisted schedule that carries no fingerprint (legacy) instead of reusing it', async () => {
+        usePlanStore.setState({ currentSchedule: structuredClone(mockPlan) });
+
+        localStorage.setItem('plan-storage', JSON.stringify({
+            state: {
+                selectedPlanId: 'legacy',
+                currentSchedule: {
+                    raceDate: '2026-01-01',
+                    startDate: '2025-12-01',
+                    weeks: []
+                },
+                workoutLogs: {}
+            },
+            version: 0
+        }));
+
+        await usePlanStore.persist.rehydrate();
+
+        expect(usePlanStore.getState().currentSchedule).toBeNull();
     });
 });

@@ -59,6 +59,19 @@ describe('calculateSchedule', () => {
         expect(schedule.weeks[1].weeksToGoal).toBe(1); // Goal week (Race Week)
         expect(schedule.weeks[2].weeksToGoal).toBe(0); // Post-race week
     });
+
+    it('stamps the schedule with the configuration it was generated for', () => {
+        const mockPlan: Plan = {
+            id: 'test_stamped',
+            name: 'Stamped Plan',
+            type: 'Marathon',
+            units: 'mi',
+            schedule: [{ workouts: [{ title: 'Easy Run' }] }]
+        };
+        const schedule = calculateSchedule(mockPlan, new Date('2026-11-01'));
+
+        expect(schedule.fp).toEqual({ planId: 'test_stamped', raceDateKey: '2026-11-01' });
+    });
 });
 
 describe('calculateWeeklyVolume', () => {

@@ -1,4 +1,4 @@
-import { addDays, startOfDay, startOfWeek } from 'date-fns';
+import { addDays, startOfDay, startOfWeek, format } from 'date-fns';
 import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout, Week, WeeklyVolume } from '../types';
 import { KM_PER_MILE } from './constants';
 
@@ -81,7 +81,12 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
         originalPlan: plan,
         raceDate: normalizedRaceDate,
         startDate: programStartDate,
-        weeks
+        weeks,
+        // Fingerprint of the configuration this schedule was generated for — guards durable local reuse.
+        fp: {
+            planId: plan.id,
+            raceDateKey: format(normalizedRaceDate, 'yyyy-MM-dd')
+        }
     };
 };
 

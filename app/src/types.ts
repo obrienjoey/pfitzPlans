@@ -57,9 +57,18 @@ export interface RenderedWeek {
     workouts: RenderedWorkout[];
 }
 
+export interface ScheduleFingerprint {
+    /** The plan this schedule was generated for. */
+    planId: string;
+    /** The normalised (yyyy-MM-dd) race date this schedule was generated for. */
+    raceDateKey: string;
+}
+
 export interface RenderedPlan {
     originalPlan: Plan;
     raceDate: Date;
     startDate: Date;
     weeks: RenderedWeek[];
+    /** Configuration this schedule was generated for — used to guard durable reuse. */
+    fp: ScheduleFingerprint;
 }
