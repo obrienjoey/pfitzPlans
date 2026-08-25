@@ -1,4 +1,4 @@
-import { addDays, startOfDay, startOfWeek, format } from 'date-fns';
+import { addDays, startOfDay, format } from 'date-fns';
 import type { Plan, RenderedPlan, RenderedWeek, RenderedWorkout, Week, WeeklyVolume } from '../types';
 import { KM_PER_MILE } from './constants';
 
@@ -31,34 +31,26 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
         }
     }
 
-    // Align the weeks to start on Monday.
-    // First, find the Monday of the week containing the raceDate.
-    const raceWeekMonday = startOfWeek(normalizedRaceDate, { weekStartsOn: 1 });
-
-    // The start date of the program is the Monday of the first week.
-    const programStartDate = addDays(raceWeekMonday, -goalWeekIndex * 7);
-
-    // Determine target day index of the race in the goal week (0 = Monday, 6 = Sunday).
-    const targetDayIndex = (normalizedRaceDate.getDay() + 6) % 7;
-
-    const weeks: RenderedWeek[] = plan.schedule.map((week, weekIndex) => {
-        const weekStart = addDays(programStartDate, weekIndex * 7);
+    // Anchor every workout RELATIVE to race day: the goal-race workout lands
+    // exactly on raceDate and each plan week keeps its internal rhythm (long
+    // runs stay a fixed number of days before the race), whatever weekday the
+    // race falls on. Week boundaries therefore ride onto the race weekday
+    // (e.g. Sun–Sat weeks for a Saturday marathon).
+    //
+    // This replaces the earlier Monday-grid + goal-week-swap anchoring, which
+    // left mid-plan long runs 6/13/20… days out when racing on a Saturday.
+    // Validated against real plan data via scripts/race-anchor-proto (primary
+    // source archived on branch prototype/race-anchor-tui); for Sunday races
+    // with the goal race in the last slot it produces identical output.
+    const weeks: RenderedWeek[] = plan.schedule.map((planWeek, weekIndex) => {
+        const weekStart = addDays(normalizedRaceDate, (weekIndex - goalWeekIndex) * 7 - goalDayIndex);
         const weekEnd = addDays(weekStart, 6);
-        
+
         // weeksToGoal is relative to the actual goal week (1 for goal week, 2 for the week before, etc.)
         // post-race weeks will have values <= 0.
         const weeksToGoal = goalWeekIndex - weekIndex + 1;
 
-        // Clone workouts array for editing if it's the goal week and we need to swap
-        const workouts = [...week.workouts];
-        if (weekIndex === goalWeekIndex && goalDayIndex !== targetDayIndex) {
-            // Swap workouts so goal race is on the actual targetDayIndex (e.g. Sunday)
-            const temp = workouts[goalDayIndex];
-            workouts[goalDayIndex] = workouts[targetDayIndex];
-            workouts[targetDayIndex] = temp;
-        }
-
-        const renderedWorkouts: RenderedWorkout[] = workouts.map((workout, dayIndex) => {
+        const renderedWorkouts: RenderedWorkout[] = planWeek.workouts.map((workout, dayIndex) => {
             const date = addDays(weekStart, dayIndex);
             return {
                 ...workout,
@@ -72,7 +64,7 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
             weekEnd,
             weeksToGoal,
             weekNumber: weekIndex + 1,
-            originalWeek: week,
+            originalWeek: planWeek,
             workouts: renderedWorkouts
         };
     });
@@ -80,7 +72,7 @@ export const calculateSchedule = (plan: Plan, raceDate: Date): RenderedPlan => {
     return {
         originalPlan: plan,
         raceDate: normalizedRaceDate,
-        startDate: programStartDate,
+        startDate: weeks[0]?.weekStart ?? normalizedRaceDate,
         weeks,
         // Fingerprint of the configuration this schedule was generated for — guards durable local reuse.
         fp: {

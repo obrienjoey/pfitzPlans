@@ -15,16 +15,87 @@ describe('calculateSchedule', () => {
                 { workouts: [{ title: 'Long Run', distance: 10 }] }
             ]
         };
-        const raceDate = new Date('2026-06-15'); // local date
+        const raceDate = new Date('2026-06-15'); // local date, a Monday
         const schedule = calculateSchedule(mockPlan, raceDate);
 
-        // Since total weeks = 2, and no goal race is found, it defaults to aligning the last week to the week containing the raceDate.
-        // The week containing the raceDate (Monday, June 15) starts on Monday, June 15.
-        // programStartDate = June 15 - 1 week = June 8.
-        const expectedStartDate = new Date('2026-06-08');
+        // No goal race found → goal defaults to last week's final slot (index 6).
+        // The plan anchors relative to race day: week k starts at
+        // raceDate + (k - goalWeek) * 7 - goalDayIndex.
+        // startDate = Jun 15 - 7 - 6 = Tue Jun 2.
+        const expectedStartDate = new Date('2026-06-02');
         expect(schedule.startDate.toISOString()).toBe(startOfDay(expectedStartDate).toISOString());
         expect(schedule.weeks[0].weekStart.toISOString()).toBe(startOfDay(expectedStartDate).toISOString());
-        expect(schedule.weeks[1].workouts[0].date.toISOString()).toBe(startOfDay(new Date('2026-06-15')).toISOString());
+        expect(schedule.weeks[1].weekStart.toISOString()).toBe(startOfDay(new Date('2026-06-09')).toISOString());
+    });
+
+    it('lands long runs on the race weekday for a Saturday marathon (7-day rhythm)', () => {
+        // Pfitz-style plan: rest Monday … long run Sunday slot, goal marathon in the final slot.
+        const trainingWeek = {
+            workouts: [
+                { title: 'Rest' },
+                { title: 'LT run', distance: 8 },
+                { title: 'Rest' },
+                { title: 'Gen-aerobic', distance: 9 },
+                { title: 'Rest' },
+                { title: 'Recovery', distance: 5 },
+                { title: 'Long run', distance: 16 }
+            ]
+        };
+        const mockPlan: Plan = {
+            id: 'test_sat_marathon',
+            name: 'Sat Marathon Plan',
+            type: 'Marathon',
+            units: 'mi',
+            schedule: [
+                trainingWeek,
+                trainingWeek,
+                { workouts: [...trainingWeek.workouts.slice(0, 6), { title: 'Goal Marathon', tags: ['Race'] }] }
+            ]
+        };
+        const raceDate = new Date('2026-12-19'); // a Saturday
+        const schedule = calculateSchedule(mockPlan, raceDate);
+
+        // The goal race must land exactly on race day.
+        const goalWorkout = schedule.weeks[2].workouts.find(w => w.title === 'Goal Marathon');
+        expect(goalWorkout?.date.toDateString()).toBe(raceDate.toDateString());
+
+        // Every mid-plan long run sits exactly 7/14 days before the race —
+        // i.e. also on a Saturday. This is the invariant the old Monday-grid
+        // anchoring broke for non-Sunday races.
+        const race = startOfDay(raceDate);
+        const gaps = schedule.weeks.slice(0, 2).map(week => {
+            const lr = week.workouts.find(w => w.title === 'Long run');
+            return Math.round((race.getTime() - startOfDay(lr!.date).getTime()) / (24 * 60 * 60 * 1000));
+        });
+        expect(gaps).toEqual([14, 7]);
+
+        // Week boundaries ride onto the race weekday: Sun–Sat weeks.
+        expect(schedule.weeks[2].weekStart.getDay()).toBe(0); // Sunday
+        expect(schedule.weeks[0].weekStart.getDay()).toBe(0);
+    });
+
+    it('keeps Monday-start weeks for a Sunday race (previous default behaviour)', () => {
+        const mockPlan: Plan = {
+            id: 'test_sun_regression',
+            name: 'Sunday Regression Plan',
+            type: 'Marathon',
+            units: 'mi',
+            schedule: [
+                { workouts: [{ title: 'Easy Run', distance: 5 }] },
+                { workouts: [
+                    { title: 'Rest' }, { title: 'Easy' }, { title: 'Easy' }, { title: 'Easy' },
+                    { title: 'Easy' }, { title: 'Easy' }, { title: 'Goal Marathon' }
+                ] }
+            ]
+        };
+        const raceDate = new Date('2026-06-21'); // a Sunday
+        const schedule = calculateSchedule(mockPlan, raceDate);
+
+        expect(schedule.weeks[1].weekStart.getDay()).toBe(1); // Monday
+        expect(schedule.weeks[1].weekStart.toISOString()).toBe(startOfDay(new Date('2026-06-15')).toISOString());
+        const goal = schedule.weeks[1].workouts[6];
+        expect(goal.title).toBe('Goal Marathon');
+        expect(goal.date.toISOString()).toBe(startOfDay(raceDate).toISOString());
     });
 
     it('aligns start date to the specific workout that is the goal race', () => {
