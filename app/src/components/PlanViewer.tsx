@@ -22,6 +22,8 @@ import {
     type DragOverEvent
 } from '@dnd-kit/core';
 import { DayCard } from './DayCard';
+// PROTOTYPE (?today=A|B|C) — throwaway today-awareness/countdown variants. Dev-only.
+import { TodayPrototype } from '../prototype/today/TodayPrototype';
 
 const parseWorkoutId = (id: string) => {
     const parts = id.split('-');
@@ -161,6 +163,12 @@ export const PlanViewer = () => {
 
     if (!validSchedule) return null;
 
+    // PROTOTYPE gate — mount only in dev builds with ?today= present.
+    const showTodayPrototype =
+        import.meta.env.DEV &&
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('today') !== null;
+
     return (
         <DndContext
             sensors={sensors}
@@ -205,6 +213,10 @@ export const PlanViewer = () => {
                     raceInput={raceInput}
                     planType={plan?.type || 'Marathon'}
                 />
+
+                {showTodayPrototype && (
+                    <TodayPrototype schedule={validSchedule} units={units} />
+                )}
 
                 <div className="space-y-6">
                     {validSchedule.weeks.map((week, idx) => (

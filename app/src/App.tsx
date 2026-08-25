@@ -79,6 +79,11 @@ function App() {
     // Only sync if initialization is done
     if (manifestLoaded && !isInitializing.current) {
       const params: Record<string, string> = {};
+      // Preserve non-app params (prototype gates read these) before syncing known ones.
+      const APP_KEYS = ['plan', 'date', 'dist', 'time', 'units'];
+      searchParams.forEach((v, k) => {
+        if (!APP_KEYS.includes(k)) params[k] = v;
+      });
       if (store.selectedPlanId) {
         params.plan = store.selectedPlanId;
       }
@@ -104,7 +109,8 @@ function App() {
     store.raceDate,
     store.units,
     store.raceInput,
-    setSearchParams
+    setSearchParams,
+    searchParams
   ]);
 
   const defaultWeeks = useMemo(() => {
