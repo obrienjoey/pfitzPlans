@@ -22,6 +22,7 @@ import {
     type DragOverEvent
 } from '@dnd-kit/core';
 import { DayCard } from './DayCard';
+import { TodayStrip } from './TodayStrip';
 
 const parseWorkoutId = (id: string) => {
     const parts = id.split('-');
@@ -205,6 +206,8 @@ export const PlanViewer = () => {
                     raceInput={raceInput}
                     planType={plan?.type || 'Marathon'}
                 />
+
+                <TodayStrip schedule={validSchedule} units={units} />
 
                 <div className="space-y-6">
                     {validSchedule.weeks.map((week, idx) => (
