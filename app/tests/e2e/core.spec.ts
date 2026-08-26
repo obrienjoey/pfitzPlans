@@ -7,7 +7,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await page.goto('/');
 
     // Check onboarding screen shows
-    await expect(page.locator('h2:has-text("Start Your Training")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Pick a plan, set your race day")')).toBeVisible();
 
     // Select "Faster Road Racing: 5K Schedule 1" plan
     const planButton = page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")');
@@ -15,13 +15,13 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await planButton.click();
 
     // Click Generate Schedule
-    const generateBtn = page.locator('button:has-text("Generate Schedule")');
+    const generateBtn = page.locator('button:has-text("Build my schedule")');
     await expect(generateBtn).toBeVisible();
     await generateBtn.click();
 
     // Verify schedule is rendered with correct plan name
     await expect(page.locator('h2:has-text("Faster Road Racing: 5K Schedule 1")')).toBeVisible();
-    await expect(page.locator('text=Training Paces')).toBeVisible();
+    await expect(page.locator('text=Training paces')).toBeVisible();
   });
 
   test('2. Rescheduling Flow (Drag & Drop)', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
 
     // Generate schedule
     await page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")').click();
-    await page.locator('button:has-text("Generate Schedule")').click();
+    await page.locator('button:has-text("Build my schedule")').click();
 
     // Wait for the slide-in animation (duration-500) to finish completely
     await page.waitForTimeout(600);
@@ -101,7 +101,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
 
     // Generate schedule
     await page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")').click();
-    await page.locator('button:has-text("Generate Schedule")').click();
+    await page.locator('button:has-text("Build my schedule")').click();
 
     // Check initial unit display in a day card (usually km by default in store)
     const card = page.locator('[id="week-0-day-1"]');
@@ -118,7 +118,8 @@ test.describe('RacePlans E2E Core Journeys', () => {
     expect(toggledUnit).not.toBe(initialUnit);
 
     // Verify that the distance badge in the day card updated
-    const distText = await card.locator('.font-mono').textContent();
+    // (the distance value is the only font-data, text-sm, font-bold element in the row)
+    const distText = await card.locator('.font-data.text-sm.font-bold').textContent();
     expect(distText).toContain(toggledUnit?.trim());
   });
 
