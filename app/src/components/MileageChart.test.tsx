@@ -20,7 +20,7 @@ describe('MileageChart', () => {
         ];
 
         render(<MileageChart weeks={weeks} units="km" />);
-        expect(screen.getByText('Weekly Volume Progression')).toBeInTheDocument();
+        expect(screen.getByText('Weekly volume')).toBeInTheDocument();
         expect(screen.getByText('W1')).toBeInTheDocument();
     });
 });

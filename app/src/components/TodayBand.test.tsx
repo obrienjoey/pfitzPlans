@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { TodayStrip } from './TodayStrip';
+import { TodayBand } from './TodayBand';
 import type { RenderedPlan } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -40,12 +40,12 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
-describe('TodayStrip', () => {
+describe('TodayBand', () => {
     it('shows today workout, progress, and countdown mid-plan', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(2026, 2, 4, 8, 0));
 
-        render(<TodayStrip schedule={buildSchedule()} units="km" />);
+        render(<TodayBand schedule={buildSchedule()} units="km" />);
 
         expect(screen.getByText(/LT Run/)).toBeInTheDocument();
         // 8–10 mi in km, one decimal
@@ -58,16 +58,23 @@ describe('TodayStrip', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(2026, 2, 20));
 
-        const { container } = render(<TodayStrip schedule={buildSchedule()} units="mi" />);
+        const { container } = render(<TodayBand schedule={buildSchedule()} units="mi" />);
         expect(container).toBeEmptyDOMElement();
     });
 
-    it('disables jumping when today has no scheduled workout', () => {
+    it('shows the rest message when today has no scheduled workout', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(2025, 11, 1)); // well before the plan starts
 
-        render(<TodayStrip schedule={buildSchedule()} units="mi" />);
-        expect(screen.getByRole('button')).toBeDisabled();
+        render(<TodayBand schedule={buildSchedule()} units="mi" />);
         expect(screen.getByText('No workout scheduled today')).toBeInTheDocument();
+    });
+
+    it('exposes a jump affordance when onJump is passed', () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date(2026, 2, 4, 8, 0));
+
+        render(<TodayBand schedule={buildSchedule()} units="mi" onJump={() => {}} />);
+        expect(screen.getByRole('button')).toBeInTheDocument();
     });
 });

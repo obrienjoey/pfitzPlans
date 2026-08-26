@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
-import { calculateSchedule } from '../lib/calculator';
+import { calculateSchedule, calculateWeeklyVolume } from '../lib/calculator';
 import { scheduleMatchesValid } from '../lib/scheduleGuard';
 import type { Plan } from '../types';
 import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
@@ -16,18 +16,23 @@ import {
     useSensors,
     MouseSensor,
     TouchSensor,
+    KeyboardSensor,
     closestCenter,
     type DragEndEvent,
     type DragStartEvent,
     type DragOverEvent
 } from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { DayCard } from './DayCard';
-import { TodayStrip } from './TodayStrip';
+import { TodayBand } from './TodayBand';
 
 const parseWorkoutId = (id: string) => {
     const parts = id.split('-');
     return { week: parseInt(parts[1], 10), day: parseInt(parts[3], 10) };
 };
+
+/** Plan descriptions arrive as '"Title" from "Book" by Author' — drop the quote marks. */
+const cleanDescription = (text: string | undefined): string => text?.replace(/"/g, '') ?? '';
 
 export const PlanViewer = () => {
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
@@ -57,6 +62,9 @@ export const PlanViewer = () => {
         useSensor(TouchSensor, {
             // Require hold of 250ms and move of 5px for touch
             activationConstraint: { delay: 250, tolerance: 5 }
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates
         })
     );
 
@@ -90,7 +98,7 @@ export const PlanViewer = () => {
 
         return calculateTrainingPaces({ distance: raceInput.distance, timeSeconds: totalSeconds }, plan.type);
     }, [raceInput, plan]);
-    
+
     const paces = data?.paces;
     const equivalents = data?.equivalents;
 
@@ -149,18 +157,31 @@ export const PlanViewer = () => {
     })() : null;
 
     if (loading) return (
-        <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-slate-700 border-t-rose-500 rounded-full animate-spin"></div>
+        <div className="flex items-center justify-center py-20" role="status" aria-label="Loading training plan">
+            <div className="w-8 h-8 border-4 border-pencil/30 border-t-marker rounded-full animate-spin"></div>
         </div>
     );
 
     if (error) return (
-        <div className="p-6 bg-red-900/20 border border-red-500/30 text-red-200 rounded-xl text-center">
-            Error: {error}
+        <div className="p-6 bg-marker/5 border border-marker/30 text-ink rounded-none text-center font-data text-sm">
+            Couldn&apos;t load this plan. Check your connection and reload the page.
         </div>
     );
 
     if (!validSchedule) return null;
+
+    const planName = plan?.name || planInfo?.name || validSchedule.originalPlan?.name || 'Training plan';
+    const planSource = cleanDescription(
+        plan?.description || planInfo?.description || validSchedule.originalPlan?.description
+    );
+    const weekVolumes = validSchedule.weeks.map(w => calculateWeeklyVolume(w, units).average);
+    const peakVolume = Math.round(Math.max(...weekVolumes, 0));
+
+    const jumpToToday = () => {
+        if (currentWeekIndex >= 0) {
+            document.getElementById(`week-card-${currentWeekIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     return (
         <DndContext
@@ -170,32 +191,41 @@ export const PlanViewer = () => {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-6 gap-4">
-                    <div>
-                        <div className="inline-block px-2 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider rounded mb-2">
-                            Running Plan
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Masthead */}
+                <header className="border-b-2 border-ink pb-4">
+                    <div className="font-data text-[11px] uppercase tracking-[0.2em] text-pencil mb-1">Training schedule</div>
+                    <h2 className="font-display font-bold uppercase text-3xl sm:text-4xl leading-[0.95] text-ink">{planName}</h2>
+                    {planSource && <p className="text-pencil text-sm mt-1.5 max-w-2xl">{planSource}</p>}
+                </header>
+
+                {/* Bib hero */}
+                <section className="bg-card border border-rule flex items-stretch">
+                    <div className="flex-1 px-5 sm:px-7 py-5">
+                        <div className="font-data text-[11px] uppercase tracking-[0.25em] text-pencil">Race day</div>
+                        <div className="font-display font-bold uppercase text-ink leading-[0.85] text-5xl sm:text-6xl mt-1.5">
+                            {raceDate && format(raceDate, 'MMM d')}
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{plan?.name || planInfo?.name || validSchedule.originalPlan?.name}</h2>
-                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">{plan?.description || planInfo?.description || validSchedule.originalPlan?.description}</p>
+                        <div className="font-data text-pencil text-xs sm:text-sm mt-2 tracking-[0.12em] uppercase">
+                            <span className="text-pencil/70">{validSchedule.weeks.length} weeks · peak {peakVolume} {units}</span>
+                        </div>
                     </div>
-                    <div className="text-left md:text-right bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 min-w-[140px] shadow-sm">
-                        <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Race Date</div>
-                        {raceDate && (
-                            <div className="flex flex-col md:items-end">
-                                <div className="text-2xl font-bold text-rose-600 dark:text-rose-400 leading-none mb-1">
-                                    {format(raceDate, 'MMM d')}
-                                </div>
-                                <div className="text-lg text-slate-900 dark:text-slate-100 font-medium leading-none mb-1">
-                                    {format(raceDate, 'yyyy')}
-                                </div>
-                                <div className="text-sm text-slate-500 font-bold uppercase tracking-wider">
-                                    {format(raceDate, 'EEEE')}
-                                </div>
-                            </div>
-                        )}
+                    <div className="flex-none w-[110px] sm:w-[140px] flex flex-col items-center justify-center px-4 border-l-2 border-dashed border-rule">
+                        <span className="font-data text-[10px] uppercase tracking-[0.2em] text-pencil">
+                            {raceDate && format(raceDate, 'yyyy')}
+                        </span>
+                        <span className="font-display font-bold text-ink leading-none text-2xl sm:text-3xl mt-0.5">
+                            {raceDate && format(raceDate, 'EEEE')}
+                        </span>
                     </div>
-                </div>
+                </section>
+
+                <TodayBand
+                    schedule={validSchedule}
+                    units={units}
+                    paces={paces || undefined}
+                    onJump={jumpToToday}
+                />
 
                 <MileageChart weeks={validSchedule.weeks} units={units} />
 
@@ -207,9 +237,7 @@ export const PlanViewer = () => {
                     planType={plan?.type || 'Marathon'}
                 />
 
-                <TodayStrip schedule={validSchedule} units={units} />
-
-                <div className="space-y-6">
+                <div className="space-y-5">
                     {validSchedule.weeks.map((week, idx) => (
                         <WeekCard
                             key={week.weeksToGoal}
@@ -225,10 +253,10 @@ export const PlanViewer = () => {
 
             <DragOverlay>
                 {activeWorkout ? (
-                    <div className="opacity-90 scale-105 cursor-grabbing">
+                    <div className="opacity-95 cursor-grabbing" style={{ width: 'min(90vw, 56rem)' }}>
                         <DayCard
                             workout={activeWorkout}
-                            date={activeWorkout.date} // optional override, though effectively same
+                            date={activeWorkout.date}
                             isRaceDay={false}
                             units={units}
                             paces={paces || undefined}
@@ -239,16 +267,14 @@ export const PlanViewer = () => {
 
             {currentWeekIndex !== -1 && (
                 <button
-                    onClick={() => {
-                        document.getElementById(`week-card-${currentWeekIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
-                    className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-sm rounded-full shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 border border-indigo-500/30"
+                    onClick={jumpToToday}
+                    className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] rounded-none shadow-lg transition-colors"
                     aria-label="Jump to current week"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
                         <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm-3.75 8.25v9a1.5 1.5 0 001.5 1.5h15a1.5 1.5 0 001.5-1.5v-9h-18z" clipRule="evenodd" />
                     </svg>
-                    <span>Jump to Current Week</span>
+                    <span>Current week</span>
                 </button>
             )}
         </DndContext>

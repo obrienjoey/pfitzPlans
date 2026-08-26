@@ -1,23 +1,71 @@
 @import '@fontsource-variable/inter';
+@import '@fontsource/barlow-condensed/500.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource-variable/spline-sans-mono';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+    :root {
+        --font-data: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
+        --paper: 245 241 232;
+        --card: 253 251 244;
+        --ink: 34 30 23;
+        --pencil: 124 116 102;
+        --marker: 198 57 43;
+        --rule: rgba(34, 30, 23, 0.12);
+        --grid: rgba(222, 215, 196, 0.55);
+        --grid-bold: rgba(222, 215, 196, 0.9);
+        --chart-bar: #4a443b;
+        --chart-bar-hover: #221e17;
+        --chart-current: #c6392b;
+        --chart-grid: rgba(34, 30, 23, 0.08);
+        --chart-label: #7c7466;
+    }
+
+    .dark {
+        --paper: 25 22 17;
+        --card: 33 29 21;
+        --ink: 237 231 216;
+        --pencil: 148 139 121;
+        --marker: 228 87 61;
+        --rule: rgba(237, 231, 216, 0.14);
+        --grid: rgba(237, 231, 216, 0.05);
+        --grid-bold: rgba(237, 231, 216, 0.08);
+        --chart-bar: #b5ac9c;
+        --chart-bar-hover: #ede7d8;
+        --chart-current: #e4573d;
+        --chart-grid: rgba(237, 231, 216, 0.08);
+        --chart-label: #948b79;
+    }
+
     html {
         -webkit-tap-highlight-color: transparent;
         scroll-behavior: smooth;
     }
 
     body {
-        @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-200 antialiased transition-colors duration-300;
+        @apply bg-paper text-ink antialiased transition-colors duration-300;
         font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        /* Graph-paper ground: fine 7px cells, heavier line every 35px. */
+        background-image:
+            linear-gradient(var(--grid-bold) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-bold) 1px, transparent 1px),
+            linear-gradient(var(--grid) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size:
+            35px 35px,
+            35px 35px,
+            7px 7px,
+            7px 7px;
     }
 
     /* Keyboard-only focus indicator for every interactive element */
     :where(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
-        @apply outline-none ring-2 ring-rose-500/70 ring-offset-2 ring-offset-white dark:ring-offset-slate-950;
+        @apply outline-none ring-2 ring-marker/60 ring-offset-2 ring-offset-paper;
     }
 
     /* Custom Scrollbar */
@@ -27,21 +75,19 @@
     }
 
     ::-webkit-scrollbar-track {
-        @apply bg-slate-100 dark:bg-slate-900;
+        @apply bg-paper;
     }
 
     ::-webkit-scrollbar-thumb {
-        @apply bg-slate-300 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-900 rounded-full hover:bg-slate-400 dark:hover:bg-slate-700 transition-colors;
+        @apply bg-pencil/40 border-2 border-paper rounded-full hover:bg-pencil/60 transition-colors;
     }
 }
 
 @layer utilities {
-    .glass {
-        @apply bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/50;
-    }
-
-    .text-gradient {
-        @apply bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent;
+    /* Hand-held red-pen ellipse — slightly irregular, like it was drawn in one stroke. */
+    .pen-circle {
+        border: 2px solid rgb(var(--marker));
+        border-radius: 48% 52% 51% 49% / 58% 46% 54% 42%;
     }
 }
 
@@ -94,6 +140,17 @@ body.drawer-open {
 
 .animate-in {
     animation: enter 0.2s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 /* Hide number input spin buttons */

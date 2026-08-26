@@ -1,9 +1,14 @@
+import { format } from 'date-fns';
 import type { RenderedWeek } from '../types';
 import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
 import type { TrainingPaces } from '../lib/paceCalculator';
 import { calculateWeeklyVolume } from '../lib/calculator';
 
+/**
+ * A week as a coach's session sheet: giant week numeral, the date range and
+ * countdown label, the week's volume, then one ruled line per day.
+ */
 export const WeekCard = ({
     week,
     weekIndex,
@@ -18,47 +23,48 @@ export const WeekCard = ({
     overId?: string
 }) => {
     const { units } = usePlanStore();
-
     const today = new Date();
     const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
 
-    // UseDroppable context for this week (optional, but good for structure)
-    // Actually, we drop onto specific days, so maybe not strictly needed on the week container 
-    // unless we want to support dragging *between* weeks. 
-    // For now, let's keep it simple.
-
     const displayTotal = calculateWeeklyVolume(week, units);
+    const label =
+        week.weeksToGoal < 1
+            ? 'Recovery week'
+            : week.weeksToGoal === 1
+                ? 'Race week'
+                : `${week.weeksToGoal} weeks to go`;
 
     return (
-        <div id={`week-card-${weekIndex}`} className={`scroll-mt-24 bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${isCurrentWeek ? 'border-indigo-500/50 shadow-indigo-500/10 dark:shadow-indigo-950/20 ring-1 ring-indigo-500/20' : 'border-slate-200 dark:border-slate-800'}`}>
-            <div className={`px-3 py-2 sm:px-6 sm:py-4 flex items-center justify-between border-b ${isCurrentWeek ? 'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-500/20' : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800'}`}>
-                <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
-                        <span>Week {week.weekNumber}</span>
-                        {isCurrentWeek && (
-                            <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-[10px] sm:text-xs rounded-full font-bold whitespace-nowrap animate-pulse">
-                                CURRENT WEEK
-                            </span>
-                        )}
-                        <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] sm:text-xs rounded-full font-normal whitespace-nowrap">
-                            {week.weeksToGoal < 1 ? 'Recovery Week' : week.weeksToGoal === 1 ? 'Race Week' : `${week.weeksToGoal} Weeks to Goal`}
-                        </span>
-                    </h3>
-                    <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                        {new Date(week.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(week.weekEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+        <section
+            id={`week-card-${weekIndex}`}
+            className="scroll-mt-24 bg-card border border-rule"
+            style={isCurrentWeek ? { boxShadow: '0 0 0 1.5px rgb(var(--marker))' } : undefined}
+        >
+            {/* Sheet header */}
+            <div
+                className="flex items-center gap-4 px-3 sm:px-5 py-2.5 border-b border-rule"
+                style={isCurrentWeek ? { background: 'rgb(var(--marker) / 0.06)' } : undefined}
+            >
+                <div className="font-display font-bold text-ink text-3xl sm:text-4xl leading-none w-14 sm:w-16 flex-none">
+                    {String(week.weekNumber).padStart(2, '0')}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="font-data text-[10px] uppercase tracking-[0.18em] text-pencil">
+                        {format(week.weekStart, 'MMM d')} – {format(week.weekEnd, 'MMM d')}
+                        {isCurrentWeek && <span className="text-marker font-bold"> · this week</span>}
                     </div>
+                    <div className="text-xs text-pencil">{label}</div>
                 </div>
                 {displayTotal.average > 0 && (
-                    <div className="text-right">
-                        <div className="text-xl sm:text-2xl font-black text-rose-500 dark:text-rose-400">
-                            {displayTotal.formatted}<span className="text-xs sm:text-sm ml-1 text-slate-500 dark:text-slate-400">{units}</span>
-                        </div>
+                    <div className="text-right flex-none">
+                        <span className="font-data text-ink font-bold text-lg leading-none">{displayTotal.formatted}</span>
+                        <span className="font-data text-[10px] text-pencil ml-1">{units}</span>
                     </div>
                 )}
             </div>
 
-            {/* Grid: Desktop 7 cols, Tablet 4 cols, Mobile 1 col */}
-            <div className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2 sm:gap-3">
+            {/* Day rows */}
+            <div>
                 {week.workouts.map((workout, dayIndex) => {
                     const dayId = `week-${weekIndex}-day-${dayIndex}`;
                     return (
@@ -76,6 +82,6 @@ export const WeekCard = ({
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 };

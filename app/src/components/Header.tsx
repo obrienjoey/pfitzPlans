@@ -56,14 +56,14 @@ export const Header = () => {
         <div className="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label="Plan Settings">
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
+                className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
                 onClick={closeDrawer}
             />
 
             {/* Sheet Panel */}
             <div
                 ref={sheetRef}
-                className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-2xl shadow-2xl flex flex-col animate-sheet-slide-up"
+                className="fixed bottom-0 left-0 right-0 bg-card border-t border-rule shadow-2xl flex flex-col animate-sheet-slide-up"
                 style={{
                     height: '85svh',
                     transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
@@ -78,19 +78,19 @@ export const Header = () => {
                     onTouchEnd={handleDragEnd}
                     aria-label="Drag to dismiss"
                 >
-                    <div className="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                    <div className="w-10 h-1.5 bg-pencil/50" />
                 </div>
 
                 {/* Sheet header */}
                 <div className="flex-none flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4 pb-3">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Plan Settings</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Configure your training parameters</p>
+                        <h2 className="font-display font-semibold uppercase text-xl text-ink leading-none">Plan Settings</h2>
+                        <p className="text-xs text-pencil mt-1">Plan, race day, and pace settings</p>
                     </div>
                     <button
                         onClick={closeDrawer}
                         aria-label="Close settings drawer"
-                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors"
+                        className="p-1.5 bg-paper hover:bg-paper/70 text-pencil hover:text-ink border border-rule rounded-none transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -103,11 +103,11 @@ export const Header = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Plan Selector */}
                         <div className="flex flex-col gap-1.5 text-left sm:col-span-2">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Training Plan</label>
+                            <label className="text-[10px] font-semibold text-pencil uppercase tracking-[0.15em] font-data">Training Plan</label>
                             <select
                                 value={selectedPlanId}
                                 onChange={(e) => setPlanId(e.target.value)}
-                                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="w-full bg-card border border-rule hover:border-pencil/60 rounded-none px-3 py-2.5 text-sm text-ink font-data focus:ring-2 focus:ring-marker/50 outline-none transition-colors"
                             >
                                 {availablePlans.map(plan => (
                                     <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
@@ -116,33 +116,33 @@ export const Header = () => {
                         </div>
 
                         {/* Units Toggle */}
-                        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-300 dark:border-slate-800/80 text-left">
+                        <div className="flex items-center justify-between bg-paper p-3 border border-rule text-left">
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-900 dark:text-slate-200">Distance Units</span>
-                                <span className="text-xs text-slate-500">Toggle mileage display</span>
+                                <span className="text-sm font-medium text-ink">Distance units</span>
+                                <span className="text-xs text-pencil">Show miles or kilometres</span>
                             </div>
                             <button
                                 onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
-                                className="px-3 py-1.5 bg-slate-200/70 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-colors uppercase"
+                                className="px-3 py-1.5 bg-card border border-rule hover:border-pencil/60 rounded-none text-xs font-bold text-marker font-data transition-colors uppercase"
                             >
                                 {units === 'mi' ? 'Miles (mi)' : 'KM (km)'}
                             </button>
                         </div>
 
                         {/* Theme Toggle */}
-                        <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-300 dark:border-slate-800/80 text-left">
+                        <div className="flex items-center justify-between bg-paper p-3 border border-rule text-left">
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-900 dark:text-slate-200">Appearance</span>
-                                <span className="text-xs text-slate-500">Switch color theme</span>
+                                <span className="text-sm font-medium text-ink">Appearance</span>
+                                <span className="text-xs text-pencil">Light, dark, or system</span>
                             </div>
                             <ThemeToggle className="bg-slate-200/70 dark:bg-slate-900" />
                         </div>
 
                         {/* Race Distance */}
                         <div className="flex flex-col gap-1.5 text-left">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
+                            <label className="text-[10px] font-semibold text-pencil uppercase tracking-[0.15em] font-data">Recent Race Distance</label>
                             <select
-                                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                                className="w-full bg-card border border-rule hover:border-pencil/60 rounded-none px-3 py-2.5 text-sm text-ink font-data focus:ring-2 focus:ring-marker/50 outline-none transition-colors"
                                 value={raceInput?.distance || '10K'}
                                 onChange={(e) => {
                                     const state = usePlanStore.getState();
@@ -160,7 +160,7 @@ export const Header = () => {
 
                         {/* Race Time */}
                         <div className="flex flex-col gap-1.5 text-left">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recent Race Time</label>
+                            <label className="text-[10px] font-semibold text-pencil uppercase tracking-[0.15em] font-data">Recent Race Time</label>
                             <TimeInput
                                 value={raceInput?.time || ''}
                                 onChange={(val) => {
@@ -175,7 +175,7 @@ export const Header = () => {
 
                         {/* Race Date */}
                         <div className="flex flex-col gap-1.5 text-left sm:col-span-2">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target Race Date</label>
+                            <label className="text-[10px] font-semibold text-pencil uppercase tracking-[0.15em] font-data">Target Race Date</label>
                             <DatePicker
                                 value={raceDate}
                                 onChange={setRaceDate}
@@ -191,7 +191,7 @@ export const Header = () => {
                 <div className="flex-none px-4 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <button
                         onClick={closeDrawer}
-                        className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-wider shadow-lg shadow-rose-500/20"
+                        className="w-full py-3.5 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-bold rounded-none transition-colors text-sm uppercase tracking-[0.12em] font-data"
                     >
                         Done
                     </button>
@@ -203,21 +203,21 @@ export const Header = () => {
 
     return (
         <>
-        <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/60 shadow-sm transition-colors text-left">
+        <header className="sticky top-0 z-50 backdrop-blur bg-paper/90 border-b border-rule transition-colors text-left">
             <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4 max-w-5xl">
                 {/* Brand Logo & Title */}
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <img
                         src="pwa-512x512.png"
                         alt="Logo"
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl shadow-lg shadow-rose-500/20 object-cover"
+                        className="w-8 h-8 sm:w-10 sm:h-10 object-cover"
                     />
                     <div className="flex flex-col sm:block">
-                        <h1 className="text-lg sm:text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-400 leading-none sm:leading-normal">
+                        <h1 className="font-display font-bold uppercase text-2xl tracking-wide text-ink leading-none sm:leading-normal">
                             RacePlans
                         </h1>
                         {planInfo && (
-                            <span className="text-[10px] sm:hidden text-rose-500 dark:text-rose-400 font-semibold leading-none mt-0.5 max-w-[150px] truncate">
+                            <span className="text-[10px] sm:hidden text-marker font-semibold leading-none mt-0.5 max-w-[150px] truncate">
                                 {planInfo.type} · {planInfo.name}
                             </span>
                         )}
@@ -230,7 +230,7 @@ export const Header = () => {
                         value={selectedPlanId}
                         onChange={(e) => setPlanId(e.target.value)}
                         aria-label="Select training plan"
-                        className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                        className="flex-1 min-w-[140px] md:w-64 md:flex-none bg-card border border-rule text-ink hover:border-pencil/60 rounded-none px-3 py-2 text-sm font-data focus:ring-2 focus:ring-marker/50 outline-none transition-colors"
                     >
                         {availablePlans.map(plan => (
                             <option key={plan.id} value={plan.id}>{plan.type} · {plan.name}</option>
@@ -240,7 +240,7 @@ export const Header = () => {
                     <button
                         onClick={() => usePlanStore.getState().setUnits(units === 'mi' ? 'km' : 'mi')}
                         aria-label="Toggle units of measurement"
-                        className="flex-none px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors w-12"
+                        className="flex-none px-3 py-2 bg-card border border-rule hover:border-pencil/60 rounded-none text-sm font-medium text-ink font-data transition-colors w-12"
                         title="Toggle Units"
                     >
                         {units}
@@ -251,7 +251,7 @@ export const Header = () => {
                     <div className="flex gap-1 items-center">
                         <select 
                             aria-label="Select race distance"
-                            className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
+                            className="bg-card border border-rule text-ink hover:border-pencil/60 rounded-none px-2 py-2 text-sm font-data focus:ring-2 focus:ring-marker/50 outline-none transition-colors"
                             value={raceInput?.distance || '10K'}
                             onChange={(e) => {
                                 const state = usePlanStore.getState();
@@ -288,7 +288,7 @@ export const Header = () => {
                     <button
                         onClick={() => setIsDrawerOpen(true)}
                         aria-label="Open settings drawer"
-                        className="p-2 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors"
+                        className="p-2 bg-card border border-rule hover:border-pencil/60 rounded-none text-pencil hover:text-ink transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />

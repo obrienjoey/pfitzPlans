@@ -138,11 +138,11 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600 rounded-lg pl-9 pr-3 py-2 text-sm text-left text-slate-900 dark:text-slate-100 cursor-pointer focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors",
-                        isOpen && "ring-2 ring-rose-500/50 border-rose-500/50"
+                        "w-full bg-card border border-rule hover:border-pencil/60 rounded-none pl-9 pr-3 py-2 text-sm text-left text-ink font-data cursor-pointer focus:ring-2 focus:ring-marker/60 outline-none transition-colors",
+                        isOpen && "ring-2 ring-marker/60 border-marker/60"
                     )}
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-pencil pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
                     </svg>
@@ -151,7 +151,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
 
             {isOpen && (
                 <div
-                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[200] w-[240px]"
+                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-card border border-rule shadow-2xl z-[200] w-[240px]"
                     style={popupFixed && popupCoords
                         ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right }
                         : { position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem' }
@@ -159,7 +159,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                 >
                     <div className="flex items-center justify-center gap-2 mb-4">
                         <div className="flex flex-col items-center">
-                            <label className="text-[10px] uppercase text-slate-500 font-bold mb-1">Hrs</label>
+                            <label className="text-[10px] uppercase text-pencil font-bold mb-1 font-data">Hrs</label>
                             <input
                                 ref={firstInputRef}
                                 type="number"
@@ -168,12 +168,12 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                                 aria-label="Hours"
                                 onChange={(e) => updateTime(Math.max(0, parseInt(e.target.value) || 0), m, s)}
                                 onWheel={(e) => handleWheel(e, 'h')}
-                                className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg py-2 text-center text-xl text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"
+                                className="w-14 bg-paper border border-rule rounded-none py-2 text-center text-xl text-ink font-bold font-data focus:ring-2 focus:ring-marker outline-none"
                             />
                         </div>
-                        <span className="text-xl text-slate-400 dark:text-slate-600 font-bold mt-4">:</span>
+                        <span className="text-xl text-pencil font-bold mt-4 font-data">:</span>
                         <div className="flex flex-col items-center">
-                            <label className="text-[10px] uppercase text-slate-500 font-bold mb-1">Min</label>
+                            <label className="text-[10px] uppercase text-pencil font-bold mb-1 font-data">Min</label>
                             <input
                                 type="number"
                                 min={0}
@@ -182,12 +182,12 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                                 aria-label="Minutes"
                                 onChange={(e) => updateTime(h, Math.max(0, Math.min(59, parseInt(e.target.value) || 0)), s)}
                                 onWheel={(e) => handleWheel(e, 'm')}
-                                className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg py-2 text-center text-xl text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"
+                                className="w-14 bg-paper border border-rule rounded-none py-2 text-center text-xl text-ink font-bold font-data focus:ring-2 focus:ring-marker outline-none"
                             />
                         </div>
-                        <span className="text-xl text-slate-400 dark:text-slate-600 font-bold mt-4">:</span>
+                        <span className="text-xl text-pencil font-bold mt-4 font-data">:</span>
                         <div className="flex flex-col items-center">
-                            <label className="text-[10px] uppercase text-slate-500 font-bold mb-1">Sec</label>
+                            <label className="text-[10px] uppercase text-pencil font-bold mb-1 font-data">Sec</label>
                             <input
                                 type="number"
                                 min={0}
@@ -196,13 +196,13 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                                 aria-label="Seconds"
                                 onChange={(e) => updateTime(h, m, Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
                                 onWheel={(e) => handleWheel(e, 's')}
-                                className="w-14 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg py-2 text-center text-xl text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-rose-500 outline-none"
+                                className="w-14 bg-paper border border-rule rounded-none py-2 text-center text-xl text-ink font-bold font-data focus:ring-2 focus:ring-marker outline-none"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <div className="text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200 dark:border-slate-800 pb-1 mb-2">
+                        <div className="text-[10px] uppercase text-pencil font-bold border-b border-rule pb-1 mb-2 font-data">
                             Quick Select
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -210,7 +210,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                                 <button
                                     key={p.label}
                                     onClick={() => updateTime(p.h, p.m, p.s)}
-                                    className="px-2 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 rounded text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-center"
+                                    className="px-2 py-1.5 bg-paper hover:bg-paper/60 border border-rule hover:border-pencil/60 rounded-none text-xs font-medium text-ink hover:text-marker font-data transition-colors text-center"
                                 >
                                     {p.label}
                                 </button>

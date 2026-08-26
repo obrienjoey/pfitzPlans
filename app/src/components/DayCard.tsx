@@ -6,6 +6,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getPaceZone, type TrainingPaces, type PaceZone } from '../lib/paceCalculator';
 import { KM_PER_MILE } from '../lib/constants';
+import { zoneColor } from '../lib/zoneColors';
 import { usePlanStore, type WorkoutStatus } from '../store/usePlanStore';
 
 const convert = (val: number, toMetric: boolean) => {
@@ -24,6 +25,17 @@ const formatDistance = (dist?: Distance, units: 'mi' | 'km' = 'mi') => {
     }
     return `${convert(dist[0], isMetric)}–${convert(dist[1], isMetric)} ${label}`;
 };
+
+const GripIcon = () => (
+    <svg viewBox="0 0 10 16" fill="currentColor" className="w-3 h-4" aria-hidden="true">
+        <circle cx="2.5" cy="2.5" r="1.4" />
+        <circle cx="7.5" cy="2.5" r="1.4" />
+        <circle cx="2.5" cy="8" r="1.4" />
+        <circle cx="7.5" cy="8" r="1.4" />
+        <circle cx="2.5" cy="13.5" r="1.4" />
+        <circle cx="7.5" cy="13.5" r="1.4" />
+    </svg>
+);
 
 interface DayCardProps {
     workout: RenderedWorkout;
@@ -56,6 +68,7 @@ const DayCardContent = ({
     paces,
     isOver,
     isActive,
+    isRaceDay,
     weekIndex,
     dayIndex,
     setNodeRef,
@@ -65,18 +78,19 @@ const DayCardContent = ({
 }: DayCardContentProps) => {
 
     const isRest = workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
-    const isRace = workout.tags?.includes('Race');
-    const isLongRun = workout.tags?.includes('Long Run');
+    const isRace = workout.tags?.includes('Race') || workout.title.toLowerCase().includes('goal race');
 
     const displayDate = date || workout.date;
     const today = new Date();
     const isToday = today.toDateString() === new Date(displayDate).toDateString();
+    const isRaceDayCard = isRace || isRaceDay === true;
 
     const displayTitle = formatPlanLabel(workout.title, units);
 
     // Pace Calculation Logic
     const zone = getPaceZone(workout.title, workout.tags, workout.zone as PaceZone);
     const paceRange = (paces && zone) ? paces[zone] : null;
+    const zc = zoneColor(zone);
 
     const paceString = (paceRange && zone === 'Recovery')
         ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min }, units, false)}`
@@ -98,8 +112,15 @@ const DayCardContent = ({
         const handleOutsideClick = () => {
             setMenuOpen(false);
         };
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setMenuOpen(false);
+        };
         document.addEventListener('click', handleOutsideClick);
-        return () => document.removeEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleEscape);
+        return () => {
+            document.removeEventListener('click', handleOutsideClick);
+            document.removeEventListener('keydown', handleEscape);
+        };
     }, [menuOpen]);
 
     const toggleMenu = (e: React.MouseEvent) => {
@@ -121,21 +142,27 @@ const DayCardContent = ({
         if (weekIndex === undefined || dayIndex === undefined) return null;
 
         let icon = null;
-        let btnClass = "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none";
+        let btnClass = "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200";
 
         if (status === 'completed') {
             icon = <span className="text-[10px] font-black">✓</span>;
-            btnClass += " bg-emerald-500 text-slate-950 font-extrabold shadow-sm shadow-emerald-500/20";
+            btnClass += " bg-ink text-paper font-extrabold";
         } else if (status === 'skipped') {
             icon = <span className="text-[10px] font-black">✗</span>;
-            btnClass += " bg-slate-700 text-slate-300 font-extrabold";
+            btnClass += " border border-pencil/60 text-pencil font-extrabold";
         } else if (status === 'modified') {
             icon = <span className="text-[10px] font-black">✎</span>;
-            btnClass += " bg-amber-500 text-slate-950 font-extrabold shadow-sm shadow-amber-500/20";
+            btnClass += " bg-marker text-paper font-extrabold";
         } else {
-            icon = <span className="opacity-0 group-hover/status:opacity-100 text-[10px] text-slate-400 transition-opacity">✓</span>;
-            btnClass += " border border-slate-300 hover:border-slate-400 bg-white/60 dark:border-slate-700 dark:hover:border-slate-500 dark:bg-slate-950/50 group/status";
+            icon = <span className="opacity-0 group-hover/status:opacity-100 text-[10px] text-pencil transition-opacity">✓</span>;
+            btnClass += " border border-rule hover:border-pencil/60 group/status";
         }
+
+        const menuItems: Array<{ status: WorkoutStatus; label: string; glyph: string; cls: string }> = [
+            { status: 'completed', label: 'Completed', glyph: '✓', cls: 'text-ink hover:bg-ink/5' },
+            { status: 'modified', label: 'Modified', glyph: '✎', cls: 'text-marker hover:bg-marker/10' },
+            { status: 'skipped', label: 'Skipped', glyph: '✗', cls: 'text-pencil hover:bg-ink/5' },
+        ];
 
         return (
             <div className="relative shrink-0">
@@ -152,36 +179,29 @@ const DayCardContent = ({
                 {menuOpen && (
                     <div
                         onMouseDown={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-6 z-30 w-32 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                        className="absolute right-0 top-6 z-30 w-32 bg-card border border-rule shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
                     >
-                        <button
-                            onClick={(e) => selectStatus('completed', e)}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1.5 transition-colors"
-                        >
-                            <span>✓</span> Completed
-                        </button>
-                        <button
-                            onClick={(e) => selectStatus('modified', e)}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5 transition-colors"
-                        >
-                            <span>✎</span> Modified
-                        </button>
-                        <button
-                            onClick={(e) => selectStatus('skipped', e)}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 transition-colors"
-                        >
-                            <span>✗</span> Skipped
-                        </button>
+                        {menuItems.map(({ status: s, label, glyph, cls }) => (
+                            <button
+                                key={s}
+                                onClick={(e) => selectStatus(s, e)}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                className={clsx(
+                                    "w-full text-left px-2.5 py-1.5 rounded-none text-[11px] font-bold flex items-center gap-1.5 transition-colors font-data",
+                                    cls,
+                                    status === s && "bg-ink/5"
+                                )}
+                            >
+                                <span aria-hidden="true">{glyph}</span> {label}
+                            </button>
+                        ))}
                         {status !== 'none' && (
                             <button
                                 onClick={(e) => selectStatus('none', e)}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-rose-400 hover:bg-rose-500/10 border-t border-slate-800/80 mt-0.5 pt-1.5 flex items-center gap-1.5 transition-colors"
+                                className="w-full text-left px-2.5 py-1.5 text-[11px] font-bold text-marker hover:bg-marker/10 border-t border-rule mt-0.5 pt-1.5 flex items-center gap-1.5 transition-colors font-data"
                             >
-                                <span>↺</span> Clear Status
+                                <span aria-hidden="true">↺</span> Clear status
                             </button>
                         )}
                     </div>
@@ -198,86 +218,85 @@ const DayCardContent = ({
             id={id}
             {...wrapperProps}
             className={clsx(
-                "relative p-3 sm:p-4 rounded-xl border transition-all hover:shadow-lg group min-h-0 sm:min-h-[140px] flex flex-col select-none",
-                isRest
-                    ? "bg-slate-100/60 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/50 text-slate-400 dark:text-slate-500"
-                    : "bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200",
-                isRace && "border-rose-500/50 bg-rose-500/10 hover:bg-rose-500/20 ring-1 ring-rose-500/20",
-                isLongRun && "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10",
-                
-                // Status styles
-                status === 'completed' && "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/10 hover:bg-emerald-100 dark:hover:bg-emerald-950/20",
-                status === 'modified' && "border-amber-500/40 bg-amber-50 dark:bg-amber-950/10 hover:bg-amber-100 dark:hover:bg-amber-950/20",
+                "relative flex items-center gap-3 px-3 sm:px-4 py-2 border-b border-rule last:border-b-0 group transition-colors select-none",
+                isRest && "text-pencil",
+                isRaceDayCard && "bg-marker/5",
                 status === 'skipped' && "opacity-45 hover:opacity-60",
-
-                isToday && "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/40 z-10 text-slate-900 dark:text-white",
-                isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-100 dark:bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
-                isActive && "opacity-20 grayscale-[0.5]"
+                isOver && !isActive && "bg-marker/5 shadow-[inset_0_2px_0_var(--marker),inset_0_-2px_0_var(--marker)]",
+                isActive && "opacity-20"
             )}
         >
             {isToday && (
-                <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-indigo-500 text-white font-extrabold text-[8px] rounded shadow-md tracking-wider animate-pulse z-20">
-                    TODAY
-                </span>
+                <span aria-hidden="true" className="pen-circle pointer-events-none absolute inset-x-1.5 -inset-y-0.5" />
             )}
 
-            {/* Date Header */}
-            <div className="flex justify-between items-start mb-3">
-                <div className="text-xs font-semibold uppercase tracking-wider opacity-60 flex items-center gap-1.5">
-                    {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
-                </div>
-                <div className="flex items-center gap-1.5">
-                    {workout.distance && (
-                        <div className={clsx(
-                            "text-sm font-bold font-mono px-2 py-0.5 rounded",
-                            isRest ? "bg-slate-200 dark:bg-slate-800 text-slate-500" : "bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-600",
-                            isRace && "bg-rose-500 text-white border-none",
-                            isLongRun && "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-none"
-                        )}>
-                            {formatDistance(workout.distance, units)}
-                        </div>
-                    )}
-                    {renderStatusTrigger()}
-                </div>
+            {/* Date */}
+            <div className={clsx(
+                "font-data text-[11px] uppercase tracking-wider w-14 flex-none",
+                isToday ? "text-marker font-bold" : "text-pencil"
+            )}>
+                {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
             </div>
 
-            {/* Content */}
-            <div className="flex-1">
-                <h4 className={clsx("font-semibold mb-1 leading-snug", isRest ? "text-slate-400 dark:text-slate-500" : "text-slate-900 dark:text-white", status === 'skipped' && "line-through opacity-60")}>
-                    {displayTitle}
-                </h4>
+            {/* Title */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                <div className="flex items-baseline gap-2 min-w-0">
+                    <h4
+                        className={clsx(
+                            "text-sm truncate",
+                            status === 'skipped' && "line-through opacity-60"
+                        )}
+                        style={{
+                            color: isRest ? 'var(--pencil)' : 'var(--ink)',
+                            fontStyle: isRest ? 'italic' : undefined,
+                            borderLeft: !isRest && zc ? `2px solid ${zc}` : undefined,
+                            paddingLeft: !isRest && zc ? 6 : 0,
+                            fontWeight: isRaceDayCard ? 700 : undefined,
+                        }}
+                    >
+                        {displayTitle}
+                    </h4>
+                    {isRaceDayCard && (
+                        <span className="text-marker font-data text-[10px] uppercase font-bold flex-none">Race</span>
+                    )}
+                </div>
                 {workout.description && (
-                    <p className={clsx("text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors leading-relaxed", status === 'skipped' && "line-through opacity-60")}>
+                    <p
+                        className={clsx(
+                            "text-xs text-pencil truncate",
+                            status === 'skipped' && "line-through opacity-60"
+                        )}
+                    >
                         {formatPlanLabel(workout.description, units)}
                     </p>
                 )}
-                {paceString && (
-                    <div className={clsx(
-                        "mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-tight border shadow-sm",
-                        zone === 'Marathon' && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-                        zone === 'Lactate Threshold' && "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
-                        zone === 'VO2 Max' && "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20",
-                        zone === 'Long Run' && "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
-                        zone === 'General Aerobic' && "bg-slate-100 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600/30",
-                        zone === 'Recovery' && "bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700/30"
-                    )}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 opacity-70 shrink-0" aria-hidden="true">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
-                        </svg> {paceString}/{units}
-                    </div>
-                )}
             </div>
 
-            {/* Tags */}
-            {workout.tags && workout.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                    {workout.tags.map(tag => (
-                        <span key={tag} className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600/30">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-            )}
+            {/* Distance + pace */}
+            <div className="flex-none flex items-center gap-3">
+                {paceString && !isRest && zone && (
+                    <span
+                        className="hidden lg:inline font-data text-xs whitespace-nowrap"
+                        style={{ color: zc ?? 'var(--pencil)' }}
+                    >
+                        {paceString}
+                    </span>
+                )}
+                <span className={clsx(
+                    "font-data text-sm font-bold whitespace-nowrap w-[76px] text-right",
+                    isRest ? "text-pencil font-normal" : "text-ink",
+                    isRaceDayCard && "text-marker"
+                )}>
+                    {workout.distance ? formatDistance(workout.distance, units) : '—'}
+                </span>
+                {renderStatusTrigger()}
+                <span
+                    className="flex-none w-5 flex justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink"
+                    title="Drag to reschedule"
+                >
+                    <GripIcon />
+                </span>
+            </div>
         </div>
     );
 };

@@ -130,33 +130,40 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans selection:bg-rose-500 selection:text-white transition-colors duration-300">
+      <div className="min-h-screen text-ink font-sans selection:bg-marker selection:text-paper transition-colors duration-300">
         <Header />
 
         <main className="container mx-auto px-4 py-8 max-w-5xl">
           {!raceDate ? (
-            <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-2xl mt-12 sm:mt-16 w-full max-w-4xl mx-auto">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-rose-500 to-orange-500 dark:from-rose-400 dark:to-orange-400 bg-clip-text text-transparent mb-10 text-center">
-                Start Your Training
-              </h2>
+            <div className="w-full max-w-4xl mx-auto mt-6 sm:mt-10">
+              <header className="border-b-2 border-ink pb-4 mb-8">
+                <h2 className="font-display font-bold uppercase text-4xl sm:text-5xl leading-[0.95] text-ink">
+                  Pick a plan, set your race day
+                </h2>
+                <p className="text-pencil text-sm mt-2">
+                  Choose a training schedule, then get a dated calendar with pace targets built from a recent race.
+                </p>
+              </header>
 
               <PlanSelector selectedId={selectedPlanId} onSelect={setPlanId} />
 
-              <div className="w-full max-w-sm mt-8 p-6 bg-slate-100/80 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center">
-                <p className="text-slate-700 dark:text-slate-300 mb-4 font-medium text-center">
-                  Select your target race date to generate your personalized schedule.
-                </p>
-                <DatePicker
-                  value={raceDate || defaultDate}
-                  onChange={setRaceDate}
-                  placeholder="YYYY-MM-DD"
-                  className="w-full"
-                />
+              <div className="card bg-card border border-rule p-6 flex flex-col sm:flex-row sm:items-end gap-4">
+                <div className="flex-1">
+                  <label htmlFor="landing-date" className="block font-data text-[10px] uppercase tracking-[0.15em] text-pencil mb-1">
+                    Race day
+                  </label>
+                  <DatePicker
+                    value={raceDate || defaultDate}
+                    onChange={setRaceDate}
+                    placeholder="YYYY-MM-DD"
+                    className="w-full sm:max-w-xs"
+                  />
+                </div>
                 <button
                   onClick={() => setRaceDate(raceDate || defaultDate)}
-                  className="w-full mt-4 py-2.5 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl shadow-lg shadow-rose-500/20 active:bg-rose-700 transition-all text-sm uppercase tracking-wider"
+                  className="w-full sm:w-auto py-2.5 px-6 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold rounded-none text-sm uppercase tracking-[0.12em] transition-colors"
                 >
-                  Generate Schedule
+                  Build my schedule
                 </button>
               </div>
             </div>

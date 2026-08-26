@@ -89,17 +89,16 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const svgHeight = height + paddingTop + paddingBottom;
 
     return (
-        <div className="w-full bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 mb-8 transition-all shadow-xl">
+        <div className="w-full bg-card border border-rule p-4 sm:p-6 mb-2 transition-colors">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/50 pb-4">
                 <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                        Weekly Volume Progression
+                    <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide flex items-center gap-2">
+                        Weekly volume
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Visual representation of weekly mileage builds and tapers</p>
+                    <p className="text-xs text-pencil mt-0.5">Mileage builds and tapers, week by week</p>
                 </div>
-                <div className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700/30">
-                    Units: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{units}</span>
+                <div className="font-data text-xs text-pencil px-2.5 py-1 border border-rule">
+                    <span className="text-ink font-bold">{units}</span>
                 </div>
             </div>
 
@@ -116,26 +115,6 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
                         className="overflow-visible select-none block"
                     >
-                        <defs>
-                            <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#cbd5e1" />
-                                <stop offset="100%" stopColor="#94a3b8" />
-                            </linearGradient>
-                            <linearGradient id="bar-grad-hover" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#a5b4fc" />
-                                <stop offset="100%" stopColor="#6366f1" />
-                            </linearGradient>
-                            <linearGradient id="bar-grad-current" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#818cf8" />
-                                <stop offset="100%" stopColor="#4f46e5" />
-                            </linearGradient>
-                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#6366f1" floodOpacity="0.3"/>
-                            </filter>
-                            <filter id="glow-current" x="-20%" y="-20%" width="140%" height="140%">
-                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#4f46e5" floodOpacity="0.45"/>
-                            </filter>
-                        </defs>
 
                         {/* Y-Axis Gridlines and Labels */}
                         {yAxisTicks.map((val) => {
@@ -148,15 +127,17 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         x2={svgWidth - paddingRight}
                                         y2={tickY}
                                         strokeWidth="1"
-                                        strokeDasharray={val === 0 ? undefined : "4 4"}
-                                        opacity={val === 0 ? "0.8" : "0.6"}
-                                        className={val === 0 ? "stroke-slate-300 dark:stroke-slate-500" : "stroke-slate-200 dark:stroke-slate-700"}
+                                        strokeDasharray={val === 0 ? undefined : "3 4"}
+                                        opacity={val === 0 ? "0.9" : "1"}
+                                        style={{ stroke: "var(--chart-grid)" }}
                                     />
                                     <text
                                         x={paddingLeft - 8}
                                         y={tickY + 3.5}
                                         textAnchor="end"
-                                        className="text-[10px] font-mono font-medium fill-slate-400 dark:fill-slate-500"
+                                        style={{ fill: "var(--chart-label)" }}
+                                        fontSize={10}
+                                        fontFamily="var(--font-data, monospace)"
                                     >
                                         {val}
                                     </text>
@@ -171,17 +152,12 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                             const y = svgHeight - paddingBottom - barHeight;
                             const isHovered = hoveredIndex === index;
 
-                            // Color states
-                            let fillGradient = "url(#bar-grad)";
-                            let borderStroke = "rgba(148, 163, 184, 0.4)"; // Neutral border
-
-                            if (data.isCurrentWeek) {
-                                fillGradient = "url(#bar-grad-current)";
-                                borderStroke = "#4f46e5"; // Indigo stroke for today/current week
-                            } else if (isHovered) {
-                                fillGradient = "url(#bar-grad-hover)";
-                                borderStroke = "#818cf8"; // Indigo highlight
-                            }
+                            // Color states — flat ink bars; marker red marks the current week
+                            const fill = data.isCurrentWeek
+                                ? "var(--chart-current)"
+                                : isHovered
+                                    ? "var(--chart-bar-hover)"
+                                    : "var(--chart-bar)";
 
                             return (
                                 <g
@@ -209,18 +185,18 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                                 width="100"
                                                 height="24"
                                                 rx="6"
-                                                fill="#0f172a"
-                                                stroke="#334155"
+                                                className="fill-[var(--card)] stroke-[var(--rule)]"
                                                 strokeWidth="1"
-                                                className="shadow-xl"
                                             />
                                             {/* Tooltip text */}
                                             <text
                                                 x={Math.max(paddingLeft + 50, x + barWidth / 2)}
                                                 y={y - 16}
                                                 textAnchor="middle"
-                                                fill="#f8fafc"
-                                                className="text-[11px] font-mono font-bold"
+                                                style={{ fill: "var(--ink)" }}
+                                                fontSize={11}
+                                                fontWeight={700}
+                                                fontFamily="var(--font-data, monospace)"
                                             >
                                                 {data.volumeFormatted} {units}
                                             </text>
@@ -229,12 +205,8 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
 
                                     {/* Bar Graphic */}
                                     <path
-                                        d={roundedTopRect(x, y, barWidth, barHeight, 7)}
-                                        fill={fillGradient}
-                                        stroke={borderStroke}
-                                        strokeWidth={isHovered || data.isCurrentWeek ? 2 : 1}
-                                        filter={data.isCurrentWeek ? "url(#glow-current)" : isHovered ? "url(#glow)" : undefined}
-                                        className="transition-all duration-200 ease-out"
+                                        d={roundedTopRect(x, y, barWidth, barHeight, 5)}
+                                        style={{ fill, transition: "fill 0.15s ease-out" }}
                                     />
 
                                     {/* Peak tag text */}
@@ -243,7 +215,10 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                             x={x + barWidth / 2}
                                             y={y - 8}
                                             textAnchor="middle"
-                                            className="text-[10px] font-mono font-bold tracking-tight fill-amber-500 dark:fill-amber-400"
+                                            style={{ fill: "var(--chart-current)" }}
+                                            fontSize={10}
+                                            fontWeight={700}
+                                            letterSpacing={1}
                                         >
                                             PEAK
                                         </text>
@@ -254,7 +229,16 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         x={x + barWidth / 2}
                                         y={svgHeight - 4}
                                         textAnchor="middle"
-                                        className={`text-[10px] font-mono ${data.isCurrentWeek ? 'fill-indigo-600 dark:fill-indigo-400 font-bold' : isHovered ? 'fill-indigo-500 font-bold' : 'fill-slate-400 dark:fill-slate-500'}`}
+                                        style={{
+                                            fill: data.isCurrentWeek
+                                                ? "var(--chart-current)"
+                                                : isHovered
+                                                    ? "var(--chart-bar-hover)"
+                                                    : "var(--chart-label)",
+                                            fontWeight: data.isCurrentWeek || isHovered ? 700 : 400,
+                                        }}
+                                        fontSize={10}
+                                        fontFamily="var(--font-data, monospace)"
                                     >
                                         W{data.weekNumber}
                                     </text>

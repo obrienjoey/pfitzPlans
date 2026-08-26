@@ -50,10 +50,10 @@ describe('PaceChart Component', () => {
             />
         );
 
-        expect(screen.getByText('Training Paces')).toBeInTheDocument();
-        expect(screen.getByText(/Based on 0:41:20 10K race/)).toBeInTheDocument();
-        expect(screen.getByText('Race Paces')).toBeInTheDocument();
-        expect(screen.getByText('Training Zones')).toBeInTheDocument();
+        expect(screen.getByText('Training paces')).toBeInTheDocument();
+        expect(screen.getByText(/Based on your 0:41:20 10K race/)).toBeInTheDocument();
+        expect(screen.getByText('Race paces')).toBeInTheDocument();
+        expect(screen.getByText('Training zones')).toBeInTheDocument();
     });
 
     it('excludes Marathon pace zone for FRR plans', () => {
