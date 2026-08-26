@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import defaultTheme from 'tailwindcss/defaultTheme';
+
 export default {
   darkMode: 'class',
   content: [
@@ -6,7 +8,11 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['"Inter Variable"', 'Inter', ...defaultTheme.fontFamily.sans],
+      },
+    },
   },
   plugins: [],
 }

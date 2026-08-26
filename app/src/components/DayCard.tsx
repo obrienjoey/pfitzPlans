@@ -128,13 +128,13 @@ const DayCardContent = ({
             btnClass += " bg-emerald-500 text-slate-950 font-extrabold shadow-sm shadow-emerald-500/20";
         } else if (status === 'skipped') {
             icon = <span className="text-[10px] font-black">✗</span>;
-            btnClass += " bg-slate-700 text-slate-350 font-extrabold";
+            btnClass += " bg-slate-700 text-slate-300 font-extrabold";
         } else if (status === 'modified') {
             icon = <span className="text-[10px] font-black">✎</span>;
             btnClass += " bg-amber-500 text-slate-950 font-extrabold shadow-sm shadow-amber-500/20";
         } else {
             icon = <span className="opacity-0 group-hover/status:opacity-100 text-[10px] text-slate-400 transition-opacity">✓</span>;
-            btnClass += " border border-slate-700 hover:border-slate-500 bg-slate-950/50 group/status";
+            btnClass += " border border-slate-300 hover:border-slate-400 bg-white/60 dark:border-slate-700 dark:hover:border-slate-500 dark:bg-slate-950/50 group/status";
         }
 
         return (
@@ -171,7 +171,7 @@ const DayCardContent = ({
                         <button
                             onClick={(e) => selectStatus('skipped', e)}
                             onMouseDown={(e) => e.stopPropagation()}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:bg-slate-750 flex items-center gap-1.5 transition-colors"
+                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 transition-colors"
                         >
                             <span>✗</span> Skipped
                         </button>
@@ -210,7 +210,7 @@ const DayCardContent = ({
                 status === 'modified' && "border-amber-500/40 bg-amber-50 dark:bg-amber-950/10 hover:bg-amber-100 dark:hover:bg-amber-950/20",
                 status === 'skipped' && "opacity-45 hover:opacity-60",
 
-                isToday && "border-indigo-500 bg-indigo-50/50 dark:bg-slate-850 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/40 z-10 text-slate-900 dark:text-white",
+                isToday && "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 ring-2 ring-indigo-500/30 scale-[1.01] hover:scale-[1.03] shadow-xl shadow-indigo-500/10 dark:shadow-indigo-950/40 z-10 text-slate-900 dark:text-white",
                 isOver && !isActive && "ring-2 ring-indigo-500 bg-slate-100 dark:bg-slate-800/80 scale-[1.02] shadow-2xl z-10 border-indigo-500/50",
                 isActive && "opacity-20 grayscale-[0.5]"
             )}
