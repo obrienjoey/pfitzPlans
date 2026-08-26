@@ -213,12 +213,20 @@ const DayCardContent = ({
     // If setNodeRef is passed, we bind the drag-and-drop properties
     const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
 
+    const expandable = !isRest;
+    const [expanded, setExpanded] = useState(false);
+
+    const toggleExpand = () => {
+        if (!expandable) return;
+        setExpanded(v => !v);
+    };
+
     return (
         <div
             id={id}
             {...wrapperProps}
             className={clsx(
-                "relative flex items-center gap-3 px-3 sm:px-4 py-2 border-b border-rule last:border-b-0 group transition-colors select-none",
+                "group border-b border-rule last:border-b-0 select-none transition-colors",
                 isRest && "text-pencil",
                 isRaceDayCard && "bg-marker/5",
                 status === 'skipped' && "opacity-45 hover:opacity-60",
@@ -226,77 +234,116 @@ const DayCardContent = ({
                 isActive && "opacity-20"
             )}
         >
-            {isToday && (
-                <span aria-hidden="true" className="pen-circle pointer-events-none absolute inset-x-1.5 -inset-y-0.5" />
-            )}
+            {/* Clickable row (tap to reveal pace + description on mobile; drag via grip) */}
+            <div
+                onClick={expandable ? toggleExpand : undefined}
+                className={clsx(
+                    "relative flex items-center gap-3 px-3 sm:px-4 py-2",
+                    expandable && "cursor-pointer hover:bg-marker/5 transition-colors"
+                )}
+            >
+                {isToday && (
+                    <span aria-hidden="true" className="pen-circle pointer-events-none absolute inset-x-1.5 -inset-y-0.5" />
+                )}
 
-            {/* Date */}
-            <div className={clsx(
-                "font-data text-[11px] uppercase tracking-wider w-14 flex-none",
-                isToday ? "text-marker font-bold" : "text-pencil"
-            )}>
-                {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
-            </div>
+                {/* Date */}
+                <div className={clsx(
+                    "font-data text-[11px] uppercase tracking-wider w-14 flex-none",
+                    isToday ? "text-marker font-bold" : "text-pencil"
+                )}>
+                    {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+                </div>
 
-            {/* Title */}
-            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                <div className="flex items-baseline gap-2 min-w-0">
-                    <h4
-                        className={clsx(
-                            "text-sm truncate",
-                            status === 'skipped' && "line-through opacity-60"
+                {/* Title */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                    <div className="flex items-baseline gap-2 min-w-0">
+                        <h4
+                            className={clsx(
+                                "text-sm truncate",
+                                status === 'skipped' && "line-through opacity-60"
+                            )}
+                            style={{
+                                color: isRest ? 'var(--pencil)' : 'var(--ink)',
+                                fontStyle: isRest ? 'italic' : undefined,
+                                borderLeft: !isRest && zc ? `2px solid ${zc}` : undefined,
+                                paddingLeft: !isRest && zc ? 6 : 0,
+                                fontWeight: isRaceDayCard ? 700 : undefined,
+                            }}
+                        >
+                            {displayTitle}
+                        </h4>
+                        {isRaceDayCard && (
+                            <span className="text-marker font-data text-[10px] uppercase font-bold flex-none">Race</span>
                         )}
-                        style={{
-                            color: isRest ? 'var(--pencil)' : 'var(--ink)',
-                            fontStyle: isRest ? 'italic' : undefined,
-                            borderLeft: !isRest && zc ? `2px solid ${zc}` : undefined,
-                            paddingLeft: !isRest && zc ? 6 : 0,
-                            fontWeight: isRaceDayCard ? 700 : undefined,
-                        }}
-                    >
-                        {displayTitle}
-                    </h4>
-                    {isRaceDayCard && (
-                        <span className="text-marker font-data text-[10px] uppercase font-bold flex-none">Race</span>
+                    </div>
+                    {workout.description && (
+                        <p
+                            className={clsx(
+                                "text-xs text-pencil truncate",
+                                status === 'skipped' && "line-through opacity-60"
+                            )}
+                        >
+                            {formatPlanLabel(workout.description, units)}
+                        </p>
                     )}
                 </div>
-                {workout.description && (
-                    <p
-                        className={clsx(
-                            "text-xs text-pencil truncate",
-                            status === 'skipped' && "line-through opacity-60"
-                        )}
+
+                {/* Distance + pace */}
+                <div className="flex-none flex items-center gap-3">
+                    {paceString && !isRest && zone && (
+                        <span
+                            className="hidden lg:inline font-data text-xs whitespace-nowrap"
+                            style={{ color: zc ?? 'var(--pencil)' }}
+                        >
+                            {paceString}
+                        </span>
+                    )}
+                    <span className={clsx(
+                        "font-data text-sm font-bold whitespace-nowrap w-[76px] text-right",
+                        isRest ? "text-pencil font-normal" : "text-ink",
+                        isRaceDayCard && "text-marker"
+                    )}>
+                        {workout.distance ? formatDistance(workout.distance, units) : '—'}
+                    </span>
+                    {expandable && (
+                        <svg viewBox="0 0 20 20" fill="currentColor" className={clsx(
+                            "w-4 h-4 text-pencil transition-transform flex-none",
+                            expanded && "rotate-90"
+                        )} aria-hidden="true">
+                            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                        </svg>
+                    )}
+                    {renderStatusTrigger()}
+                    <span
+                        className="flex-none w-5 flex justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink"
+                        title="Drag to reschedule"
                     >
-                        {formatPlanLabel(workout.description, units)}
-                    </p>
-                )}
+                        <GripIcon />
+                    </span>
+                </div>
             </div>
 
-            {/* Distance + pace */}
-            <div className="flex-none flex items-center gap-3">
-                {paceString && !isRest && zone && (
-                    <span
-                        className="hidden lg:inline font-data text-xs whitespace-nowrap"
-                        style={{ color: zc ?? 'var(--pencil)' }}
-                    >
-                        {paceString}
-                    </span>
-                )}
-                <span className={clsx(
-                    "font-data text-sm font-bold whitespace-nowrap w-[76px] text-right",
-                    isRest ? "text-pencil font-normal" : "text-ink",
-                    isRaceDayCard && "text-marker"
-                )}>
-                    {workout.distance ? formatDistance(workout.distance, units) : '—'}
-                </span>
-                {renderStatusTrigger()}
-                <span
-                    className="flex-none w-5 flex justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink"
-                    title="Drag to reschedule"
-                >
-                    <GripIcon />
-                </span>
-            </div>
+            {/* Reveal: pace + full description, indented under a zone rule */}
+            {expanded && expandable && (
+                <div className="px-3 sm:px-4 pb-2.5 -mt-1">
+                    <div className="pl-5 border-l-2" style={{ borderColor: zc ?? 'var(--rule)' }}>
+                        {paceString && zone && (
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-data text-sm font-bold" style={{ color: zc ?? 'var(--pencil)' }}>
+                                    {paceString}
+                                </span>
+                                <span className="text-[10px] uppercase tracking-wider text-pencil font-data">{zone}</span>
+                            </div>
+                        )}
+                        {workout.description && (
+                            <p className="text-xs text-ink leading-relaxed">{formatPlanLabel(workout.description, units)}</p>
+                        )}
+                        {!paceString && !workout.description && (
+                            <p className="text-xs text-pencil">No pacing targets for this workout.</p>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
