@@ -14,7 +14,7 @@
         --paper: 245 241 232;
         --card: 253 251 244;
         --ink: 34 30 23;
-        --pencil: 124 116 102;
+        --pencil: 110 101 85;
         --marker: 198 57 43;
         --rule: rgba(34, 30, 23, 0.12);
         --grid: rgba(222, 215, 196, 0.55);
@@ -23,7 +23,7 @@
         --chart-bar-hover: #221e17;
         --chart-current: #c6392b;
         --chart-grid: rgba(34, 30, 23, 0.08);
-        --chart-label: #7c7466;
+        --chart-label: #6e6555;
     }
 
     .dark {

@@ -145,13 +145,13 @@ const DayCardContent = ({
         let btnClass = "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200";
 
         if (status === 'completed') {
-            icon = <span className="text-[10px] font-black">✓</span>;
+            icon = <span className="text-[10px] font-bold">✓</span>;
             btnClass += " bg-ink text-paper font-extrabold";
         } else if (status === 'skipped') {
-            icon = <span className="text-[10px] font-black">✗</span>;
+            icon = <span className="text-[10px] font-bold">✗</span>;
             btnClass += " border border-pencil/60 text-pencil font-extrabold";
         } else if (status === 'modified') {
-            icon = <span className="text-[10px] font-black">✎</span>;
+            icon = <span className="text-[10px] font-bold">✎</span>;
             btnClass += " bg-marker text-paper font-extrabold";
         } else {
             icon = <span className="opacity-0 group-hover/status:opacity-100 text-[10px] text-pencil transition-opacity">✓</span>;

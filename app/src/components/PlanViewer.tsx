@@ -191,7 +191,7 @@ export const PlanViewer = () => {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6 animate-in">
                 {/* Masthead */}
                 <header className="border-b-2 border-ink pb-4">
                     <div className="font-data text-[11px] uppercase tracking-[0.2em] text-pencil mb-1">Training schedule</div>

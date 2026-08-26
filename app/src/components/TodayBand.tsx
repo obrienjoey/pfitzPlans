@@ -78,7 +78,6 @@ export const TodayBand = ({
                     </span>
                     <span className="font-data text-[11px] uppercase tracking-[0.14em] text-pencil">
                         {format(new Date(), 'EEE d MMM')}
-                        {ctx.currentWeekNumber !== null && ` · week ${ctx.currentWeekNumber}`}
                     </span>
                 </div>
 

@@ -82,7 +82,7 @@ export const Header = () => {
                 </div>
 
                 {/* Sheet header */}
-                <div className="flex-none flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4 pb-3">
+                <div className="flex-none flex items-center justify-between border-b border-rule px-4 pb-3">
                     <div>
                         <h2 className="font-display font-semibold uppercase text-xl text-ink leading-none">Plan Settings</h2>
                         <p className="text-xs text-pencil mt-1">Plan, race day, and pace settings</p>
@@ -135,7 +135,7 @@ export const Header = () => {
                                 <span className="text-sm font-medium text-ink">Appearance</span>
                                 <span className="text-xs text-pencil">Light, dark, or system</span>
                             </div>
-                            <ThemeToggle className="bg-slate-200/70 dark:bg-slate-900" />
+                            <ThemeToggle />
                         </div>
 
                         {/* Race Distance */}
@@ -188,7 +188,7 @@ export const Header = () => {
                 </div>
 
                 {/* Pinned Done */}
-                <div className="flex-none px-4 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                <div className="flex-none px-4 py-4 border-t border-rule bg-card">
                     <button
                         onClick={closeDrawer}
                         className="w-full py-3.5 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-bold rounded-none transition-colors text-sm uppercase tracking-[0.12em] font-data"

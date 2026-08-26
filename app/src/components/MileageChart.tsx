@@ -7,19 +7,6 @@ interface MileageChartProps {
     units: 'mi' | 'km';
 }
 
-const roundedTopRect = (x: number, y: number, w: number, h: number, r: number) => {
-    const radius = Math.min(r, w / 2, h);
-    return [
-        `M ${x} ${y + h}`,
-        `L ${x} ${y + radius}`,
-        `Q ${x} ${y} ${x + radius} ${y}`,
-        `L ${x + w - radius} ${y}`,
-        `Q ${x + w} ${y} ${x + w} ${y + radius}`,
-        `L ${x + w} ${y + h}`,
-        'Z'
-    ].join(' ');
-};
-
 export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -90,21 +77,21 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
 
     return (
         <div className="w-full bg-card border border-rule p-4 sm:p-6 mb-2 transition-colors">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800/50 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-rule pb-4">
                 <div>
                     <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide flex items-center gap-2">
                         Weekly volume
                     </h3>
                     <p className="text-xs text-pencil mt-0.5">Mileage builds and tapers, week by week</p>
                 </div>
-                <div className="font-data text-xs text-pencil px-2.5 py-1 border border-rule">
-                    <span className="text-ink font-bold">{units}</span>
+                <div className="font-data text-[10px] uppercase tracking-[0.15em] text-pencil">
+                    peak {Math.round(maxVolume)} {units}
                 </div>
             </div>
 
             <div
                 ref={scrollWrapRef}
-                className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent"
+                className="overflow-x-auto scrollbar-thin scrollbar-thumb-pencil/40 scrollbar-track-transparent"
                 role="img"
                 aria-label={`Weekly volume progression across ${chartData.length} weeks, peak ${maxVolume} ${units}`}
             >
@@ -117,10 +104,10 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                     >
 
                         {/* Y-Axis Gridlines and Labels */}
-                        {yAxisTicks.map((val) => {
+                        {yAxisTicks.map((val, index) => {
                             const tickY = svgHeight - paddingBottom - (val / maxVolume) * height;
                             return (
-                                <g key={`grid-group-${val}`}>
+                                <g key={`grid-group-${index}`}>
                                     <line
                                         x1={paddingLeft}
                                         y1={tickY}
@@ -184,7 +171,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                                 y={y - 32}
                                                 width="100"
                                                 height="24"
-                                                rx="6"
+                                                rx="0"
                                                 className="fill-[var(--card)] stroke-[var(--rule)]"
                                                 strokeWidth="1"
                                             />
@@ -204,8 +191,11 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                     )}
 
                                     {/* Bar Graphic */}
-                                    <path
-                                        d={roundedTopRect(x, y, barWidth, barHeight, 5)}
+                                    <rect
+                                        x={x}
+                                        y={y}
+                                        width={barWidth}
+                                        height={barHeight}
                                         style={{ fill, transition: "fill 0.15s ease-out" }}
                                     />
 
@@ -215,7 +205,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                             x={x + barWidth / 2}
                                             y={y - 8}
                                             textAnchor="middle"
-                                            style={{ fill: "var(--chart-current)" }}
+                                            style={{ fill: "var(--ink)" }}
                                             fontSize={10}
                                             fontWeight={700}
                                             letterSpacing={1}
