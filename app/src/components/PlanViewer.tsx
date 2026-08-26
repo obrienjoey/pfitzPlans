@@ -245,7 +245,9 @@ export const PlanViewer = () => {
                     className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-sm rounded-full shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95 border border-indigo-500/30"
                     aria-label="Jump to current week"
                 >
-                    <span>📅</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
+                        <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm-3.75 8.25v9a1.5 1.5 0 001.5 1.5h15a1.5 1.5 0 001.5-1.5v-9h-18z" clipRule="evenodd" />
+                    </svg>
                     <span>Jump to Current Week</span>
                 </button>
             )}

@@ -63,7 +63,7 @@ export const Header = () => {
             {/* Sheet Panel */}
             <div
                 ref={sheetRef}
-                className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 rounded-t-2xl shadow-2xl flex flex-col animate-sheet-slide-up"
+                className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-2xl shadow-2xl flex flex-col animate-sheet-slide-up"
                 style={{
                     height: '85svh',
                     transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
@@ -78,19 +78,19 @@ export const Header = () => {
                     onTouchEnd={handleDragEnd}
                     aria-label="Drag to dismiss"
                 >
-                    <div className="w-10 h-1.5 bg-slate-700 rounded-full" />
+                    <div className="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
                 </div>
 
                 {/* Sheet header */}
-                <div className="flex-none flex items-center justify-between border-b border-slate-800 px-4 pb-3">
+                <div className="flex-none flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4 pb-3">
                     <div>
-                        <h2 className="text-lg font-bold text-white">Plan Settings</h2>
-                        <p className="text-xs text-slate-400">Configure your training parameters</p>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Plan Settings</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Configure your training parameters</p>
                     </div>
                     <button
                         onClick={closeDrawer}
                         aria-label="Close settings drawer"
-                        className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -103,7 +103,7 @@ export const Header = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Plan Selector */}
                         <div className="flex flex-col gap-1.5 text-left sm:col-span-2">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Training Plan</label>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Training Plan</label>
                             <select
                                 value={selectedPlanId}
                                 onChange={(e) => setPlanId(e.target.value)}
@@ -140,7 +140,7 @@ export const Header = () => {
 
                         {/* Race Distance */}
                         <div className="flex flex-col gap-1.5 text-left">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recent Race Distance</label>
                             <select
                                 className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500/50 outline-none transition-colors"
                                 value={raceInput?.distance || '10K'}
@@ -160,7 +160,7 @@ export const Header = () => {
 
                         {/* Race Time */}
                         <div className="flex flex-col gap-1.5 text-left">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Race Time</label>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recent Race Time</label>
                             <TimeInput
                                 value={raceInput?.time || ''}
                                 onChange={(val) => {
@@ -175,7 +175,7 @@ export const Header = () => {
 
                         {/* Race Date */}
                         <div className="flex flex-col gap-1.5 text-left sm:col-span-2">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Target Race Date</label>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Target Race Date</label>
                             <DatePicker
                                 value={raceDate}
                                 onChange={setRaceDate}
@@ -187,13 +187,13 @@ export const Header = () => {
                     <div className="h-4" />
                 </div>
 
-                {/* Pinned Apply & Close */}
-                <div className="flex-none px-4 py-4 border-t border-slate-800 bg-slate-900">
+                {/* Pinned Done */}
+                <div className="flex-none px-4 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <button
                         onClick={closeDrawer}
                         className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-wider shadow-lg shadow-rose-500/20"
                     >
-                        Apply &amp; Close
+                        Done
                     </button>
                 </div>
             </div>
