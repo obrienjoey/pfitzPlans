@@ -1,0 +1,82 @@
+/* PROTOTYPE — tokens & utilities for the 'coach's paper training log' direction. */
+
+.dp-root {
+    --dp-paper: #F5F1E8;
+    --dp-card: #FDFBF4;
+    --dp-ink: #221E17;
+    --dp-pencil: #7C7466;
+    --dp-grid: rgba(222, 215, 196, 0.9);
+    --dp-grid-bold: rgba(222, 215, 196, 1.0);
+    --dp-marker: #C6392B;
+    --dp-marker-soft: rgba(198, 57, 43, 0.07);
+    --dp-rule: rgba(34, 30, 23, 0.12);
+}
+
+.dark .dp-root {
+    --dp-paper: #191611;
+    --dp-card: #211D15;
+    --dp-ink: #EDE7D8;
+    --dp-pencil: #948B79;
+    --dp-grid: rgba(237, 231, 216, 0.07);
+    --dp-grid-bold: rgba(237, 231, 216, 0.10);
+    --dp-marker: #E4573D;
+    --dp-marker-soft: rgba(228, 87, 61, 0.10);
+    --dp-rule: rgba(237, 231, 216, 0.14);
+}
+
+/* Graph-paper ground: fine 7px cells with a heavier line every 35px. */
+.dp-paper {
+    background-color: var(--dp-paper);
+    background-image:
+        linear-gradient(var(--dp-grid-bold) 1px, transparent 1px),
+        linear-gradient(90deg, var(--dp-grid-bold) 1px, transparent 1px),
+        linear-gradient(var(--dp-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--dp-grid) 1px, transparent 1px);
+    background-size:
+        35px 35px,
+        35px 35px,
+        7px 7px,
+        7px 7px;
+}
+
+.dp-card {
+    background-color: var(--dp-card);
+    border: 1px solid var(--dp-rule);
+}
+
+.dp-ink { color: var(--dp-ink); }
+.dp-pencil { color: var(--dp-pencil); }
+.dp-marker { color: var(--dp-marker); }
+.dp-border-rule { border-color: var(--dp-rule); }
+
+.dp-display {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.dp-data {
+    font-family: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
+    font-feature-settings: 'tnum';
+}
+
+/* Hand-held red-pen ellipse — slightly irregular, like it was drawn in one stroke. */
+.dp-circle {
+    border: 2px solid var(--dp-marker);
+    border-radius: 48% 52% 51% 49% / 58% 46% 54% 42%;
+}
+
+.dp-underline-marker {
+    background-image: linear-gradient(var(--dp-marker), var(--dp-marker));
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+    background-position: 0 96%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dp-root *, .dp-root *::before, .dp-root *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
