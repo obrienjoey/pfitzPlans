@@ -3,9 +3,8 @@ import type { RenderedPlan } from '../types';
 import type { Distance } from '../types';
 import type { TrainingPaces, PaceZone } from '../lib/paceCalculator';
 import { getPaceZone } from '../lib/paceCalculator';
-import { formatPaceRange } from '../lib/formatters';
+import { formatPaceRange, formatPlanLabel, cleanPlanTitle } from '../lib/formatters';
 import { getTodayContext } from '../lib/todayContext';
-import { formatPlanLabel } from '../lib/formatters';
 import { KM_PER_MILE } from '../lib/constants';
 import { zoneColor } from '../lib/zoneColors';
 
@@ -87,7 +86,7 @@ export const TodayBand = ({
                     </p>
                 ) : (
                     <p className="font-display text-ink uppercase text-2xl sm:text-3xl leading-none">
-                        {formatPlanLabel(workout!.title, units)}
+                        {cleanPlanTitle(workout!.title)}
                     </p>
                 )}
 

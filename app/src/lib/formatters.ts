@@ -8,6 +8,11 @@ export const formatPlanLabel = (text: string, units: 'mi' | 'km'): string => {
     });
 };
 
+export const cleanPlanTitle = (title: string): string => {
+    // Strips {mi_range:km_range} from workout titles, leaving only the workout name
+    return title.replace(/\{[0-9.-]+:[0-9.-]+\}/g, '').replace(/\s+/g, ' ').trim();
+};
+
 export const formatPaceRange = (
     range: { min: number; max: number },
     units: 'mi' | 'km',

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { RenderedWorkout, Distance } from '../types';
 import clsx from 'clsx';
-import { formatPlanLabel, formatPaceRange } from '../lib/formatters';
+import { formatPlanLabel, cleanPlanTitle, formatPaceRange } from '../lib/formatters';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getPaceZone, type TrainingPaces, type PaceZone } from '../lib/paceCalculator';
@@ -78,7 +78,7 @@ const DayCardContent = ({
     const today = new Date();
     const isToday = today.toDateString() === new Date(displayDate).toDateString();
     const isRaceDayCard = isRace || isRaceDay === true;
-    const displayTitle = formatPlanLabel(workout.title, units);
+    const displayTitle = cleanPlanTitle(workout.title);
 
     const zone = getPaceZone(workout.title, workout.tags, workout.zone as PaceZone);
     const paceRange = (paces && zone) ? paces[zone] : null;
