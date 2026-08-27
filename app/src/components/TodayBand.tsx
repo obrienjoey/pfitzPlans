@@ -73,7 +73,7 @@ export const TodayBand = ({
             {/* Masthead Eyebrow */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2 bg-paper/60 border-b border-rule font-data text-[10px] uppercase tracking-[0.16em] text-pencil">
                 <div className="flex items-center gap-2 truncate">
-                    <span className="font-bold text-ink truncate">{resolvedPlanName}</span>
+                    <h2 className="font-bold text-ink truncate font-data text-[10px] uppercase tracking-[0.16em] inline">{resolvedPlanName}</h2>
                     {planSource && <span className="hidden sm:inline text-pencil/70 truncate">· {planSource}</span>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -215,8 +215,10 @@ export const TodayBand = ({
                     </div>
 
                     <div className="pt-2 border-t border-rule/60 font-data text-xs">
-                        <div className="font-bold text-ink truncate">
-                            {resolvedRaceDate && format(resolvedRaceDate, 'MMM d, yyyy')}
+                        <div className="font-bold text-ink truncate flex items-center gap-1.5 sm:justify-center md:justify-start">
+                            <span>{resolvedRaceDate && format(resolvedRaceDate, 'MMM d')}</span>
+                            <span className="text-pencil/50">·</span>
+                            <span className="text-pencil font-normal">{resolvedRaceDate && format(resolvedRaceDate, 'yyyy')}</span>
                         </div>
                         <div className="text-pencil text-[10px] uppercase tracking-wider truncate">
                             {resolvedRaceDate && format(resolvedRaceDate, 'EEEE')}
