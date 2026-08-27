@@ -218,16 +218,6 @@ const DayCardContent = ({
                     )}>
                         {workout.distance ? formatDistance(workout.distance, units) : '—'}
                     </span>
-                    {expandable && (
-                        <span className={clsx(
-                            "text-[10px] font-data font-bold uppercase tracking-wider px-1.5 py-0.5 border transition-colors",
-                            expanded
-                                ? "bg-ink text-paper border-ink"
-                                : "text-pencil border-rule hover:border-pencil"
-                        )}>
-                            {expanded ? "Close" : "Details"}
-                        </span>
-                    )}
                     {weekIndex !== undefined && dayIndex !== undefined && (
                         <div className="relative shrink-0">
                             <button
