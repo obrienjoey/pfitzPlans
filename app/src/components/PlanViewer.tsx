@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from 'react';
-import { format } from 'date-fns';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
 import { calculateSchedule, calculateWeeklyVolume } from '../lib/calculator';
@@ -192,38 +191,15 @@ export const PlanViewer = () => {
             onDragEnd={handleDragEnd}
         >
             <div className="space-y-6 animate-in">
-                {/* Masthead */}
-                <header className="border-b-2 border-ink pb-4">
-                    <div className="font-data text-[11px] uppercase tracking-[0.2em] text-pencil mb-1">Training schedule</div>
-                    <h2 className="font-display font-bold uppercase text-3xl sm:text-4xl leading-[0.95] text-ink">{planName}</h2>
-                    {planSource && <p className="text-pencil text-sm mt-1.5 max-w-2xl">{planSource}</p>}
-                </header>
-
-                {/* Bib hero */}
-                <section className="bg-card border border-rule flex items-stretch">
-                    <div className="flex-1 px-5 sm:px-7 py-5">
-                        <div className="font-data text-[11px] uppercase tracking-[0.25em] text-pencil">Race day</div>
-                        <div className="font-display font-bold uppercase text-ink leading-[0.85] text-5xl sm:text-6xl mt-1.5">
-                            {raceDate && format(raceDate, 'MMM d')}
-                        </div>
-                        <div className="font-data text-pencil text-xs sm:text-sm mt-2 tracking-[0.12em] uppercase">
-                            <span className="text-pencil/70">{validSchedule.weeks.length} weeks · peak {peakVolume} {units}</span>
-                        </div>
-                    </div>
-                    <div className="flex-none w-[110px] sm:w-[140px] flex flex-col items-center justify-center px-4 border-l-2 border-dashed border-rule">
-                        <span className="font-data text-[10px] uppercase tracking-[0.2em] text-pencil">
-                            {raceDate && format(raceDate, 'yyyy')}
-                        </span>
-                        <span className="font-display font-bold text-ink leading-none text-2xl sm:text-3xl mt-0.5">
-                            {raceDate && format(raceDate, 'EEEE')}
-                        </span>
-                    </div>
-                </section>
-
                 <TodayBand
                     schedule={validSchedule}
+                    raceDate={raceDate}
+                    planName={planName}
+                    planSource={planSource}
+                    planType={plan?.type || planInfo?.type || 'Marathon'}
                     units={units}
                     paces={paces || undefined}
+                    peakVolume={peakVolume}
                     onJump={jumpToToday}
                 />
 

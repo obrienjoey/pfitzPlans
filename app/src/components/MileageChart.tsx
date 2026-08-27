@@ -1,26 +1,72 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { RenderedWeek } from '../types';
+import type { RenderedWeek, Distance } from '../types';
 import { calculateWeeklyVolume } from '../lib/calculator';
+import { KM_PER_MILE } from '../lib/constants';
 
-interface MileageChartProps {
+export interface MileageChartProps {
     weeks: RenderedWeek[];
     units: 'mi' | 'km';
 }
+
+const getWorkoutDist = (dist?: Distance, units: 'mi' | 'km' = 'mi'): number => {
+    if (!dist) return 0;
+    const raw = typeof dist === 'number' ? dist : (dist[0] + dist[1]) / 2;
+    return units === 'km' ? Math.round(raw * KM_PER_MILE * 10) / 10 : Math.round(raw);
+};
 
 export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     const chartData = useMemo(() => {
         const today = new Date();
-        return weeks.map((week) => {
+        return weeks.map((week, idx) => {
             const displayTotal = calculateWeeklyVolume(week, units);
             const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
 
+            let maxWorkout = 0;
+            let quality = 0;
+            let hasTuneUp = false;
+
+            week.workouts.forEach((w) => {
+                const d = getWorkoutDist(w.distance, units);
+                const title = (w.title || '').toLowerCase();
+                const tags = (w.tags || []).map(t => t.toLowerCase());
+
+                if (d > maxWorkout) {
+                    maxWorkout = d;
+                }
+
+                if (
+                    tags.some(t => ['lt', 'vo2 max', 'intervals', 'tempo', 'tune-up', 'speed', 'race'].includes(t)) ||
+                    title.includes('lt') ||
+                    title.includes('vo2') ||
+                    title.includes('threshold') ||
+                    title.includes('tune-up') ||
+                    title.includes('interval') ||
+                    title.includes('strides')
+                ) {
+                    quality += d;
+                    if (title.includes('tune-up')) hasTuneUp = true;
+                }
+            });
+
+            // Make sure segments fit within total volume cleanly
+            const total = displayTotal.average;
+            const longRun = Math.min(total, maxWorkout);
+            const qual = Math.min(total - longRun, quality);
+            const easy = Math.max(0, total - longRun - qual);
+
             return {
+                weekIndex: idx,
                 weekNumber: week.weekNumber,
-                volume: displayTotal.average,
+                weeksToGoal: week.weeksToGoal,
+                volume: total,
                 volumeFormatted: displayTotal.formatted,
+                longRun,
+                quality: qual,
+                easy,
                 isCurrentWeek,
+                hasTuneUp,
                 label: `Week ${week.weekNumber}`
             };
         });
@@ -29,6 +75,18 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
     const maxVolume = useMemo(() => {
         const max = Math.max(...chartData.map(d => d.volume), 0);
         return max === 0 ? 1 : max;
+    }, [chartData]);
+
+    const peakWeekIndex = useMemo(() => {
+        let max = 0;
+        let peakIdx = -1;
+        chartData.forEach((d, idx) => {
+            if (d.volume > max) {
+                max = d.volume;
+                peakIdx = idx;
+            }
+        });
+        return peakIdx;
     }, [chartData]);
 
     const tickCount = 4;
@@ -50,24 +108,22 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
         return () => observer.disconnect();
     }, []);
 
-    const height = 140; // Height of chart area
-    const paddingLeft = 48; // Left padding to accommodate Y-axis labels
+    const height = 150;
+    const paddingLeft = 44;
     const paddingRight = 16;
-    const paddingTop = 40;
-    const paddingBottom = 20;
+    const paddingTop = 44;
+    const paddingBottom = 22;
 
     const count = chartData.length || 1;
     const fallbackWidth = 720;
     const containerWidth = wrapWidth ?? fallbackWidth;
     const innerWidth = containerWidth - paddingLeft - paddingRight;
 
-    // Fill the available width when there is room; fall back to a fixed slot
-    // (and horizontal scrolling) only when the container is genuinely cramped.
-    const MIN_SLOT = 34;
+    const MIN_SLOT = 36;
     const rawSlot = innerWidth / count;
     const scrolls = rawSlot < MIN_SLOT;
     const slot = scrolls ? MIN_SLOT : rawSlot;
-    const gap = Math.min(18, Math.max(6, slot * 0.3));
+    const gap = Math.min(16, Math.max(6, slot * 0.28));
     const barWidth = slot - gap;
 
     const svgWidth = scrolls
@@ -75,25 +131,47 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
         : containerWidth;
     const svgHeight = height + paddingTop + paddingBottom;
 
+    const jumpToWeek = (weekIdx: number) => {
+        document.getElementById(`week-card-${weekIdx}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
-        <div className="w-full bg-card border border-rule p-4 sm:p-6 mb-2 transition-colors">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6 border-b border-rule pb-4">
+        <section
+            aria-label="Weekly Volume Progression"
+            className="w-full bg-card border border-rule p-4 sm:p-6 mb-2 transition-colors shadow-sm"
+        >
+            {/* Header & Interactive Legend */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 border-b border-rule pb-4">
                 <div>
                     <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide flex items-center gap-2">
-                        Weekly volume
+                        <span>Weekly volume</span>
+                        <span className="text-pencil text-sm font-normal normal-case hidden sm:inline">· intensity stack</span>
                     </h3>
-                    <p className="text-xs text-pencil mt-0.5">Mileage builds and tapers, week by week</p>
+                    <p className="text-xs text-pencil mt-0.5">Click any bar to jump directly to that week</p>
                 </div>
-                <div className="font-data text-[10px] uppercase tracking-[0.15em] text-pencil">
-                    peak {Math.round(maxVolume)} {units}
+
+                {/* Legend */}
+                <div className="flex items-center gap-3 flex-wrap font-data text-[10px] uppercase tracking-wider text-pencil">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-none bg-marker" />
+                        <span className="text-ink">Quality / LT</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-none bg-[#3A6073]" />
+                        <span className="text-ink">Long Run</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-none bg-pencil/40" />
+                        <span>Aerobic / Easy</span>
+                    </span>
                 </div>
             </div>
 
             <div
                 ref={scrollWrapRef}
                 className="overflow-x-auto scrollbar-thin scrollbar-thumb-pencil/40 scrollbar-track-transparent"
-                role="img"
-                aria-label={`Weekly volume progression across ${chartData.length} weeks, peak ${maxVolume} ${units}`}
+                role="region"
+                aria-label="Interactive volume bar chart"
             >
                 <div className={scrolls ? 'min-w-max pb-2' : 'w-full pb-2'}>
                     <svg
@@ -102,7 +180,6 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
                         className="overflow-visible select-none block"
                     >
-
                         {/* Y-Axis Gridlines and Labels */}
                         {yAxisTicks.map((val, index) => {
                             const tickY = svgHeight - paddingBottom - (val / maxVolume) * height;
@@ -133,27 +210,34 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         })}
 
                         {chartData.map((data, index) => {
-                            const barHeight = (data.volume / maxVolume) * height;
+                            const totalH = (data.volume / maxVolume) * height;
+                            const easyH = (data.easy / maxVolume) * height;
+                            const longH = (data.longRun / maxVolume) * height;
+                            const qualH = (data.quality / maxVolume) * height;
+
                             const slotX = paddingLeft + index * slot;
                             const x = slotX + (slot - barWidth) / 2;
-                            const y = svgHeight - paddingBottom - barHeight;
+                            const baseY = svgHeight - paddingBottom;
                             const isHovered = hoveredIndex === index;
 
-                            // Color states — flat ink bars; marker red marks the current week
-                            const fill = data.isCurrentWeek
-                                ? "var(--chart-current)"
-                                : isHovered
-                                    ? "var(--chart-bar-hover)"
-                                    : "var(--chart-bar)";
+                            const isPeak = index === peakWeekIndex;
+                            const isRaceWeek = data.weeksToGoal === 1;
+                            const isTaperStart = index === peakWeekIndex + 1 && !isRaceWeek;
 
                             return (
                                 <g
                                     key={data.weekNumber}
+                                    onClick={() => jumpToWeek(index)}
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onMouseLeave={() => setHoveredIndex(null)}
-                                    className="cursor-pointer group"
+                                    onFocus={() => setHoveredIndex(index)}
+                                    onBlur={() => setHoveredIndex(null)}
+                                    tabIndex={0}
+                                    role="button"
+                                    aria-label={`Week ${data.weekNumber}: ${data.volumeFormatted} ${units}. Click to view week.`}
+                                    className="cursor-pointer group outline-none"
                                 >
-                                    {/* Invisible full-slot hit target so thin bars stay easy to hover */}
+                                    {/* Invisible full-slot hit target */}
                                     <rect
                                         x={slotX}
                                         y={paddingTop}
@@ -162,73 +246,154 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         fill="transparent"
                                     />
 
-                                    {/* Hover tooltip / info helper overlay text */}
+                                    {/* Stack 1: Easy / Aerobic Base (Bottom) */}
+                                    <rect
+                                        x={x}
+                                        y={baseY - easyH}
+                                        width={barWidth}
+                                        height={easyH}
+                                        className={data.isCurrentWeek ? "fill-marker/40" : "fill-pencil/30 group-hover:fill-pencil/50 transition-colors"}
+                                    />
+
+                                    {/* Stack 2: Long Run (Middle) */}
+                                    <rect
+                                        x={x}
+                                        y={baseY - easyH - longH}
+                                        width={barWidth}
+                                        height={longH}
+                                        className={data.isCurrentWeek ? "fill-[#3A6073]" : "fill-[#3A6073]/80 group-hover:fill-[#3A6073] transition-colors"}
+                                    />
+
+                                    {/* Stack 3: Quality / LT (Top) */}
+                                    {qualH > 0 && (
+                                        <rect
+                                            x={x}
+                                            y={baseY - easyH - longH - qualH}
+                                            width={barWidth}
+                                            height={qualH}
+                                            className="fill-marker"
+                                        />
+                                    )}
+
+                                    {/* Milestone Header Badges */}
+                                    {isPeak && !isHovered && (
+                                        <g>
+                                            <text
+                                                x={x + barWidth / 2}
+                                                y={baseY - totalH - 8}
+                                                textAnchor="middle"
+                                                className="fill-ink font-data font-bold text-[9px] tracking-wider"
+                                            >
+                                                PEAK
+                                            </text>
+                                            <line
+                                                x1={x + barWidth / 2}
+                                                y1={baseY - totalH - 5}
+                                                x2={x + barWidth / 2}
+                                                y2={baseY - totalH}
+                                                stroke="var(--ink)"
+                                                strokeWidth="1.5"
+                                            />
+                                        </g>
+                                    )}
+
+                                    {isRaceWeek && !isHovered && (
+                                        <g>
+                                            <text
+                                                x={x + barWidth / 2}
+                                                y={baseY - totalH - 8}
+                                                textAnchor="middle"
+                                                className="fill-marker font-data font-bold text-[9px] tracking-wider"
+                                            >
+                                                RACE
+                                            </text>
+                                            <line
+                                                x1={x + barWidth / 2}
+                                                y1={baseY - totalH - 5}
+                                                x2={x + barWidth / 2}
+                                                y2={baseY - totalH}
+                                                stroke="var(--marker)"
+                                                strokeWidth="1.5"
+                                            />
+                                        </g>
+                                    )}
+
+                                    {isTaperStart && !isHovered && (
+                                        <g>
+                                            <text
+                                                x={x + barWidth / 2}
+                                                y={baseY - totalH - 8}
+                                                textAnchor="middle"
+                                                className="fill-pencil font-data font-bold text-[9px] tracking-wider"
+                                            >
+                                                TAPER
+                                            </text>
+                                            <line
+                                                x1={x + barWidth / 2}
+                                                y1={baseY - totalH - 5}
+                                                x2={x + barWidth / 2}
+                                                y2={baseY - totalH}
+                                                stroke="var(--pencil)"
+                                                strokeWidth="1"
+                                                strokeDasharray="2 2"
+                                            />
+                                        </g>
+                                    )}
+
+                                    {data.hasTuneUp && !isPeak && !isRaceWeek && !isTaperStart && !isHovered && (
+                                        <text
+                                            x={x + barWidth / 2}
+                                            y={baseY - totalH - 6}
+                                            textAnchor="middle"
+                                            className="fill-pencil font-data text-[8px] tracking-wider"
+                                        >
+                                            ⚡
+                                        </text>
+                                    )}
+
+                                    {/* Rich Split Tooltip */}
                                     {isHovered && (
                                         <g>
-                                            {/* Tooltip Background */}
                                             <rect
-                                                x={Math.max(paddingLeft, x + barWidth / 2 - 50)}
-                                                y={y - 32}
-                                                width="100"
-                                                height="24"
+                                                x={Math.max(paddingLeft, Math.min(svgWidth - 140, x + barWidth / 2 - 65))}
+                                                y={Math.max(4, baseY - totalH - 38)}
+                                                width="130"
+                                                height="32"
                                                 rx="0"
-                                                className="fill-[var(--card)] stroke-[var(--rule)]"
-                                                strokeWidth="1"
+                                                className="fill-[var(--card)] stroke-[var(--ink)] shadow-md"
+                                                strokeWidth="1.5"
                                             />
-                                            {/* Tooltip text */}
                                             <text
-                                                x={Math.max(paddingLeft + 50, x + barWidth / 2)}
-                                                y={y - 16}
+                                                x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
+                                                y={Math.max(4, baseY - totalH - 38) + 13}
                                                 textAnchor="middle"
-                                                style={{ fill: "var(--ink)" }}
-                                                fontSize={11}
-                                                fontWeight={700}
-                                                fontFamily="var(--font-data, monospace)"
+                                                className="fill-ink font-data font-bold text-[10px]"
                                             >
-                                                {data.volumeFormatted} {units}
+                                                W{data.weekNumber}: {data.volumeFormatted} {units}
+                                            </text>
+                                            <text
+                                                x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
+                                                y={Math.max(4, baseY - totalH - 38) + 25}
+                                                textAnchor="middle"
+                                                className="fill-pencil font-data text-[8px]"
+                                            >
+                                                LR {Math.round(data.longRun)}m · Q {Math.round(data.quality)}m · Jump ↓
                                             </text>
                                         </g>
                                     )}
 
-                                    {/* Bar Graphic */}
-                                    <rect
-                                        x={x}
-                                        y={y}
-                                        width={barWidth}
-                                        height={barHeight}
-                                        style={{ fill, transition: "fill 0.15s ease-out" }}
-                                    />
-
-                                    {/* Peak tag text */}
-                                    {data.volume === maxVolume && !isHovered && (
-                                        <text
-                                            x={x + barWidth / 2}
-                                            y={y - 8}
-                                            textAnchor="middle"
-                                            style={{ fill: "var(--ink)" }}
-                                            fontSize={10}
-                                            fontWeight={700}
-                                            letterSpacing={1}
-                                        >
-                                            PEAK
-                                        </text>
-                                    )}
-
-                                    {/* Bottom labels (Week numbers) */}
+                                    {/* Week label */}
                                     <text
                                         x={x + barWidth / 2}
                                         y={svgHeight - 4}
                                         textAnchor="middle"
-                                        style={{
-                                            fill: data.isCurrentWeek
-                                                ? "var(--chart-current)"
+                                        className={`font-data text-[10px] ${
+                                            data.isCurrentWeek
+                                                ? 'fill-marker font-bold'
                                                 : isHovered
-                                                    ? "var(--chart-bar-hover)"
-                                                    : "var(--chart-label)",
-                                            fontWeight: data.isCurrentWeek || isHovered ? 700 : 400,
-                                        }}
-                                        fontSize={10}
-                                        fontFamily="var(--font-data, monospace)"
+                                                    ? 'fill-ink font-bold'
+                                                    : 'fill-pencil'
+                                        }`}
                                     >
                                         W{data.weekNumber}
                                     </text>
@@ -238,6 +403,6 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                     </svg>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
