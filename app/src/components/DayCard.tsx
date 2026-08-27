@@ -16,14 +16,11 @@ const convert = (val: number, toMetric: boolean) => {
 
 const formatDistance = (dist?: Distance, units: 'mi' | 'km' = 'mi') => {
     if (dist === undefined) return null;
-
     const isMetric = units === 'km';
-    const label = units;
-
     if (typeof dist === 'number') {
-        return `${convert(dist, isMetric)} ${label}`;
+        return `${convert(dist, isMetric)} ${units}`;
     }
-    return `${convert(dist[0], isMetric)}–${convert(dist[1], isMetric)} ${label}`;
+    return `${convert(dist[0], isMetric)}–${convert(dist[1], isMetric)} ${units}`;
 };
 
 const GripIcon = () => (
@@ -37,12 +34,11 @@ const GripIcon = () => (
     </svg>
 );
 
-interface DayCardProps {
+export interface DayCardProps {
     workout: RenderedWorkout;
     units: 'mi' | 'km';
     id?: string;
     paces?: TrainingPaces;
-    // Optional overrides for DragOverlay when not fully hydrated
     date?: Date;
     isRaceDay?: boolean;
     isOver?: boolean;
@@ -76,18 +72,14 @@ const DayCardContent = ({
     attributes,
     listeners
 }: DayCardContentProps) => {
-
     const isRest = workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
     const isRace = workout.tags?.includes('Race') || workout.title.toLowerCase().includes('goal race');
-
     const displayDate = date || workout.date;
     const today = new Date();
     const isToday = today.toDateString() === new Date(displayDate).toDateString();
     const isRaceDayCard = isRace || isRaceDay === true;
-
     const displayTitle = formatPlanLabel(workout.title, units);
 
-    // Pace Calculation Logic
     const zone = getPaceZone(workout.title, workout.tags, workout.zone as PaceZone);
     const paceRange = (paces && zone) ? paces[zone] : null;
     const zc = zoneColor(zone);
@@ -96,7 +88,6 @@ const DayCardContent = ({
         ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min }, units, false)}`
         : paceRange ? formatPaceRange(paceRange, units, false) : null;
 
-    // Retrieve workout completion status from the store
     const status = usePlanStore(state => {
         if (weekIndex === undefined || dayIndex === undefined) return 'none';
         const key = `${state.selectedPlanId}-w${weekIndex}-d${dayIndex}`;
@@ -105,21 +96,17 @@ const DayCardContent = ({
     const setWorkoutStatus = usePlanStore(state => state.setWorkoutStatus);
 
     const [menuOpen, setMenuOpen] = useState(false);
+    const [expanded, setExpanded] = useState(false);
 
-    // Close menu when clicking outside
     useEffect(() => {
         if (!menuOpen) return;
-        const handleOutsideClick = () => {
-            setMenuOpen(false);
-        };
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setMenuOpen(false);
-        };
-        document.addEventListener('click', handleOutsideClick);
-        document.addEventListener('keydown', handleEscape);
+        const handleOutside = () => setMenuOpen(false);
+        const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+        document.addEventListener('click', handleOutside);
+        document.addEventListener('keydown', handleEsc);
         return () => {
-            document.removeEventListener('click', handleOutsideClick);
-            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('click', handleOutside);
+            document.removeEventListener('keydown', handleEsc);
         };
     }, [menuOpen]);
 
@@ -138,88 +125,13 @@ const DayCardContent = ({
         setMenuOpen(false);
     };
 
-    const renderStatusTrigger = () => {
-        if (weekIndex === undefined || dayIndex === undefined) return null;
-
-        let icon = null;
-        let btnClass = "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200";
-
-        if (status === 'completed') {
-            icon = <span className="text-[10px] font-bold">✓</span>;
-            btnClass += " bg-ink text-paper font-extrabold";
-        } else if (status === 'skipped') {
-            icon = <span className="text-[10px] font-bold">✗</span>;
-            btnClass += " border border-pencil/60 text-pencil font-extrabold";
-        } else if (status === 'modified') {
-            icon = <span className="text-[10px] font-bold">✎</span>;
-            btnClass += " bg-marker text-paper font-extrabold";
-        } else {
-            icon = <span className="opacity-0 group-hover/status:opacity-100 text-[10px] text-pencil transition-opacity">✓</span>;
-            btnClass += " border border-rule hover:border-pencil/60 group/status";
-        }
-
-        const menuItems: Array<{ status: WorkoutStatus; label: string; glyph: string; cls: string }> = [
-            { status: 'completed', label: 'Completed', glyph: '✓', cls: 'text-ink hover:bg-ink/5' },
-            { status: 'modified', label: 'Modified', glyph: '✎', cls: 'text-marker hover:bg-marker/10' },
-            { status: 'skipped', label: 'Skipped', glyph: '✗', cls: 'text-pencil hover:bg-ink/5' },
-        ];
-
-        return (
-            <div className="relative shrink-0">
-                <button
-                    onClick={toggleMenu}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    className={btnClass}
-                    title="Mark workout status"
-                    aria-haspopup="true"
-                    aria-expanded={menuOpen}
-                >
-                    {icon}
-                </button>
-                {menuOpen && (
-                    <div
-                        onMouseDown={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-6 z-30 w-32 bg-card border border-rule shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
-                    >
-                        {menuItems.map(({ status: s, label, glyph, cls }) => (
-                            <button
-                                key={s}
-                                onClick={(e) => selectStatus(s, e)}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                className={clsx(
-                                    "w-full text-left px-2.5 py-1.5 rounded-none text-[11px] font-bold flex items-center gap-1.5 transition-colors font-data",
-                                    cls,
-                                    status === s && "bg-ink/5"
-                                )}
-                            >
-                                <span aria-hidden="true">{glyph}</span> {label}
-                            </button>
-                        ))}
-                        {status !== 'none' && (
-                            <button
-                                onClick={(e) => selectStatus('none', e)}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                className="w-full text-left px-2.5 py-1.5 text-[11px] font-bold text-marker hover:bg-marker/10 border-t border-rule mt-0.5 pt-1.5 flex items-center gap-1.5 transition-colors font-data"
-                            >
-                                <span aria-hidden="true">↺</span> Clear status
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    // If setNodeRef is passed, we bind the drag-and-drop properties
-    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
-
     const expandable = !isRest;
-    const [expanded, setExpanded] = useState(false);
-
     const toggleExpand = () => {
         if (!expandable) return;
         setExpanded(v => !v);
     };
+
+    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
 
     return (
         <div
@@ -234,24 +146,25 @@ const DayCardContent = ({
                 isActive && "opacity-20"
             )}
         >
-            {/* Clickable row (tap to reveal pace + description on mobile; drag via grip) */}
+            {/* Header row */}
             <div
                 onClick={expandable ? toggleExpand : undefined}
                 className={clsx(
-                    "relative flex items-center gap-3 px-3 sm:px-4 py-2",
-                    expandable && "cursor-pointer hover:bg-marker/5 transition-colors"
+                    "relative flex items-center gap-3 px-3 sm:px-4 py-2 hover:bg-ink/[0.02] transition-colors",
+                    expandable && "cursor-pointer"
                 )}
             >
-                {isToday && (
-                    <span aria-hidden="true" className="pen-circle pointer-events-none absolute inset-x-1.5 -inset-y-0.5" />
-                )}
-
-                {/* Date */}
-                <div className={clsx(
-                    "font-data text-[11px] uppercase tracking-wider w-14 flex-none",
-                    isToday ? "text-marker font-bold" : "text-pencil"
-                )}>
-                    {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+                {/* Date with neat pen circle for today */}
+                <div className="w-14 flex-none flex items-center">
+                    <span className={clsx(
+                        "font-data text-[11px] uppercase tracking-wider relative inline-block px-1 py-0.5",
+                        isToday ? "text-marker font-bold" : "text-pencil"
+                    )}>
+                        {isToday && (
+                            <span aria-hidden="true" className="pen-circle pointer-events-none absolute inset-0 -m-0.5" />
+                        )}
+                        {new Date(displayDate).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+                    </span>
                 </div>
 
                 {/* Title */}
@@ -288,7 +201,7 @@ const DayCardContent = ({
                     )}
                 </div>
 
-                {/* Distance + pace */}
+                {/* Distance & Action triggers */}
                 <div className="flex-none flex items-center gap-3">
                     {paceString && !isRest && zone && (
                         <span
@@ -306,14 +219,49 @@ const DayCardContent = ({
                         {workout.distance ? formatDistance(workout.distance, units) : '—'}
                     </span>
                     {expandable && (
-                        <svg viewBox="0 0 20 20" fill="currentColor" className={clsx(
-                            "w-4 h-4 text-pencil transition-transform flex-none",
-                            expanded && "rotate-90"
-                        )} aria-hidden="true">
-                            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                        </svg>
+                        <span className={clsx(
+                            "text-[10px] font-data font-bold uppercase tracking-wider px-1.5 py-0.5 border transition-colors",
+                            expanded
+                                ? "bg-ink text-paper border-ink"
+                                : "text-pencil border-rule hover:border-pencil"
+                        )}>
+                            {expanded ? "Close" : "Details"}
+                        </span>
                     )}
-                    {renderStatusTrigger()}
+                    {weekIndex !== undefined && dayIndex !== undefined && (
+                        <div className="relative shrink-0">
+                            <button
+                                onClick={toggleMenu}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                className={clsx(
+                                    "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200",
+                                    status === 'completed' && "bg-ink text-paper font-extrabold",
+                                    status === 'skipped' && "border border-pencil/60 text-pencil font-extrabold",
+                                    status === 'modified' && "bg-marker text-paper font-extrabold",
+                                    status === 'none' && "border border-rule hover:border-pencil/60"
+                                )}
+                                title="Mark workout status"
+                            >
+                                {status === 'completed' && <span className="text-[10px] font-bold">✓</span>}
+                                {status === 'skipped' && <span className="text-[10px] font-bold">✗</span>}
+                                {status === 'modified' && <span className="text-[10px] font-bold">✎</span>}
+                                {status === 'none' && <span className="opacity-0 group-hover:opacity-100 text-[10px] text-pencil">✓</span>}
+                            </button>
+                            {menuOpen && (
+                                <div
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="absolute right-0 top-6 z-30 w-32 bg-card border border-rule shadow-2xl p-1 flex flex-col gap-0.5 animate-in"
+                                >
+                                    <button onClick={(e) => selectStatus('completed', e)} className="px-2.5 py-1 text-[11px] font-bold text-ink hover:bg-ink/5 font-data text-left">✓ Completed</button>
+                                    <button onClick={(e) => selectStatus('modified', e)} className="px-2.5 py-1 text-[11px] font-bold text-marker hover:bg-marker/10 font-data text-left">✎ Modified</button>
+                                    <button onClick={(e) => selectStatus('skipped', e)} className="px-2.5 py-1 text-[11px] font-bold text-pencil hover:bg-ink/5 font-data text-left">✗ Skipped</button>
+                                    {status !== 'none' && (
+                                        <button onClick={(e) => selectStatus('none', e)} className="px-2.5 py-1 text-[11px] font-bold text-marker border-t border-rule mt-0.5 pt-1.5 font-data text-left">↺ Clear</button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <span
                         className="flex-none w-5 flex justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink"
                         title="Drag to reschedule"
@@ -323,25 +271,86 @@ const DayCardContent = ({
                 </div>
             </div>
 
-            {/* Reveal: pace + full description, indented under a zone rule */}
+            {/* Session Docket (Variant B) */}
             {expanded && expandable && (
-                <div className="px-3 sm:px-4 pb-2.5 -mt-1">
-                    <div className="pl-5 border-l-2" style={{ borderColor: zc ?? 'var(--rule)' }}>
-                        {paceString && zone && (
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="font-data text-sm font-bold" style={{ color: zc ?? 'var(--pencil)' }}>
-                                    {paceString}
+                <div className="mx-3 sm:mx-4 mb-3 p-3 bg-paper border border-rule shadow-sm animate-in">
+                    <div className="flex items-center justify-between gap-2 border-b border-rule pb-2 mb-2.5">
+                        <div className="flex items-center gap-2">
+                            <span
+                                className="w-2.5 h-2.5 rounded-full flex-none"
+                                style={{ backgroundColor: zc ?? 'var(--pencil)' }}
+                            />
+                            <span className="font-data text-xs font-bold uppercase tracking-wider text-ink">
+                                {zone || 'Workout Target'}
+                            </span>
+                            {paceString && (
+                                <span className="font-data text-xs font-bold px-2 py-0.5 bg-card border border-rule text-ink">
+                                    {paceString} <span className="text-pencil font-normal text-[10px]">/{units}</span>
                                 </span>
-                                <span className="text-[10px] uppercase tracking-wider text-pencil font-data">{zone}</span>
-                            </div>
-                        )}
-                        {workout.description && (
-                            <p className="text-xs text-ink leading-relaxed">{formatPlanLabel(workout.description, units)}</p>
-                        )}
-                        {!paceString && !workout.description && (
-                            <p className="text-xs text-pencil">No pacing targets for this workout.</p>
+                            )}
+                        </div>
+                        {workout.distance && (
+                            <span className="font-data text-xs text-pencil">
+                                Target: <strong className="text-ink">{formatDistance(workout.distance, units)}</strong>
+                            </span>
                         )}
                     </div>
+
+                    {workout.description ? (
+                        <p className="text-xs text-ink leading-relaxed">
+                            {formatPlanLabel(workout.description, units)}
+                        </p>
+                    ) : (
+                        <p className="text-xs text-pencil italic">Follow target pace zone guidance.</p>
+                    )}
+
+                    {/* Fast logging controls inside the docket */}
+                    {weekIndex !== undefined && dayIndex !== undefined && (
+                        <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-rule/60">
+                            <span className="font-data text-[10px] uppercase text-pencil tracking-wider mr-1">Log:</span>
+                            <button
+                                onClick={() => setWorkoutStatus(weekIndex, dayIndex, 'completed')}
+                                className={clsx(
+                                    "px-2 py-1 text-[11px] font-data font-bold border transition-colors",
+                                    status === 'completed'
+                                        ? "bg-ink text-paper border-ink"
+                                        : "bg-card border-rule text-ink hover:border-pencil"
+                                )}
+                            >
+                                ✓ Completed
+                            </button>
+                            <button
+                                onClick={() => setWorkoutStatus(weekIndex, dayIndex, 'modified')}
+                                className={clsx(
+                                    "px-2 py-1 text-[11px] font-data font-bold border transition-colors",
+                                    status === 'modified'
+                                        ? "bg-marker text-paper border-marker"
+                                        : "bg-card border-rule text-marker hover:border-marker/50"
+                                )}
+                            >
+                                ✎ Modified
+                            </button>
+                            <button
+                                onClick={() => setWorkoutStatus(weekIndex, dayIndex, 'skipped')}
+                                className={clsx(
+                                    "px-2 py-1 text-[11px] font-data font-bold border transition-colors",
+                                    status === 'skipped'
+                                        ? "bg-pencil text-paper border-pencil"
+                                        : "bg-card border-rule text-pencil hover:border-pencil"
+                                )}
+                            >
+                                ✗ Skipped
+                            </button>
+                            {status !== 'none' && (
+                                <button
+                                    onClick={() => setWorkoutStatus(weekIndex, dayIndex, 'none')}
+                                    className="ml-auto text-[10px] font-data text-pencil hover:text-marker"
+                                >
+                                    Reset
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
