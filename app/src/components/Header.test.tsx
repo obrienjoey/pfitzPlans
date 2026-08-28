@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Header } from './Header';
 import { TimeInput } from './TimeInput';
 import { usePlanStore } from '../store/usePlanStore';
@@ -30,7 +30,9 @@ describe('Header and TimeInput consistency', () => {
     it('renders TimeInput within Header without font-mono styling', () => {
         usePlanStore.getState().setRaceDate(new Date('2026-10-01'));
         render(<Header />);
-        const input = screen.getByRole('textbox', { name: /race result time/i });
-        expect(input.className).not.toContain('font-mono');
+        const trigger = screen.getByRole('button', { name: /open plan and calibration settings/i });
+        fireEvent.click(trigger);
+        const inputs = screen.getAllByRole('textbox', { name: /race result time/i });
+        expect(inputs[0].className).not.toContain('font-mono');
     });
 });
