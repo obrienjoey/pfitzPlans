@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { usePlanStore } from '../store/usePlanStore';
 import { fetchPlan } from '../lib/parser';
 import { calculateSchedule, calculateWeeklyVolume } from '../lib/calculator';
@@ -24,6 +25,8 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { DayCard } from './DayCard';
 import { TodayBand } from './TodayBand';
+import { TodayBandPrototype } from './TodayBandPrototype';
+import { PrototypeSwitcher } from './PrototypeSwitcher';
 
 const parseWorkoutId = (id: string) => {
     const parts = id.split('-');
@@ -35,6 +38,8 @@ const cleanDescription = (text: string | undefined): string => text?.replace(/"/
 
 export const PlanViewer = () => {
 
+    const [searchParams] = useSearchParams();
+    const protoVariant = searchParams.get('variant') ?? '';
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -192,17 +197,32 @@ export const PlanViewer = () => {
             onDragEnd={handleDragEnd}
         >
             <div className="space-y-6 animate-in">
-                <TodayBand
-                    schedule={validSchedule}
-                    raceDate={raceDate}
-                    planName={planName}
-                    planSource={planSource}
-                    planType={plan?.type || planInfo?.type || 'Marathon'}
-                    units={units}
-                    paces={paces || undefined}
-                    peakVolume={peakVolume}
-                    onJump={jumpToToday}
-                />
+                {protoVariant ? (
+                    <TodayBandPrototype
+                        variant={protoVariant}
+                        schedule={validSchedule}
+                        raceDate={raceDate}
+                        planName={planName}
+                        planSource={planSource}
+                        planType={plan?.type || planInfo?.type || 'Marathon'}
+                        units={units}
+                        paces={paces || undefined}
+                        peakVolume={peakVolume}
+                        onJump={jumpToToday}
+                    />
+                ) : (
+                    <TodayBand
+                        schedule={validSchedule}
+                        raceDate={raceDate}
+                        planName={planName}
+                        planSource={planSource}
+                        planType={plan?.type || planInfo?.type || 'Marathon'}
+                        units={units}
+                        paces={paces || undefined}
+                        peakVolume={peakVolume}
+                        onJump={jumpToToday}
+                    />
+                )}
 
                 <MileageChart weeks={validSchedule.weeks} units={units} />
 
@@ -262,6 +282,7 @@ export const PlanViewer = () => {
                     <span>Current week</span>
                 </button>
             )}
+            {protoVariant && <PrototypeSwitcher />}
         </DndContext>
     );
 };
