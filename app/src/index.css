@@ -91,6 +91,60 @@
     }
 }
 
+/* ============================================================
+   PROTOTYPE — palette exploration (throwaway, branch only).
+   Question: can the "coach's paper log" get more distinctive if
+   we pull it off the default warm-cream + terracotta pairing?
+   Variants toggle via ?palette=A|B|C. Winner (C) folded into main.
+   ============================================================ */
+.palette-a {
+    --paper: 240 242 245;
+    --card: 250 251 252;
+    --ink: 28 38 60;
+    --pencil: 96 108 132;
+    --marker: 47 62 115;
+    --rule: rgba(28, 38, 60, 0.14);
+    --grid: rgba(28, 38, 60, 0.1);
+    --grid-bold: rgba(28, 38, 60, 0.18);
+    --chart-bar: #3a4a6b;
+    --chart-bar-hover: #1c2640;
+    --chart-current: #2f3e73;
+    --chart-grid: rgba(28, 38, 60, 0.08);
+    --chart-label: #606c84;
+}
+
+.palette-b {
+    --paper: 238 230 214;
+    --card: 248 243 232;
+    --ink: 43 35 26;
+    --pencil: 120 104 84;
+    --marker: 124 45 35;
+    --rule: rgba(43, 35, 26, 0.14);
+    --grid: rgba(43, 35, 26, 0.12);
+    --grid-bold: rgba(43, 35, 26, 0.2);
+    --chart-bar: #5a4a3a;
+    --chart-bar-hover: #2b231a;
+    --chart-current: #7c2d23;
+    --chart-grid: rgba(43, 35, 26, 0.08);
+    --chart-label: #786854;
+}
+
+.palette-c {
+    --paper: 238 237 234;
+    --card: 248 247 245;
+    --ink: 38 38 38;
+    --pencil: 122 122 122;
+    --marker: 196 40 32;
+    --rule: rgba(38, 38, 38, 0.12);
+    --grid: rgba(38, 38, 38, 0.1);
+    --grid-bold: rgba(38, 38, 38, 0.18);
+    --chart-bar: #555555;
+    --chart-bar-hover: #262626;
+    --chart-current: #c42820;
+    --chart-grid: rgba(38, 38, 38, 0.08);
+    --chart-label: #7a7a7a;
+}
+
 @keyframes slide-up {
     from {
         opacity: 0;

@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { DatePicker } from './components/DatePicker';
 import { PlanSelector } from './components/PlanSelector';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { PrototypeSwitcher } from './components/PrototypeSwitcher';
 import { AVAILABLE_PLANS } from './config';
 
 function App() {
@@ -128,6 +129,15 @@ function App() {
   }, [defaultWeeks]);
 
 
+  const prototypePalette = searchParams.get('palette') ?? '';
+
+  useEffect(() => {
+    const cls = prototypePalette === 'A' ? 'palette-a' : prototypePalette === 'B' ? 'palette-b' : prototypePalette === 'C' ? 'palette-c' : '';
+    document.body.classList.remove('palette-a', 'palette-b', 'palette-c');
+    if (cls) document.body.classList.add(cls);
+    return () => document.body.classList.remove('palette-a', 'palette-b', 'palette-c');
+  }, [prototypePalette]);
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen text-ink font-sans selection:bg-marker selection:text-paper transition-colors duration-300">
@@ -171,6 +181,8 @@ function App() {
             <PlanViewer />
           )}
         </main>
+
+        <PrototypeSwitcher />
       </div>
     </ErrorBoundary>
   );
