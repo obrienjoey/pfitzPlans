@@ -70,7 +70,7 @@ const DayCardContent = ({
     setNodeRef,
     style,
     attributes,
-    listeners
+    listeners,
 }: DayCardContentProps) => {
     const isRest = workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
     const isRace = workout.tags?.includes('Race') || workout.title.toLowerCase().includes('goal race');
@@ -138,14 +138,26 @@ const DayCardContent = ({
             id={id}
             {...wrapperProps}
             className={clsx(
-                "group border-b border-rule last:border-b-0 select-none transition-colors",
+                "group border-b border-rule last:border-b-0 select-none transition-all duration-150 relative",
                 isRest && "text-pencil",
                 isRaceDayCard && "bg-marker/5",
                 status === 'skipped' && "opacity-45 hover:opacity-60",
-                isOver && !isActive && "bg-marker/5 shadow-[inset_0_2px_0_var(--marker),inset_0_-2px_0_var(--marker)]",
-                isActive && "opacity-20"
+                isActive && "opacity-25 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.06)_8px,rgba(0,0,0,0.06)_16px)] border border-rule",
+                isOver && !isActive && "bg-ink/5 border-l-4 border-l-marker shadow-inner"
             )}
         >
+            {/* Magnetic top beam indicator on drop target */}
+            {isOver && !isActive && (
+                <div className="absolute top-0 inset-x-0 h-1 bg-marker animate-pulse z-10" />
+            )}
+
+            {/* Floating swap target badge */}
+            {isOver && !isActive && (
+                <div className="absolute right-3 top-2 bg-ink text-paper font-data text-[9px] font-bold uppercase px-2 py-0.5 shadow z-10">
+                    ▼ SWAP WORKOUT HERE ▼
+                </div>
+            )}
+
             {/* Header row */}
             <div
                 onClick={expandable ? toggleExpand : undefined}
@@ -253,7 +265,7 @@ const DayCardContent = ({
                         </div>
                     )}
                     <span
-                        className="flex-none w-5 flex justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink"
+                        className="flex-none w-6 h-6 rounded flex items-center justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink active:scale-125 active:bg-marker/10 active:text-marker transition-all touch-none"
                         title="Drag to reschedule"
                     >
                         <GripIcon />

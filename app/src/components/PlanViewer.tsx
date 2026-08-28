@@ -34,6 +34,7 @@ const parseWorkoutId = (id: string) => {
 const cleanDescription = (text: string | undefined): string => text?.replace(/"/g, '') ?? '';
 
 export const PlanViewer = () => {
+
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -59,8 +60,8 @@ export const PlanViewer = () => {
             activationConstraint: { distance: 10 }
         }),
         useSensor(TouchSensor, {
-            // Require hold of 250ms and move of 5px for touch
-            activationConstraint: { delay: 250, tolerance: 5 }
+            // Snappier 200ms hold on mobile touch with 6px tolerance
+            activationConstraint: { delay: 200, tolerance: 6 }
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates
@@ -229,14 +230,22 @@ export const PlanViewer = () => {
 
             <DragOverlay>
                 {activeWorkout ? (
-                    <div className="opacity-95 cursor-grabbing" style={{ width: 'min(90vw, 56rem)' }}>
-                        <DayCard
-                            workout={activeWorkout}
-                            date={activeWorkout.date}
-                            isRaceDay={false}
-                            units={units}
-                            paces={paces || undefined}
-                        />
+                    <div
+                        className="cursor-grabbing scale-[1.01] shadow-2xl border-2 border-ink bg-card transition-transform duration-150"
+                        style={{ width: 'min(90vw, 56rem)' }}
+                    >
+                        <div className="relative">
+                            <span className="absolute -top-3 left-4 z-20 px-2.5 py-0.5 bg-ink text-paper font-data text-[10px] font-bold tracking-wider shadow">
+                                ▲ REORDERING
+                            </span>
+                            <DayCard
+                                workout={activeWorkout}
+                                date={activeWorkout.date}
+                                isRaceDay={false}
+                                units={units}
+                                paces={paces || undefined}
+                            />
+                        </div>
                     </div>
                 ) : null}
             </DragOverlay>
