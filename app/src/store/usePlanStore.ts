@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { AVAILABLE_PLANS, type PlanInfo } from '../config';
 
 import type { RenderedPlan, ScheduleFingerprint } from '../types';
@@ -61,6 +62,25 @@ interface PersistedState {
     workoutLogs?: Record<string, WorkoutStatus>;
 }
 
+const dateToStorageKey = (d: Date | string | null | undefined): string | null => {
+    if (!d) return null;
+    const dateObj = d instanceof Date ? d : parseISO(d);
+    if (!isValid(dateObj)) return null;
+    return format(startOfDay(dateObj), 'yyyy-MM-dd');
+};
+
+const parseStoredDate = (val: string | Date | unknown): Date | null => {
+    if (!val) return null;
+    if (val instanceof Date) return isValid(val) ? startOfDay(val) : null;
+    if (typeof val === 'string') {
+        const parsed = parseISO(val);
+        if (isValid(parsed)) return startOfDay(parsed);
+        const fallback = new Date(val);
+        return isValid(fallback) ? startOfDay(fallback) : null;
+    }
+    return null;
+};
+
 export const usePlanStore = create<PlanState>()(
     persist(
         (set, get) => ({
@@ -101,11 +121,11 @@ export const usePlanStore = create<PlanState>()(
                 set(updates);
             },
             setRaceDate: (date) => set((state) => {
-                const currentDateKey = state.raceDate ? state.raceDate.toISOString().slice(0, 10) : null;
-                const newDateKey = date ? date.toISOString().slice(0, 10) : null;
+                const currentDateKey = dateToStorageKey(state.raceDate);
+                const newDateKey = dateToStorageKey(date);
                 const changed = currentDateKey !== newDateKey;
                 return {
-                    raceDate: date,
+                    raceDate: date ? startOfDay(date) : null,
                     workoutLogs: changed ? {} : state.workoutLogs,
                 };
             }),
@@ -181,17 +201,25 @@ export const usePlanStore = create<PlanState>()(
         }),
         {
             name: 'plan-storage',
-            // Custom serialization for Date
+            // Custom serialization for Date as YYYY-MM-DD to be timezone agnostic
             partialize: (state) => {
                 let slimSchedule = null;
                 if (state.currentSchedule) {
                     slimSchedule = {
-                        raceDate: state.currentSchedule.raceDate,
-                        startDate: state.currentSchedule.startDate,
+                        raceDate: dateToStorageKey(state.currentSchedule.raceDate),
+                        startDate: dateToStorageKey(state.currentSchedule.startDate),
                         weeks: state.currentSchedule.weeks.map(week => {
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             const { originalWeek, ...slimWeek } = week;
-                            return slimWeek;
+                            return {
+                                ...slimWeek,
+                                weekStart: dateToStorageKey(week.weekStart),
+                                weekEnd: dateToStorageKey(week.weekEnd),
+                                workouts: week.workouts.map(workout => ({
+                                    ...workout,
+                                    date: dateToStorageKey(workout.date)
+                                }))
+                            };
                         }),
                         fp: state.currentSchedule.fp,
                     };
@@ -199,7 +227,7 @@ export const usePlanStore = create<PlanState>()(
 
                 return {
                     selectedPlanId: state.selectedPlanId,
-                    raceDate: state.raceDate ? state.raceDate.toISOString() : null,
+                    raceDate: dateToStorageKey(state.raceDate),
                     units: state.units,
                     raceInput: state.raceInput,
                     currentSchedule: slimSchedule,
@@ -212,15 +240,15 @@ export const usePlanStore = create<PlanState>()(
 
                 const revivedSchedule = pState.currentSchedule ? {
                     ...pState.currentSchedule,
-                    raceDate: new Date(pState.currentSchedule.raceDate),
-                    startDate: new Date(pState.currentSchedule.startDate),
+                    raceDate: parseStoredDate(pState.currentSchedule.raceDate),
+                    startDate: parseStoredDate(pState.currentSchedule.startDate),
                     weeks: pState.currentSchedule.weeks.map((week) => ({
                         ...week,
-                        weekStart: new Date(week.weekStart),
-                        weekEnd: new Date(week.weekEnd),
+                        weekStart: parseStoredDate(week.weekStart),
+                        weekEnd: parseStoredDate(week.weekEnd),
                         workouts: week.workouts.map((workout) => ({
                             ...workout,
-                            date: new Date(workout.date)
+                            date: parseStoredDate(workout.date)
                         }))
                     }))
                 } : null;
@@ -241,14 +269,14 @@ export const usePlanStore = create<PlanState>()(
                     }
                 }
 
-                let revivedRaceDate = pState.raceDate ? new Date(pState.raceDate) : null;
-                if (revivedRaceDate && (isNaN(revivedRaceDate.getTime()) || revivedRaceDate.getFullYear() < 2020 || revivedRaceDate.getFullYear() > 2050)) {
+                let revivedRaceDate = parseStoredDate(pState.raceDate);
+                if (revivedRaceDate && (revivedRaceDate.getFullYear() < 2020 || revivedRaceDate.getFullYear() > 2050)) {
                     revivedRaceDate = null;
                 }
 
                 // If the schedule date is corrupted, discard the schedule too
                 let finalRevivedSchedule = revivedSchedule;
-                if (revivedSchedule && revivedSchedule.raceDate && (isNaN(revivedSchedule.raceDate.getTime()) || revivedSchedule.raceDate.getFullYear() < 2020 || revivedSchedule.raceDate.getFullYear() > 2050)) {
+                if (revivedSchedule && (!revivedSchedule.raceDate || revivedSchedule.raceDate.getFullYear() < 2020 || revivedSchedule.raceDate.getFullYear() > 2050)) {
                     finalRevivedSchedule = null;
                 }
 

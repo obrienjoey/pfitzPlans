@@ -144,6 +144,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     ref={popupRef}
                     role="dialog"
                     aria-label="Choose a date"
+                    data-datepicker-popup="true"
                     className="animate-in fade-in zoom-in-95 duration-200 fixed p-4 bg-card border border-rule shadow-2xl z-[300] w-[300px]"
                     style={{ top: coords?.top ?? 0, left: coords?.left ?? 0 }}
                 >

@@ -122,6 +122,7 @@ export const Header = () => {
 
     const popoverRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const mobileSheetRef = useRef<HTMLDivElement>(null);
 
     // Mobile drag-to-dismiss state
     const dragStartY = useRef<number | null>(null);
@@ -141,7 +142,17 @@ export const Header = () => {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
-            if (popoverRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+            if (
+                popoverRef.current?.contains(target) ||
+                triggerRef.current?.contains(target) ||
+                mobileSheetRef.current?.contains(target)
+            ) {
+                return;
+            }
+            // Ignore clicks inside portaled overlays (e.g. DatePicker popup)
+            if ((target as HTMLElement).closest?.('[data-datepicker-popup]')) {
+                return;
+            }
             setIsOpen(false);
             setDragOffset(0);
         };
@@ -193,6 +204,7 @@ export const Header = () => {
                 onClick={() => { setIsOpen(false); setDragOffset(0); }}
             />
             <div
+                ref={mobileSheetRef}
                 className="fixed bottom-0 left-0 right-0 bg-card border-t border-rule shadow-2xl flex flex-col animate-sheet-slide-up"
                 style={{
                     maxHeight: '85svh',

@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, startOfDay, addWeeks, addDays } from 'date-fns';
 import { usePlanStore } from './store/usePlanStore';
 import { PlanViewer } from './components/PlanViewer';
 import { Header } from './components/Header';
@@ -118,13 +118,11 @@ function App() {
   }, [selectedPlanId, availablePlans]);
 
   const defaultDate = useMemo(() => {
-    const today = new Date();
-    const target = new Date(today.getTime() + defaultWeeks * 7 * 24 * 60 * 60 * 1000);
+    const today = startOfDay(new Date());
+    const target = addWeeks(today, defaultWeeks);
     const day = target.getDay();
     const steps = day === 0 ? 0 : 7 - day;
-    target.setDate(target.getDate() + steps);
-    target.setHours(0, 0, 0, 0);
-    return target;
+    return addDays(target, steps);
   }, [defaultWeeks]);
 
 

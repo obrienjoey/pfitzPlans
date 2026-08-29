@@ -205,4 +205,26 @@ describe('usePlanStore', () => {
         expect(raw.state.currentSchedule.originalPlan).toBeUndefined();
         expect(raw.state.currentSchedule.weeks[0].originalWeek).toBeUndefined();
     });
+
+    it('preserves the exact chosen calendar date across persistence and rehydration', async () => {
+        // Choose a Sunday date in local time: e.g. 2026-10-18
+        const chosenDate = new Date(2026, 9, 18); // Oct 18, 2026 (Sunday)
+        usePlanStore.getState().setRaceDate(chosenDate);
+
+        // Verify it was persisted to localStorage as calendar date YYYY-MM-DD
+        const raw = JSON.parse(localStorage.getItem('plan-storage') || '{}');
+        expect(raw.state.raceDate).toBe('2026-10-18');
+
+        // Simulate fresh session load by clearing memory state and rehydrating from localStorage
+        usePlanStore.setState({ raceDate: null });
+        localStorage.setItem('plan-storage', JSON.stringify(raw));
+        await usePlanStore.persist.rehydrate();
+
+        const revivedRaceDate = usePlanStore.getState().raceDate;
+        expect(revivedRaceDate).not.toBeNull();
+        expect(revivedRaceDate!.getFullYear()).toBe(2026);
+        expect(revivedRaceDate!.getMonth()).toBe(9);
+        expect(revivedRaceDate!.getDate()).toBe(18);
+        expect(revivedRaceDate!.getDay()).toBe(0); // Sunday, not Saturday (6)
+    });
 });
