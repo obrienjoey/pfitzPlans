@@ -11,35 +11,36 @@
 @layer base {
     :root {
         --font-data: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
-        --paper: 245 241 232;
-        --card: 253 251 244;
-        --ink: 34 30 23;
-        --pencil: 110 101 85;
-        --marker: 198 57 43;
-        --rule: rgba(34, 30, 23, 0.12);
-        --grid: rgba(222, 215, 196, 0.55);
-        --grid-bold: rgba(222, 215, 196, 0.9);
-        --chart-bar: #4a443b;
-        --chart-bar-hover: #221e17;
-        --chart-current: #c6392b;
-        --chart-grid: rgba(34, 30, 23, 0.08);
-        --chart-label: #6e6555;
+        /* Carbonless grey ground, near-black ink, red-pencil accent (from palette variant C). */
+        --paper: 238 237 234;
+        --card: 248 247 245;
+        --ink: 38 38 38;
+        --pencil: 122 122 122;
+        --marker: 196 40 32;
+        --rule: rgba(38, 38, 38, 0.12);
+        --grid: rgba(38, 38, 38, 0.1);
+        --grid-bold: rgba(38, 38, 38, 0.18);
+        --chart-bar: #555555;
+        --chart-bar-hover: #262626;
+        --chart-current: #c42820;
+        --chart-grid: rgba(38, 38, 38, 0.08);
+        --chart-label: #7a7a7a;
     }
 
     .dark {
-        --paper: 25 22 17;
-        --card: 33 29 21;
-        --ink: 237 231 216;
-        --pencil: 148 139 121;
-        --marker: 228 87 61;
-        --rule: rgba(237, 231, 216, 0.14);
-        --grid: rgba(237, 231, 216, 0.05);
-        --grid-bold: rgba(237, 231, 216, 0.08);
-        --chart-bar: #b5ac9c;
-        --chart-bar-hover: #ede7d8;
-        --chart-current: #e4573d;
-        --chart-grid: rgba(237, 231, 216, 0.08);
-        --chart-label: #948b79;
+        --paper: 28 28 30;
+        --card: 36 36 39;
+        --ink: 232 231 228;
+        --pencil: 148 148 148;
+        --marker: 226 70 60;
+        --rule: rgba(232, 231, 228, 0.14);
+        --grid: rgba(232, 231, 228, 0.06);
+        --grid-bold: rgba(232, 231, 228, 0.1);
+        --chart-bar: #a3a3a3;
+        --chart-bar-hover: #e8e7e4;
+        --chart-current: #e2463c;
+        --chart-grid: rgba(232, 231, 228, 0.08);
+        --chart-label: #949494;
     }
 
     html {
