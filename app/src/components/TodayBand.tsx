@@ -70,22 +70,14 @@ export const TodayBand = ({
             aria-label="Training Command Center"
             className="bg-card border border-rule transition-colors shadow-sm"
         >
-            {/* Masthead Eyebrow */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2 bg-paper/60 border-b border-rule font-data text-[10px] uppercase tracking-[0.16em] text-pencil">
+            {/* Masthead: plain meta, not shouting eyebrows */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2 bg-paper/60 border-b border-rule">
                 <div className="flex items-center gap-2 truncate">
-                    <h2 className="font-bold text-ink truncate font-data text-[10px] uppercase tracking-[0.16em] inline">{resolvedPlanName}</h2>
-                    {planSource && <span className="hidden sm:inline text-pencil/70 truncate">· {planSource}</span>}
+                    <h2 className="text-xs text-ink truncate">{resolvedPlanName}</h2>
+                    {planSource && <span className="hidden sm:inline text-xs text-pencil truncate">· {planSource}</span>}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                    <span>{totalWeeks} WEEKS</span>
-                    {peakVolume !== undefined && peakVolume > 0 && (
-                        <>
-                            <span className="text-pencil/40">/</span>
-                            <span>PEAK {peakVolume} {units}</span>
-                        </>
-                    )}
-                    <span className="text-pencil/40">/</span>
-                    <span className="text-marker font-bold">{resolvedPlanType}</span>
+                <div className="text-xs text-pencil shrink-0">
+                    {totalWeeks} weeks{peakVolume !== undefined && peakVolume > 0 ? ` · peak ${peakVolume} ${units}` : ''} · {resolvedPlanType}
                 </div>
             </div>
 
@@ -118,8 +110,8 @@ export const TodayBand = ({
                                 <span>TODAY · {format(new Date(), 'EEEE, MMM d')}</span>
                             </span>
                             {onJump && (
-                                <span className="font-data text-[10px] text-pencil hover:text-marker hidden sm:inline">
-                                    [View in schedule →]
+                                <span className="text-xs text-pencil hover:text-marker hidden sm:inline">
+                                    View in schedule →
                                 </span>
                             )}
                         </div>
@@ -187,7 +179,7 @@ export const TodayBand = ({
                                 style={{ width: `${Math.max(2, Math.min(100, ctx.elapsedPct))}%` }}
                             />
                         </div>
-                        <div className="flex justify-between font-data text-[9px] text-pencil mt-1 uppercase tracking-wider">
+                        <div className="flex justify-between text-[10px] text-pencil mt-1">
                             <span>Base Build</span>
                             {peakVolume !== undefined && peakVolume > 0 ? (
                                 <span>Peak ({peakVolume} {units})</span>
