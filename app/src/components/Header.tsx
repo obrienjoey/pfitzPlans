@@ -11,78 +11,12 @@ import { ThemeToggle } from './ThemeToggle';
  * Ultra-clean, distraction-free top bar featuring an interactive telemetry chip
  * that opens a focused training calibration card on desktop and a bottom drawer on mobile.
  */
-export const Header = () => {
+const CalibrationForm = () => {
     const { selectedPlanId, setPlanId, raceDate, setRaceDate, availablePlans } = usePlanStore();
     const units = usePlanStore(state => state.units);
     const raceInput = usePlanStore(state => state.raceInput);
-    const [isOpen, setIsOpen] = useState(false);
 
-    const popoverRef = useRef<HTMLDivElement>(null);
-    const triggerRef = useRef<HTMLButtonElement>(null);
-
-    // Mobile drag-to-dismiss state
-    const dragStartY = useRef<number | null>(null);
-    const [dragOffset, setDragOffset] = useState(0);
-
-    // Lock body scroll while open on mobile
-    useEffect(() => {
-        if (isOpen) {
-            document.body.classList.add('drawer-open');
-        } else {
-            document.body.classList.remove('drawer-open');
-        }
-        return () => document.body.classList.remove('drawer-open');
-    }, [isOpen]);
-
-    // Close on outside click or escape key
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            const target = e.target as Node;
-            if (popoverRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
-            setIsOpen(false);
-            setDragOffset(0);
-        };
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setIsOpen(false);
-                setDragOffset(0);
-            }
-        };
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('keydown', handleEsc);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEsc);
-        };
-    }, [isOpen]);
-
-    const handleDragStart = (e: React.TouchEvent) => {
-        dragStartY.current = e.touches[0].clientY;
-    };
-
-    const handleDragMove = (e: React.TouchEvent) => {
-        if (dragStartY.current === null) return;
-        const delta = e.touches[0].clientY - dragStartY.current;
-        if (delta > 0) setDragOffset(delta);
-    };
-
-    const handleDragEnd = () => {
-        if (dragOffset > 80) {
-            setIsOpen(false);
-            setDragOffset(0);
-        } else {
-            setDragOffset(0);
-        }
-        dragStartY.current = null;
-    };
-
-    const planInfo = availablePlans.find(p => p.id === selectedPlanId);
-    const formattedRaceDate = raceDate ? format(new Date(raceDate), 'MMM d, yyyy') : 'Set Race Date';
-
-    // Shared calibration fields component
-    const CalibrationForm = () => (
+    return (
         <div className="space-y-4 text-left">
             {/* Plan selector */}
             <div>
@@ -177,6 +111,79 @@ export const Header = () => {
             </div>
         </div>
     );
+};
+
+export const Header = () => {
+    const { availablePlans } = usePlanStore();
+    const { selectedPlanId, raceDate } = usePlanStore();
+    const units = usePlanStore(state => state.units);
+    const raceInput = usePlanStore(state => state.raceInput);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const popoverRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+
+    // Mobile drag-to-dismiss state
+    const dragStartY = useRef<number | null>(null);
+    const [dragOffset, setDragOffset] = useState(0);
+
+    // Lock body scroll while open on mobile
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add('drawer-open');
+        } else {
+            document.body.classList.remove('drawer-open');
+        }
+        return () => document.body.classList.remove('drawer-open');
+    }, [isOpen]);
+
+    // Close on outside click or escape key
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (popoverRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+            setIsOpen(false);
+            setDragOffset(0);
+        };
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsOpen(false);
+                setDragOffset(0);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleEsc);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEsc);
+        };
+    }, [isOpen]);
+
+    const handleDragStart = (e: React.TouchEvent) => {
+        dragStartY.current = e.touches[0].clientY;
+    };
+
+    const handleDragMove = (e: React.TouchEvent) => {
+        if (dragStartY.current === null) return;
+        const delta = e.touches[0].clientY - dragStartY.current;
+        if (delta > 0) setDragOffset(delta);
+    };
+
+    const handleDragEnd = () => {
+        if (dragOffset > 80) {
+            setIsOpen(false);
+            setDragOffset(0);
+        } else {
+            setDragOffset(0);
+        }
+        dragStartY.current = null;
+    };
+
+    const planInfo = availablePlans.find(p => p.id === selectedPlanId);
+    const formattedRaceDate = raceDate ? format(new Date(raceDate), 'MMM d, yyyy') : 'Set Race Date';
+
 
     // Mobile Bottom Sheet Portal
     const mobileSheet = isOpen ? createPortal(
