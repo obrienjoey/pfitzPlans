@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { AVAILABLE_PLANS, type PlanInfo } from '../config';
+import { MAX_RACE_YEAR, MIN_RACE_YEAR } from '../lib/constants';
 
 import type { RenderedPlan, ScheduleFingerprint } from '../types';
 
@@ -81,6 +82,83 @@ const parseStoredDate = (val: string | Date | unknown): Date | null => {
     return null;
 };
 
+/**
+ * Rehydrate persisted zustand state: revive date strings into Dates, migrate
+ * the legacy `goalTime` shape into `raceInput`, and discard schedules that
+ * fail validation (corrupt dates, missing fingerprint). Pure and exported
+ * for unit testing. Never throws for malformed input — callers still wrap
+ * in try/catch as a final backstop.
+ */
+export const migratePersistedState = (
+    persistedState: unknown,
+    currentState: PlanState
+): PlanState => {
+    const pState = persistedState as PersistedState;
+    if (!pState || typeof pState !== 'object') return currentState;
+
+    // Malformed schedule shapes (wrong types, missing arrays) are treated
+    // as absent — never let them throw or inject garbage into the store.
+    const rawSched = pState.currentSchedule;
+    const validWeeks = Array.isArray(rawSched?.weeks)
+        && (rawSched.weeks as unknown[]).every((w) => !!w && Array.isArray((w as PersistedWeek).workouts));
+    const revivedSchedule = rawSched && validWeeks ? {
+        ...rawSched,
+        raceDate: parseStoredDate(rawSched.raceDate),
+        startDate: parseStoredDate(rawSched.startDate),
+        weeks: (rawSched.weeks as PersistedWeek[]).map((week) => ({
+            ...week,
+            weekStart: parseStoredDate(week.weekStart),
+            weekEnd: parseStoredDate(week.weekEnd),
+            workouts: week.workouts.map((workout) => ({
+                ...workout,
+                date: parseStoredDate(workout.date)
+            }))
+        }))
+    } : null;
+
+    // Backwards compat: if old "goalTime" exists but no "raceInput" yet
+    let mergedRaceInput = pState.raceInput;
+    if (!mergedRaceInput && pState.goalTime) {
+        const planId = pState.selectedPlanId || currentState.selectedPlanId;
+        const planType = (currentState.availablePlans || AVAILABLE_PLANS).find(p => p.id === planId)?.type;
+        if (planType === 'Half Marathon') {
+            mergedRaceInput = { distance: 'Half Marathon', time: pState.goalTime };
+        } else if (planType === '5K') {
+            mergedRaceInput = { distance: '5K', time: pState.goalTime };
+        } else if (planType === '10K') {
+            mergedRaceInput = { distance: '10K', time: pState.goalTime };
+        } else {
+            mergedRaceInput = { distance: 'Marathon', time: pState.goalTime };
+        }
+    }
+
+    let revivedRaceDate = parseStoredDate(pState.raceDate);
+    if (revivedRaceDate && (revivedRaceDate.getFullYear() < MIN_RACE_YEAR || revivedRaceDate.getFullYear() > MAX_RACE_YEAR)) {
+        revivedRaceDate = null;
+    }
+
+    // If the schedule date is corrupted, discard the schedule too
+    let finalRevivedSchedule = revivedSchedule;
+    if (revivedSchedule && (!revivedSchedule.raceDate || revivedSchedule.raceDate.getFullYear() < MIN_RACE_YEAR || revivedSchedule.raceDate.getFullYear() > MAX_RACE_YEAR)) {
+        finalRevivedSchedule = null;
+    }
+
+    // A persisted schedule without a complete fingerprint is legacy pre-fix data:
+    // never reuse it — the current configuration cannot be verified against it.
+    if (finalRevivedSchedule && (!finalRevivedSchedule.fp || !finalRevivedSchedule.fp.planId || !finalRevivedSchedule.fp.raceDateKey)) {
+        finalRevivedSchedule = null;
+    }
+
+    return {
+        ...currentState,
+        ...pState,
+        raceDate: revivedRaceDate,
+        currentSchedule: finalRevivedSchedule as unknown as RenderedPlan,
+        raceInput: mergedRaceInput || currentState.raceInput,
+        workoutLogs: finalRevivedSchedule ? (pState.workoutLogs || {}) : {},
+    };
+};
+
 export const usePlanStore = create<PlanState>()(
     persist(
         (set, get) => ({
@@ -142,27 +220,20 @@ export const usePlanStore = create<PlanState>()(
                 const fromWeek = newSchedule.weeks[fromWeekIndex];
                 const toWeek = newSchedule.weeks[toWeekIndex];
 
-                const fromDay = fromWeek.workouts[fromDayIndex];
-                const toDay = toWeek.workouts[toDayIndex];
+                const fromDay = fromWeek?.workouts[fromDayIndex];
+                const toDay = toWeek?.workouts[toDayIndex];
 
                 // Check if days are valid
                 if (!fromDay || !toDay) return {};
 
-                const tempTitle = fromDay.title;
-                const tempDesc = fromDay.description;
-                const tempDist = fromDay.distance;
-                const tempTags = fromDay.tags;
+                // Swap everything except the calendar slot (date/dayOfWeek stay
+                // with the day so the schedule keeps its dates; the workout —
+                // including its explicit `zone` — moves).
+                const { date: fromDate, dayOfWeek: fromDOW, ...fromRest } = fromDay;
+                const { date: toDate, dayOfWeek: toDOW, ...toRest } = toDay;
 
-                // Swap Metadata
-                fromDay.title = toDay.title;
-                fromDay.description = toDay.description;
-                fromDay.distance = toDay.distance;
-                fromDay.tags = toDay.tags;
-
-                toDay.title = tempTitle;
-                toDay.description = tempDesc;
-                toDay.distance = tempDist;
-                toDay.tags = tempTags;
+                Object.assign(fromDay, toRest, { date: fromDate, dayOfWeek: fromDOW });
+                Object.assign(toDay, fromRest, { date: toDate, dayOfWeek: toDOW });
 
                 // Swap completion status logs
                 const fromKey = `${state.selectedPlanId}-w${fromWeekIndex}-d${fromDayIndex}`;
@@ -235,64 +306,13 @@ export const usePlanStore = create<PlanState>()(
                 };
             },
             merge: (persistedState: unknown, currentState) => {
-                const pState = persistedState as PersistedState;
-                if (!pState) return currentState;
-
-                const revivedSchedule = pState.currentSchedule ? {
-                    ...pState.currentSchedule,
-                    raceDate: parseStoredDate(pState.currentSchedule.raceDate),
-                    startDate: parseStoredDate(pState.currentSchedule.startDate),
-                    weeks: pState.currentSchedule.weeks.map((week) => ({
-                        ...week,
-                        weekStart: parseStoredDate(week.weekStart),
-                        weekEnd: parseStoredDate(week.weekEnd),
-                        workouts: week.workouts.map((workout) => ({
-                            ...workout,
-                            date: parseStoredDate(workout.date)
-                        }))
-                    }))
-                } : null;
-                
-                // Backwards compat: if old "goalTime" exists but no "raceInput" yet
-                let mergedRaceInput = pState.raceInput;
-                if (!mergedRaceInput && pState.goalTime) {
-                    const planId = pState.selectedPlanId || currentState.selectedPlanId;
-                    const planType = (currentState.availablePlans || AVAILABLE_PLANS).find(p => p.id === planId)?.type;
-                    if (planType === 'Half Marathon') {
-                        mergedRaceInput = { distance: 'Half Marathon', time: pState.goalTime };
-                    } else if (planType === '5K') {
-                        mergedRaceInput = { distance: '5K', time: pState.goalTime };
-                    } else if (planType === '10K') {
-                        mergedRaceInput = { distance: '10K', time: pState.goalTime };
-                    } else {
-                        mergedRaceInput = { distance: 'Marathon', time: pState.goalTime };
-                    }
-                }
-
-                let revivedRaceDate = parseStoredDate(pState.raceDate);
-                if (revivedRaceDate && (revivedRaceDate.getFullYear() < 2020 || revivedRaceDate.getFullYear() > 2050)) {
-                    revivedRaceDate = null;
-                }
-
-                // If the schedule date is corrupted, discard the schedule too
-                let finalRevivedSchedule = revivedSchedule;
-                if (revivedSchedule && (!revivedSchedule.raceDate || revivedSchedule.raceDate.getFullYear() < 2020 || revivedSchedule.raceDate.getFullYear() > 2050)) {
-                    finalRevivedSchedule = null;
-                }
-
-                // A persisted schedule without a complete fingerprint is legacy pre-fix data:
-                // never reuse it — the current configuration cannot be verified against it.
-                if (finalRevivedSchedule && (!finalRevivedSchedule.fp || !finalRevivedSchedule.fp.planId || !finalRevivedSchedule.fp.raceDateKey)) {
-                    finalRevivedSchedule = null;
-                }
-
-                return {
-                    ...currentState,
-                    ...pState,
-                    raceDate: revivedRaceDate,
-                    currentSchedule: finalRevivedSchedule as unknown as RenderedPlan,
-                    raceInput: mergedRaceInput || currentState.raceInput,
-                    workoutLogs: finalRevivedSchedule ? (pState.workoutLogs || {}) : {},
+                // Any unexpected shape in localStorage must reset to defaults,
+                // never crash the app into the ErrorBoundary on every load.
+                try {
+                    return migratePersistedState(persistedState, currentState);
+                } catch (err) {
+                    console.warn('Discarding corrupt persisted plan state:', err);
+                    return currentState;
                 }
             }
         }

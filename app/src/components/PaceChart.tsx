@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     formatTime,
     formatTimeHMS,
+    getFrrRangeStatus,
+    parseTimeString,
+    to10KEquivalent,
     type TrainingPaces,
     type EquivalentTimes,
 } from '../lib/paceCalculator';
+import { KM_PER_MILE } from '../lib/constants';
 import { zoneColor } from '../lib/zoneColors';
 import type { RaceInputState } from '../store/usePlanStore';
 import clsx from 'clsx';
@@ -71,10 +75,22 @@ export const PaceChart = ({
 }: PaceChartProps) => {
     const [isOpen, setIsOpen] = useState(true);
 
+    const frrWarning = useMemo(() => {
+        if (planType === 'Marathon' || !raceInput) return null;
+        const secs = parseTimeString(raceInput.time);
+        if (secs == null) return null;
+        try {
+            const t10 = to10KEquivalent({ distance: raceInput.distance, timeSeconds: secs });
+            return getFrrRangeStatus(t10);
+        } catch {
+            return null;
+        }
+    }, [planType, raceInput]);
+
     if (!paces) return null;
 
     const isFRRPlan = planType !== 'Marathon';
-    const KM_TO_MILE = 1.60934;
+    const KM_TO_MILE = KM_PER_MILE;
 
     const formatRange = (range: { min: number; max: number }) => {
         if (units === 'km') {
@@ -163,6 +179,16 @@ export const PaceChart = ({
 
             {isOpen && (
                 <div className="p-4 sm:p-6 animate-in duration-200 space-y-6">
+                    {(frrWarning === 'low' || frrWarning === 'high') && (
+                        <div
+                            role="note"
+                            className="border border-marker/40 bg-marker/5 px-3 py-2 font-data text-xs text-ink"
+                        >
+                            {frrWarning === 'low'
+                                ? 'Benchmark is faster than the Faster Road Racing table — paces are clamped to the fastest row and may be conservative.'
+                                : 'Benchmark is slower than the Faster Road Racing table — paces are clamped to the slowest row and may be optimistic.'}
+                        </div>
+                    )}
 
                     {/* ── Race Equivalents ── */}
                     {racePaces.length > 0 && (

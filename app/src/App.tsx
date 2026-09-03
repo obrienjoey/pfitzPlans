@@ -4,20 +4,36 @@ import { format, parseISO, isValid, startOfDay, addWeeks, addDays } from 'date-f
 import { usePlanStore } from './store/usePlanStore';
 import { PlanViewer } from './components/PlanViewer';
 import { Header } from './components/Header';
-import { DatePicker } from './components/DatePicker';
+import { LandingHero } from './components/LandingHero';
 import { PlanSelector } from './components/PlanSelector';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AVAILABLE_PLANS } from './config';
+import { isValidRaceDistance, parseTimeString } from './lib/paceCalculator';
+import { MAX_RACE_YEAR, MIN_RACE_YEAR } from './lib/constants';
+
+const APP_KEYS = ['plan', 'date', 'dist', 'time', 'units'];
+
+function manifestUrl(): string {
+  const base = import.meta.env.BASE_URL || '/';
+  return base.endsWith('/') ? `${base}plans/manifest.json` : `${base}/plans/manifest.json`;
+}
 
 function App() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const store = usePlanStore();
-  const { raceDate, setRaceDate, selectedPlanId, setPlanId, availablePlans, manifestLoaded, setAvailablePlans, setManifestLoaded } = store;
+  // Select slices individually so URL sync / header edits don't re-render App
+  // on every unrelated store change.
+  const raceDate = usePlanStore((s) => s.raceDate);
+  const selectedPlanId = usePlanStore((s) => s.selectedPlanId);
+  const availablePlans = usePlanStore((s) => s.availablePlans);
+  const manifestLoaded = usePlanStore((s) => s.manifestLoaded);
+  const raceInput = usePlanStore((s) => s.raceInput);
+  const units = usePlanStore((s) => s.units);
   const isInitializing = useRef(true);
 
-  // Load manifest on mount
+  // Load manifest on mount (base-aware so subpath deploys work)
   useEffect(() => {
-    fetch('/plans/manifest.json')
+    const { setAvailablePlans, setManifestLoaded } = usePlanStore.getState();
+    fetch(manifestUrl())
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch manifest');
         return res.json();
@@ -32,86 +48,89 @@ function App() {
         setAvailablePlans(AVAILABLE_PLANS);
         setManifestLoaded(true);
       });
-  }, [setAvailablePlans, setManifestLoaded]);
+  }, []);
 
-  // 1. Initialize store from URL params on mount
+  // 1. Initialize store from URL params on mount (once, after manifest)
   useEffect(() => {
-    if (manifestLoaded && isInitializing.current) {
-      const urlPlan = searchParams.get('plan');
-      const urlDate = searchParams.get('date');
-      const urlDist = searchParams.get('dist');
-      const urlTime = searchParams.get('time');
-      const urlUnits = searchParams.get('units');
+    if (!manifestLoaded || !isInitializing.current) return;
+    const state = usePlanStore.getState();
+    const plans = state.availablePlans;
 
-      // Check if any URL params exist
-      if (urlPlan || urlDate || urlDist || urlTime || urlUnits) {
-        if (urlPlan) {
-          if (availablePlans.some(p => p.id === urlPlan)) {
-            store.setPlanId(urlPlan);
-          } else {
-            // Use default plan if invalid or doesn't exist
-            store.setPlanId('pfitz_18_55_4th');
-          }
-        }
-        if (urlDate) {
-          const parsed = parseISO(urlDate);
-          if (isValid(parsed)) {
-            store.setRaceDate(parsed);
-          }
-        }
-        if (urlUnits === 'mi' || urlUnits === 'km') {
-          store.setUnits(urlUnits);
-        }
-        if (urlDist || urlTime) {
-          const currentInput = store.raceInput || { distance: '10K', time: '0:45:00' };
-          store.setRaceInput({
-            distance: (urlDist as '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon') || currentInput.distance,
-            time: urlTime || currentInput.time,
-          });
+    const urlPlan = searchParams.get('plan');
+    const urlDate = searchParams.get('date');
+    const urlDist = searchParams.get('dist');
+    const urlTime = searchParams.get('time');
+    const urlUnits = searchParams.get('units');
+
+    if (urlPlan || urlDate || urlDist || urlTime || urlUnits) {
+      if (urlPlan) {
+        if (plans.some(p => p.id === urlPlan)) {
+          state.setPlanId(urlPlan);
+        } else {
+          // Use default plan if invalid or doesn't exist
+          state.setPlanId('pfitz_18_55_4th');
         }
       }
-      isInitializing.current = false;
+      if (urlDate) {
+        const parsed = parseISO(urlDate);
+        if (isValid(parsed) && parsed.getFullYear() >= MIN_RACE_YEAR && parsed.getFullYear() <= MAX_RACE_YEAR) {
+          state.setRaceDate(parsed);
+        }
+      }
+      if (urlUnits === 'mi' || urlUnits === 'km') {
+        state.setUnits(urlUnits);
+      }
+      // Only override the parts of raceInput that validate — a bad ?time=
+      // must never wipe a good stored input.
+      const currentInput = usePlanStore.getState().raceInput || { distance: '10K' as const, time: '0:45:00' };
+      let nextDistance = currentInput.distance;
+      let nextTime = currentInput.time;
+      let touched = false;
+      if (urlDist && isValidRaceDistance(urlDist)) {
+        nextDistance = urlDist;
+        touched = true;
+      }
+      if (urlTime && parseTimeString(urlTime) != null) {
+        nextTime = urlTime;
+        touched = true;
+      }
+      if (touched) {
+        state.setRaceInput({ distance: nextDistance, time: nextTime });
+      }
     }
-  }, [manifestLoaded, searchParams, store, availablePlans]);
+    isInitializing.current = false;
+    // Run once after manifest load — searchParams intentionally not a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifestLoaded]);
 
-  // 2. Sync store changes to URL params
+  // 2. Sync store changes to URL params (functional update avoids
+  // depending on the searchParams identity, which would loop).
   useEffect(() => {
-    // Only sync if initialization is done
-    if (manifestLoaded && !isInitializing.current) {
-      const params: Record<string, string> = {};
-      // Preserve non-app params before syncing known ones.
-      const APP_KEYS = ['plan', 'date', 'dist', 'time', 'units'];
-      searchParams.forEach((v, k) => {
-        if (!APP_KEYS.includes(k)) params[k] = v;
+    if (!manifestLoaded || isInitializing.current) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams();
+      prev.forEach((v, k) => {
+        if (!APP_KEYS.includes(k)) next.set(k, v);
       });
-      if (store.selectedPlanId) {
-        params.plan = store.selectedPlanId;
-      }
-      if (store.raceDate) {
+      const s = usePlanStore.getState();
+      if (s.selectedPlanId) next.set('plan', s.selectedPlanId);
+      if (s.raceDate) {
         try {
-          params.date = format(new Date(store.raceDate), 'yyyy-MM-dd');
+          next.set('date', format(new Date(s.raceDate), 'yyyy-MM-dd'));
         } catch (e) {
           console.error(e);
         }
       }
-      if (store.units) {
-        params.units = store.units;
+      if (s.units) next.set('units', s.units);
+      if (s.raceInput) {
+        next.set('dist', s.raceInput.distance);
+        next.set('time', s.raceInput.time);
       }
-      if (store.raceInput) {
-        params.dist = store.raceInput.distance;
-        params.time = store.raceInput.time;
-      }
-      setSearchParams(params, { replace: true });
-    }
-  }, [
-    manifestLoaded,
-    store.selectedPlanId,
-    store.raceDate,
-    store.units,
-    store.raceInput,
-    setSearchParams,
-    searchParams
-  ]);
+      // No-op when nothing changed so we don't trigger a navigation loop.
+      if (next.toString() === prev.toString()) return prev;
+      return next;
+    }, { replace: true });
+  }, [manifestLoaded, selectedPlanId, raceDate, units, raceInput, setSearchParams]);
 
   const defaultWeeks = useMemo(() => {
     return availablePlans.find(p => p.id === selectedPlanId)?.weeks || 18;
@@ -125,6 +144,8 @@ function App() {
     return addDays(target, steps);
   }, [defaultWeeks]);
 
+  const setPlanId = usePlanStore((s) => s.setPlanId);
+
 
   return (
     <ErrorBoundary>
@@ -134,36 +155,18 @@ function App() {
         <main className="container mx-auto px-4 py-8 max-w-5xl">
           {!raceDate ? (
             <div className="w-full max-w-4xl mx-auto mt-6 sm:mt-10">
-              <header className="border-b-2 border-ink pb-4 mb-8">
-                <h2 className="font-display font-bold uppercase text-4xl sm:text-5xl leading-[0.95] text-ink">
-                  Pick a plan, set your race day
+              <LandingHero defaultDate={defaultDate} />
+
+              <div className="border-t-2 border-ink pt-4 mt-10 mb-6">
+                <h2 className="font-display font-semibold uppercase text-2xl sm:text-3xl text-ink tracking-wide">
+                  Choose your schedule
                 </h2>
-                <p className="text-pencil text-sm mt-2">
-                  Choose a training schedule, then get a dated calendar with pace targets built from a recent race.
+                <p className="text-pencil text-sm mt-1">
+                  Grouped by race distance. Higher mileage means faster — pick what your base supports.
                 </p>
-              </header>
+              </div>
 
               <PlanSelector selectedId={selectedPlanId} onSelect={setPlanId} />
-
-              <div className="card bg-card border border-rule p-6 flex flex-col sm:flex-row sm:items-end gap-4">
-                <div className="flex-1">
-                  <label htmlFor="landing-date" className="block font-data text-[10px] uppercase tracking-[0.15em] text-pencil mb-1">
-                    Race day
-                  </label>
-                  <DatePicker
-                    value={raceDate || defaultDate}
-                    onChange={setRaceDate}
-                    placeholder="YYYY-MM-DD"
-                    className="w-full sm:max-w-xs"
-                  />
-                </div>
-                <button
-                  onClick={() => setRaceDate(raceDate || defaultDate)}
-                  className="w-full sm:w-auto py-2.5 px-6 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold rounded-none text-sm uppercase tracking-[0.12em] transition-colors"
-                >
-                  Build my schedule
-                </button>
-              </div>
             </div>
           ) : (
             <PlanViewer />

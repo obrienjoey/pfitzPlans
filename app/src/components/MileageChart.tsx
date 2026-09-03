@@ -2,10 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RenderedWeek, Distance } from '../types';
 import { calculateWeeklyVolume } from '../lib/calculator';
 import { KM_PER_MILE } from '../lib/constants';
+import { getPaceZone } from '../lib/paceCalculator';
+
+/** Zones that count as quality (top stack) rather than aerobic base. */
+const QUALITY_ZONES = new Set(['Lactate Threshold', 'VO2 Max', 'Marathon', 'Race Equivalent']);
 
 export interface MileageChartProps {
     weeks: RenderedWeek[];
     units: 'mi' | 'km';
+    /** Logged mileage per week (null = week hasn't started, planned-only). */
+    actualVolumes?: (number | null)[];
 }
 
 const getWorkoutDist = (dist?: Distance, units: 'mi' | 'km' = 'mi'): number => {
@@ -14,7 +20,7 @@ const getWorkoutDist = (dist?: Distance, units: 'mi' | 'km' = 'mi'): number => {
     return units === 'km' ? Math.round(raw * KM_PER_MILE * 10) / 10 : Math.round(raw);
 };
 
-export const MileageChart = ({ weeks, units }: MileageChartProps) => {
+export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     const chartData = useMemo(() => {
@@ -24,6 +30,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
             const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
 
             let maxWorkout = 0;
+            let longRunMax = 0;
             let quality = 0;
             let hasTuneUp = false;
 
@@ -31,28 +38,41 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                 const d = getWorkoutDist(w.distance, units);
                 const title = (w.title || '').toLowerCase();
                 const tags = (w.tags || []).map(t => t.toLowerCase());
+                const zone = getPaceZone(w.title || '', w.tags, w.zone);
 
                 if (d > maxWorkout) {
                     maxWorkout = d;
                 }
 
-                if (
+                // Explicit zone wins: the long-run segment is the longest
+                // workout carrying the Long Run zone, so a med-long never
+                // masquerades as the week's long run via raw max alone.
+                if (zone === 'Long Run' && d > longRunMax) {
+                    longRunMax = d;
+                }
+
+                const isQualityByZone = zone != null && QUALITY_ZONES.has(zone);
+                const isQualityByHeuristic =
                     tags.some(t => ['lt', 'vo2 max', 'intervals', 'tempo', 'tune-up', 'speed', 'race'].includes(t)) ||
                     title.includes('lt') ||
                     title.includes('vo2') ||
                     title.includes('threshold') ||
                     title.includes('tune-up') ||
                     title.includes('interval') ||
-                    title.includes('strides')
-                ) {
+                    title.includes('strides') ||
+                    title.includes('marathon-pace') ||
+                    title.includes('marathon pace');
+                if (isQualityByZone || isQualityByHeuristic) {
                     quality += d;
                     if (title.includes('tune-up')) hasTuneUp = true;
                 }
             });
 
-            // Make sure segments fit within total volume cleanly
+            // Make sure segments fit within total volume cleanly.
+            // Prefer the explicit Long Run max; fall back to the longest
+            // workout only when no workout carries the Long Run zone.
             const total = displayTotal.average;
-            const longRun = Math.min(total, maxWorkout);
+            const longRun = Math.min(total, longRunMax > 0 ? longRunMax : maxWorkout);
             const qual = Math.min(total - longRun, quality);
             const easy = Math.max(0, total - longRun - qual);
 
@@ -67,10 +87,11 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                 easy,
                 isCurrentWeek,
                 hasTuneUp,
+                actual: actualVolumes?.[idx] ?? null,
                 label: `Week ${week.weekNumber}`
             };
         });
-    }, [weeks, units]);
+    }, [weeks, units, actualVolumes]);
 
     const maxVolume = useMemo(() => {
         const max = Math.max(...chartData.map(d => d.volume), 0);
@@ -165,6 +186,12 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                         <span>Aerobic</span>
                     </span>
                     <span className="flex items-center gap-1.5">
+                        <svg width="14" height="6" aria-hidden="true">
+                            <line x1="0" y1="3" x2="14" y2="3" stroke="var(--marker)" strokeWidth="2" strokeDasharray="3 2" />
+                        </svg>
+                        <span>Logged</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-none border-2 border-marker" />
                         <span>Current</span>
                     </span>
@@ -237,7 +264,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                     onBlur={() => setHoveredIndex(null)}
                                     tabIndex={0}
                                     role="button"
-                                    aria-label={`Week ${data.weekNumber}: ${data.volumeFormatted} ${units}. Click to view week.`}
+                                    aria-label={`Week ${data.weekNumber}: ${data.volumeFormatted} ${units}${data.actual != null ? `, logged ${data.actual} ${units}` : ''}. Click to view week.`}
                                     className="cursor-pointer group outline-none"
                                 >
                                     {/* Invisible full-slot hit target */}
@@ -275,6 +302,20 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                             width={barWidth}
                                             height={qualH}
                                             className="fill-marker"
+                                        />
+                                    )}
+
+                                    {/* Logged-mileage marker — dashed line at the toggled-completed height */}
+                                    {data.actual != null && data.actual > 0 && (
+                                        <line
+                                            x1={x - 2}
+                                            y1={baseY - Math.min(data.actual / maxVolume, 1) * height}
+                                            x2={x + barWidth + 2}
+                                            y2={baseY - Math.min(data.actual / maxVolume, 1) * height}
+                                            stroke="var(--marker)"
+                                            strokeWidth="2"
+                                            strokeDasharray="4 3"
+                                            data-logged-marker={`W${data.weekNumber}`}
                                         />
                                     )}
 
@@ -340,16 +381,16 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         <g>
                                             <rect
                                                 x={Math.max(paddingLeft, Math.min(svgWidth - 140, x + barWidth / 2 - 65))}
-                                                y={Math.max(4, baseY - totalH - 38)}
+                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38))}
                                                 width="130"
-                                                height="32"
+                                                height={data.actual != null ? 44 : 32}
                                                 rx="0"
                                                 className="fill-[var(--card)] stroke-[var(--ink)] shadow-md"
                                                 strokeWidth="1.5"
                                             />
                                             <text
                                                 x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
-                                                y={Math.max(4, baseY - totalH - 38) + 13}
+                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38)) + 13}
                                                 textAnchor="middle"
                                                 className="fill-ink font-data font-bold text-[10px]"
                                             >
@@ -357,12 +398,22 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                             </text>
                                             <text
                                                 x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
-                                                y={Math.max(4, baseY - totalH - 38) + 25}
+                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38)) + 25}
                                                 textAnchor="middle"
                                                 className="fill-pencil font-data text-[8px]"
                                             >
                                                 LR {Math.round(data.longRun)}{units} · Q {Math.round(data.quality)}{units} · Open ↓
                                             </text>
+                                            {data.actual != null && (
+                                                <text
+                                                    x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
+                                                    y={Math.max(4, baseY - totalH - 50) + 37}
+                                                    textAnchor="middle"
+                                                    className="fill-marker font-data font-bold text-[8px]"
+                                                >
+                                                    ✓ Logged {data.actual}{units}
+                                                </text>
+                                            )}
                                         </g>
                                     )}
 

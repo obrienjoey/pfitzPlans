@@ -91,6 +91,30 @@ function parsePaceToSec(pace: string): number {
   return parts[0] * 60 + parts[1];
 }
 
+/** Bounds of the FRR lookup table in 10K-equivalent seconds. Inputs outside clamp. */
+export const FRR_MIN_K10: number = FRR_ROWS[0].k10;
+export const FRR_MAX_K10: number = FRR_ROWS[FRR_ROWS.length - 1].k10;
+
+export type FrrRangeStatus = 'low' | 'in-range' | 'high';
+
+/** Where a 10K-equivalent time sits relative to the FRR table. */
+export function getFrrRangeStatus(t10: number): FrrRangeStatus {
+  if (!Number.isFinite(t10)) return 'in-range';
+  if (t10 < FRR_MIN_K10) return 'low';
+  if (t10 > FRR_MAX_K10) return 'high';
+  return 'in-range';
+}
+
+export const VALID_RACE_DISTANCES = ['5K', '10K', '15K', 'Half Marathon', 'Marathon'] as const;
+export type ValidRaceDistance = (typeof VALID_RACE_DISTANCES)[number];
+
+export function isValidRaceDistance(value: unknown): value is ValidRaceDistance {
+  return typeof value === 'string' && (VALID_RACE_DISTANCES as readonly string[]).includes(value);
+}
+
+/** Absolute sanity bounds for a race result (excludes 0 and >24h). */
+export const MAX_RACE_SECONDS = 24 * 3600;
+
 export function frrTrainingPaces(t10: number): TrainingPaces {
     let lower: FRRRow = FRR_ROWS[0];
     let upper: FRRRow = FRR_ROWS[FRR_ROWS.length - 1];
@@ -203,24 +227,44 @@ export const formatTimeHMS = (seconds: number | undefined): string => {
 
 export const parseTimeString = (timeString: string | undefined): number | null => {
     if (!timeString) return null;
-    const parts = timeString.split(':').map(Number);
-    if (parts.some(isNaN)) return null;
+    const trimmed = timeString.trim();
+    if (!trimmed) return null;
+    // Reject negatives / non-numeric junk early (Number('') is 0, so check raw parts).
+    if (trimmed.startsWith('-')) return null;
+    const rawParts = trimmed.split(':');
+    if (rawParts.length !== 2 && rawParts.length !== 3) return null;
+    if (rawParts.some((p) => p.trim() === '' || !/^\d+(\.\d+)?$/.test(p.trim()))) return null;
 
+    const parts = rawParts.map(Number);
+    if (parts.some((n) => !Number.isFinite(n) || n < 0)) return null;
+
+    let total: number;
     if (parts.length === 3) {
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        const [h, m, s] = parts;
+        if (!Number.isInteger(m) || !Number.isInteger(s) || m > 59 || s > 59) return null;
+        if (!Number.isInteger(h) && !Number.isFinite(h)) return null;
+        total = h * 3600 + m * 60 + s;
+    } else {
+        const [m, s] = parts;
+        if (!Number.isInteger(m) || !Number.isInteger(s) || s > 59) return null;
+        // MM:SS form — minutes may exceed 59 (e.g. "90:00"), seconds may not.
+        total = m * 60 + s;
     }
-    if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
-    }
-    return null;
+    if (!Number.isFinite(total) || total <= 0 || total > MAX_RACE_SECONDS) return null;
+    return Math.floor(total);
 }
 
 export const getPaceZone = (title: string, tags?: string[], zone?: PaceZone): PaceZone | null => {
     if (zone) return zone;
-    const t = title.toLowerCase();
+    // Strip diacritics so variants like 'V̇O₂max' (V + combining dot) match 'vo₂max'.
+    const t = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     // Tune-up races and goal races for non-marathon distances show no pace badge
     if (t.includes('tune-up')) return null;
+
+    // The half-marathon goal race must not show Marathon pace (it would mislead);
+    // like every other goal race it gets no badge — the day is already race-highlighted.
+    if (t.includes('half marathon goal race')) return null;
 
     // Only map to 'Marathon' pace zone if the race is explicitly a marathon.
     // e.g. "8K or 10K goal race", "5K goal race" should NOT show the marathon-equivalent pace.
@@ -228,7 +272,11 @@ export const getPaceZone = (title: string, tags?: string[], zone?: PaceZone): Pa
     if (t.includes('goal race')) return null; // non-marathon goal race: no pace badge
     if (tags?.includes('Race')) return null;  // generic Race tag: no pace badge
 
-    if (t.includes('marathon pace') || t.includes('mp')) return 'Marathon';
+    // Note: bare 'mp' needs a word boundary — plain includes() matches "teMPo".
+    if (t.includes('marathon pace') || t.includes('marathon-pace') || /\bmp\b/.test(t)) return 'Marathon';
+    // Recovery runs before speed: 'Recovery + speed' is easy running, not VO2 Max.
+    // Prefix-only — interval detail like "(jog 4 min recovery)" must not match here.
+    if (/^(2\s+)?recovery/.test(t)) return 'Recovery';
     if (t.includes('lt') || t.includes('lactate') || t.includes('threshold')) return 'Lactate Threshold';
     if (t.includes('speed') && !t.includes('aerobic')) return 'VO2 Max';
     // 'Race pace' intervals (e.g. 8K-10K race pace) and 'race pace + speed' map to VO2 Max zone

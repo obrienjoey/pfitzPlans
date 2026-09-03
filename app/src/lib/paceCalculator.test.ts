@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTrainingPaces, to10KEquivalent, formatTime, formatTimeHMS, parseTimeString, getPaceZone } from './paceCalculator';
+import { calculateTrainingPaces, to10KEquivalent, formatTime, formatTimeHMS, parseTimeString, getPaceZone, isValidRaceDistance, getFrrRangeStatus, FRR_MIN_K10, FRR_MAX_K10 } from './paceCalculator';
 
 describe('paceCalculator', () => {
     describe('parseTimeString', () => {
@@ -11,6 +11,34 @@ describe('paceCalculator', () => {
         });
         it('returns null for invalid strings', () => {
             expect(parseTimeString('invalid')).toBeNull();
+        });
+        it('rejects zero, negatives, bad seconds, and >24h', () => {
+            expect(parseTimeString('0:00')).toBeNull();
+            expect(parseTimeString('0:00:00')).toBeNull();
+            expect(parseTimeString('-1:00')).toBeNull();
+            expect(parseTimeString('1:75')).toBeNull();
+            expect(parseTimeString('1:00:75')).toBeNull();
+            expect(parseTimeString('25:00:00')).toBeNull();
+            expect(parseTimeString('')).toBeNull();
+            expect(parseTimeString('abc')).toBeNull();
+        });
+    });
+
+    describe('isValidRaceDistance', () => {
+        it('accepts the five known distances and rejects the rest', () => {
+            expect(isValidRaceDistance('5K')).toBe(true);
+            expect(isValidRaceDistance('Marathon')).toBe(true);
+            expect(isValidRaceDistance('10 Miles')).toBe(false);
+            expect(isValidRaceDistance('')).toBe(false);
+            expect(isValidRaceDistance(undefined)).toBe(false);
+        });
+    });
+
+    describe('getFrrRangeStatus', () => {
+        it('flags times outside the lookup table', () => {
+            expect(getFrrRangeStatus(FRR_MIN_K10 - 1)).toBe('low');
+            expect(getFrrRangeStatus(FRR_MAX_K10 + 1)).toBe('high');
+            expect(getFrrRangeStatus((FRR_MIN_K10 + FRR_MAX_K10) / 2)).toBe('in-range');
         });
     });
 

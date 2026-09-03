@@ -24,6 +24,17 @@ const ribbonDistance = (dist: Distance | undefined, units: 'mi' | 'km'): string 
     return `${Math.round(raw)}`;
 };
 
+/** Plan distances are stored in miles — convert each endpoint for display. */
+const convertDistanceValue = (miValue: number, units: 'mi' | 'km'): number =>
+    units === 'km' ? Math.round(miValue * KM_PER_MILE * 10) / 10 : Math.round(miValue);
+
+/** Full range for accessible names/titles, e.g. [8,10] mi → "8–10 mi" or "12.9–16.1 km". */
+const formatFullDistance = (dist: Distance | undefined, units: 'mi' | 'km'): string | null => {
+    if (dist === undefined) return null;
+    if (typeof dist === 'number') return `${convertDistanceValue(dist, units)} ${units}`;
+    return `${convertDistanceValue(dist[0], units)}–${convertDistanceValue(dist[1], units)} ${units}`;
+};
+
 // Short ribbon labels so 7 cells fit a 360px phone without mid-word cuts.
 // "General aerobic" → "Aerobic", "Marathon-pace run" → "MP", "Recovery" stays whole.
 const ribbonLabel = (title: string): string => {
@@ -118,11 +129,7 @@ export const TodayBand = ({
                     <ol className="grid grid-cols-7 gap-1 mt-3" aria-label="This week's workouts">
                         {week.workouts.map((day, dayIndex) => {
                             const isToday = ctx.dayIndex === dayIndex;
-                            const dayDist = typeof day.distance === 'number'
-                                ? `${day.distance} ${units}`
-                                : day.distance
-                                    ? `${day.distance[0]}–${day.distance[1]} ${units}`
-                                    : 'no distance set';
+                            const dayDist = formatFullDistance(day.distance, units) ?? 'no distance set';
                             const title = cleanPlanTitle(day.title);
                             return (
                                 <li key={dayIndex}>

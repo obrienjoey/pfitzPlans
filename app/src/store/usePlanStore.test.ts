@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { usePlanStore } from './usePlanStore';
+import { usePlanStore, migratePersistedState } from './usePlanStore';
 import type { RenderedPlan } from '../types';
 
 describe('usePlanStore', () => {
@@ -47,6 +47,33 @@ describe('usePlanStore', () => {
         // Dates should REMAIN the same
         expect(workouts[0].date.toISOString()).toBe(new Date('2025-12-01').toISOString());
         expect(workouts[1].date.toISOString()).toBe(new Date('2025-12-02').toISOString());
+    });
+
+    it('swaps explicit zone alongside the workout', () => {
+        usePlanStore.setState({
+            currentSchedule: {
+                ...structuredClone(mockPlan),
+                weeks: [{
+                    weekStart: new Date('2025-12-01'),
+                    weekEnd: new Date('2025-12-07'),
+                    weekNumber: 1,
+                    weeksToGoal: 4,
+                    originalWeek: { workouts: [] },
+                    workouts: [
+                        { title: 'LT Run', zone: 'Lactate Threshold', date: new Date('2025-12-01'), dayOfWeek: 1 },
+                        { title: 'Easy', zone: 'General Aerobic', date: new Date('2025-12-02'), dayOfWeek: 2 }
+                    ]
+                }]
+            }
+        });
+
+        usePlanStore.getState().moveWorkout(0, 0, 0, 1);
+
+        const workouts = usePlanStore.getState().currentSchedule!.weeks[0].workouts;
+        expect(workouts[0].zone).toBe('General Aerobic');
+        expect(workouts[1].zone).toBe('Lactate Threshold');
+        // Calendar slots stay put
+        expect(workouts[0].date.toISOString()).toBe(new Date('2025-12-01').toISOString());
     });
 
     it('swaps raceInput when race type changes', () => {
@@ -206,8 +233,7 @@ describe('usePlanStore', () => {
         expect(raw.state.currentSchedule.weeks[0].originalWeek).toBeUndefined();
     });
 
-    it('preserves the exact chosen calendar date across persistence and rehydration', async () => {
-        // Choose a Sunday date in local time: e.g. 2026-10-18
+    it('preserves the exact chosen calendar date across persistence and rehydration', async () => {        // Choose a Sunday date in local time: e.g. 2026-10-18
         const chosenDate = new Date(2026, 9, 18); // Oct 18, 2026 (Sunday)
         usePlanStore.getState().setRaceDate(chosenDate);
 
@@ -226,5 +252,34 @@ describe('usePlanStore', () => {
         expect(revivedRaceDate!.getMonth()).toBe(9);
         expect(revivedRaceDate!.getDate()).toBe(18);
         expect(revivedRaceDate!.getDay()).toBe(0); // Sunday, not Saturday (6)
+    });
+
+    it('migratePersistedState resets to defaults on garbage input instead of throwing', () => {
+        const current = usePlanStore.getState();
+        expect(() => migratePersistedState(null, current)).not.toThrow();
+        expect(migratePersistedState(null, current)).toBe(current);
+        expect(() => migratePersistedState({ raceDate: 42, currentSchedule: { weeks: null } }, current)).not.toThrow();
+    });
+
+    it('merge falls back to current state when persisted data is corrupt', async () => {
+        // Start from empty in-memory state so a corrupt payload can't inject garbage
+        usePlanStore.setState({ currentSchedule: null, workoutLogs: {} });
+        localStorage.setItem('plan-storage', JSON.stringify({
+            state: {
+                selectedPlanId: 'test',
+                raceDate: 'not-a-date',
+                currentSchedule: {
+                    raceDate: 'garbage',
+                    startDate: 'garbage',
+                    weeks: 'not-an-array',
+                },
+            },
+            version: 0
+        }));
+
+        await expect(usePlanStore.persist.rehydrate()).resolves.not.toThrow();
+        // Corrupt schedule is discarded; store stays usable
+        expect(usePlanStore.getState().currentSchedule).toBeNull();
+        expect(usePlanStore.getState().workoutLogs).toEqual({});
     });
 });

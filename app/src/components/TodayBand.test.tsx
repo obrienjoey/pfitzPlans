@@ -85,4 +85,13 @@ describe('TodayBand', () => {
         // One button per ribbon day, jumping straight to that workout row
         expect(screen.getByRole('list', { name: "This week's workouts" })).toBeInTheDocument();
     });
+
+    it('converts accessible distances to km instead of relabelling miles', () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date(2026, 2, 4, 8, 0));
+
+        render(<TodayBand schedule={buildSchedule()} units="km" />);
+        // 8–10 mi → 12.9–16.1 km in the accessible name, not "8–10 km"
+        expect(screen.getAllByRole('button', { name: /12\.9–16\.1 km/ })).toHaveLength(7);
+    });
 });
