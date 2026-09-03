@@ -9,8 +9,8 @@ test.describe('RacePlans E2E Core Journeys', () => {
     // Check onboarding screen shows
     await expect(page.locator('h2:has-text("Pick a plan, set your race day")')).toBeVisible();
 
-    // Select "Faster Road Racing: 5K Schedule 1" plan
-    const planButton = page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")');
+    // Select "Faster Road Racing: 5K Schedule 1" plan (short title shown, full name in aria-label)
+    const planButton = page.getByTestId('plan-card-frr_5k_01');
     await expect(planButton).toBeVisible();
     await planButton.click();
 
@@ -20,7 +20,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await generateBtn.click();
 
     // Verify schedule is rendered with correct plan name
-    await expect(page.locator('h2:has-text("Faster Road Racing: 5K Schedule 1")')).toBeVisible();
+    await expect(page.getByTestId('today-plan-name')).toContainText('5K Schedule 1');
     await expect(page.locator('text=Training paces')).toBeVisible();
   });
 
@@ -29,7 +29,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await page.goto('/');
 
     // Generate schedule
-    await page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")').click();
+    await page.getByTestId('plan-card-frr_5k_01').click();
     await page.locator('button:has-text("Build my schedule")').click();
 
     // Wait for the slide-in animation (duration-500) to finish completely
@@ -100,7 +100,7 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await page.goto('/');
 
     // Generate schedule
-    await page.locator('button:has-text("Faster Road Racing: 5K Schedule 1")').click();
+    await page.getByTestId('plan-card-frr_5k_01').click();
     await page.locator('button:has-text("Build my schedule")').click();
 
     // Check initial unit display in a day card (usually km by default in store)
@@ -129,11 +129,11 @@ test.describe('RacePlans E2E Core Journeys', () => {
     await page.goto('/?plan=frr_5k_01&date=2026-10-11&dist=5K&time=0%3A18%3A45&units=mi');
 
     // The app should automatically bypass setup screen and render schedule
-    await expect(page.locator('h2:has-text("Faster Road Racing: 5K Schedule 1")')).toBeVisible();
+    await expect(page.getByTestId('today-plan-name')).toContainText('5K Schedule 1');
 
-    // Verify target race date matches Oct 11, 2026
-    await expect(page.getByText('Oct 11', { exact: true })).toBeVisible();
-    await expect(page.getByText('2026', { exact: true }).first()).toBeVisible();
+    // Verify target race date matches Oct 11, 2026 (chip shows "Oct 11, 2026", band shows "Sun, Oct 11")
+    await expect(page.getByText('Oct 11, 2026')).toBeVisible();
+    await expect(page.getByText('Sun, Oct 11')).toBeVisible();
 
     // Verify units match 'mi'
     const unitsBtn = page.locator('button[title="Toggle Units"]');

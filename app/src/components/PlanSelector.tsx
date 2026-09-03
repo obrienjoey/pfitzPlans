@@ -81,6 +81,8 @@ export const PlanSelector = ({ selectedId, onSelect }: { selectedId: string, onS
                                     key={plan.id}
                                     onClick={() => onSelect(plan.id)}
                                     aria-pressed={isSelected}
+                                    aria-label={plan.name}
+                                    data-testid={`plan-card-${plan.id}`}
                                     className={clsx(
                                         "p-4 sm:p-5 border text-left transition-colors group flex flex-col justify-between h-full min-h-[112px] bg-card",
                                         isSelected

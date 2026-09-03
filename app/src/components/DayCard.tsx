@@ -131,7 +131,9 @@ const DayCardContent = ({
         setExpanded(v => !v);
     };
 
-    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes } : {};
+    // Row-level drag: dnd-kit MouseSensor requires 10px movement before a drag
+    // starts, so plain clicks still expand the row while drags reschedule.
+    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
 
     return (
         <div
@@ -268,12 +270,9 @@ const DayCardContent = ({
                         </div>
                     )}
                     <span
-                        {...listeners}
                         className="flex-none w-6 h-6 rounded flex items-center justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink active:scale-125 active:bg-marker/10 active:text-marker transition-all touch-none"
                         title="Drag to reschedule"
-                        aria-label="Drag to reschedule workout"
-                        role="button"
-                        tabIndex={0}
+                        aria-hidden="true"
                     >
                         <GripIcon />
                     </span>

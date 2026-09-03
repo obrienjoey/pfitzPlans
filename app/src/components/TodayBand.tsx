@@ -90,7 +90,7 @@ export const TodayBand = ({
             {/* Quiet meta line: which plan, how long, how big */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2 bg-paper/60 border-b border-rule">
                 <div className="flex items-center gap-2 truncate">
-                    <h2 className="text-xs text-ink truncate" title={resolvedPlanName}>
+                    <h2 className="text-xs text-ink truncate" title={resolvedPlanName} data-testid="today-plan-name">
                         {resolvedPlanName.includes(':') ? resolvedPlanName.slice(resolvedPlanName.indexOf(':') + 1).trim() : resolvedPlanName}
                     </h2>
                 </div>
