@@ -1,48 +1,59 @@
 import { format } from 'date-fns';
 import type { RenderedPlan, Distance } from '../types';
-import type { TrainingPaces, PaceZone } from '../lib/paceCalculator';
-import { getPaceZone } from '../lib/paceCalculator';
-import { formatPaceRange, cleanPlanTitle, formatPlanLabel } from '../lib/formatters';
+import { cleanPlanTitle } from '../lib/formatters';
 import { getTodayContext } from '../lib/todayContext';
 import { KM_PER_MILE } from '../lib/constants';
-import { zoneColor } from '../lib/zoneColors';
 
 interface TodayBandProps {
     schedule: RenderedPlan;
     raceDate?: Date | null;
     planName?: string;
-    planSource?: string;
     planType?: string;
     units: 'mi' | 'km';
-    paces?: TrainingPaces;
     peakVolume?: number;
     onJump?: () => void;
 }
 
-const convert = (val: number, toMetric: boolean) =>
-    toMetric ? Math.round(val * KM_PER_MILE * 10) / 10 : val;
+// Midpoint of a workout distance in display units. Ranges collapse to one
+// number so all seven ribbon cells fit on a 360px phone; the full range
+// stays available in the cell's accessible name.
+const ribbonDistance = (dist: Distance | undefined, units: 'mi' | 'km'): string | null => {
+    if (dist === undefined) return null;
+    const raw = typeof dist === 'number' ? dist : (dist[0] + dist[1]) / 2;
+    if (units === 'km') return `${Math.round(raw * KM_PER_MILE * 10) / 10}`;
+    return `${Math.round(raw)}`;
+};
 
-const formatDistance = (dist: Distance, units: 'mi' | 'km'): string => {
-    const metric = units === 'km';
-    if (typeof dist === 'number') return `${convert(dist, metric)} ${units}`;
-    return `${convert(dist[0], metric)}–${convert(dist[1], metric)} ${units}`;
+// Short ribbon labels so 7 cells fit a 360px phone without mid-word cuts.
+// "General aerobic" → "Aerobic", "Marathon-pace run" → "MP", "Recovery" stays whole.
+const ribbonLabel = (title: string): string => {
+    const t = title.toLowerCase();
+    if (t.includes('rest')) return 'Rest';
+    if (t.includes('recovery')) return 'Recovery';
+    if (t.includes('tune-up') || t.includes('tuneup')) return 'Tune-up';
+    if (t.includes('goal race') || t === 'race') return 'Race';
+    if (t.includes('marathon-pace') || t.includes('marathon pace') || t === 'mp') return 'MP';
+    if (t.includes('med-long')) return 'Med-long';
+    if (t.includes('long run')) return 'Long';
+    if (t.includes('gen-aerobic') || t.includes('general aerobic')) return 'Aerobic';
+    if (t.includes('lt') || t.includes('lactate') || t.includes('threshold')) return 'LT';
+    if (t.includes('vo2') || t.includes('vo₂') || t.includes('interval') || t.includes('speed')) return 'VO2';
+    if (t.includes('strides')) return 'Strides';
+    return title.length > 9 ? `${title.slice(0, 8).trim()}…` : title;
 };
 
 /**
- * The Command Center & Today's Telemetry HUD
- * Unified high-density 3-bay console showing:
- * 1. Today's workout assignment & pace split targets
- * 2. Training cycle phase & mileage progress
- * 3. Goal race countdown & target horizon
+ * This week, at a glance. The thesis is the seven-day strip — today
+ * red-pen circled — with today's workout and the race horizon in one
+ * quiet line underneath. Pace targets live where they're used: the
+ * day rows and the pace ladder below.
  */
 export const TodayBand = ({
     schedule,
     raceDate,
     planName,
-    planSource,
     planType,
     units,
-    paces,
     peakVolume,
     onJump,
 }: TodayBandProps) => {
@@ -51,172 +62,109 @@ export const TodayBand = ({
     // The band has no meaning once the race is behind you
     if (ctx.daysToRace < 0) return null;
 
+    const week = ctx.weekIndex >= 0 ? schedule.weeks[ctx.weekIndex] : null;
     const workout = ctx.workout;
-    const isRaceDay = ctx.daysToRace === 0;
     const isRest = !workout || workout.tags?.includes('Rest') || workout.title.toLowerCase().includes('rest');
-    const zone = workout ? getPaceZone(workout.title, workout.tags, workout.zone as PaceZone) : null;
-    const paceRange = zone && paces ? paces[zone] : null;
-    const zc = zoneColor(zone);
-    const distanceLabel = workout?.distance ? formatDistance(workout.distance, units) : null;
+    const todayLabel = !workout ? 'No workout scheduled today' : isRest ? 'Rest' : cleanPlanTitle(workout.title);
 
-    const currentWeekNumber = ctx.currentWeekNumber ?? (ctx.weekIndex >= 0 ? ctx.weekIndex + 1 : 1);
     const totalWeeks = schedule.weeks.length;
     const resolvedRaceDate = raceDate || schedule.raceDate;
     const resolvedPlanName = planName || schedule.originalPlan?.name || 'Training Plan';
     const resolvedPlanType = planType || schedule.originalPlan?.type || 'Race';
 
+    const jumpToDay = (dayIndex: number) => {
+        // Day rows carry ids of the form `week-{w}-day-{d}` (see WeekCard).
+        const el = document.getElementById(`week-${ctx.weekIndex}-day-${dayIndex}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            onJump?.();
+        }
+    };
+
     return (
         <section
-            aria-label="Training Command Center"
+            aria-label="This week"
             className="bg-card border border-rule transition-colors shadow-sm"
         >
-            {/* Masthead: plain meta, not shouting eyebrows */}
+            {/* Quiet meta line: which plan, how long, how big */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2 bg-paper/60 border-b border-rule">
                 <div className="flex items-center gap-2 truncate">
-                    <h2 className="text-xs text-ink truncate">{resolvedPlanName}</h2>
-                    {planSource && <span className="hidden sm:inline text-xs text-pencil truncate">· {planSource}</span>}
+                    <h2 className="text-xs text-ink truncate" title={resolvedPlanName}>
+                        {resolvedPlanName.includes(':') ? resolvedPlanName.slice(resolvedPlanName.indexOf(':') + 1).trim() : resolvedPlanName}
+                    </h2>
                 </div>
                 <div className="text-xs text-pencil shrink-0">
                     {totalWeeks} weeks{peakVolume !== undefined && peakVolume > 0 ? ` · peak ${peakVolume} ${units}` : ''} · {resolvedPlanType}
                 </div>
             </div>
 
-            {/* 3-Bay Cockpit Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-rule">
-                {/* Bay 1: Today's Assignment (5 cols) */}
-                <div
-                    onClick={onJump}
-                    onKeyDown={
-                        onJump
-                            ? (e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      onJump();
-                                  }
-                              }
-                            : undefined
-                    }
-                    className={`md:col-span-5 p-4 sm:p-5 flex flex-col justify-between gap-3 text-left transition-colors ${
-                        onJump ? 'cursor-pointer hover:bg-ink/[0.015]' : ''
-                    }`}
-                    role={onJump ? 'button' : undefined}
-                    tabIndex={onJump ? 0 : undefined}
-                    aria-label={onJump ? "Jump to today's workout in schedule" : "Today's workout"}
-                >
-                    <div>
-                        <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-                            <span className="font-data text-[10px] uppercase font-bold tracking-[0.18em] text-marker flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-marker animate-pulse" />
-                                <span>TODAY · {format(new Date(), 'EEEE, MMM d')}</span>
-                            </span>
-                            {onJump && (
-                                <span className="text-xs text-pencil hover:text-marker hidden sm:inline">
-                                    View in schedule →
-                                </span>
-                            )}
-                        </div>
-
-                        <h3 className="font-display font-bold uppercase text-2xl sm:text-3xl text-ink leading-tight">
-                            {isRest ? 'No workout scheduled today' : cleanPlanTitle(workout!.title)}
-                        </h3>
-
-                        {workout?.description && !isRest && (
-                            <p className="text-xs text-pencil mt-1 max-w-md line-clamp-2">
-                                {formatPlanLabel(workout.description, units)}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
-                        {distanceLabel && !isRest && (
-                            <span className="font-data font-bold text-sm text-ink bg-paper border border-rule px-2.5 py-1">
-                                {distanceLabel}
-                            </span>
-                        )}
-                        {paceRange && zone && !isRest && (
-                            <span
-                                className="font-data text-xs font-semibold px-2.5 py-1 bg-paper border text-ink flex items-center gap-1.5"
-                                style={{ borderLeft: `3px solid ${zc ?? 'var(--pencil)'}` }}
-                            >
-                                <span
-                                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: zc ?? 'var(--pencil)' }}
-                                />
-                                <span>
-                                    {zone === 'Recovery'
-                                        ? `> ${formatPaceRange({ min: paceRange.min, max: paceRange.min }, units)}`
-                                        : formatPaceRange(paceRange, units)}
-                                </span>
-                                <span className="text-pencil text-[10px]">/{units}</span>
-                                <span className="text-pencil text-[10px] uppercase ml-0.5">({zone})</span>
-                            </span>
-                        )}
-                    </div>
+            <div className="p-4 sm:p-5">
+                <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                    <h3 className="font-data text-[10px] uppercase tracking-[0.18em] text-pencil">
+                        This week{ctx.currentWeekNumber !== null ? ` · Week ${String(ctx.currentWeekNumber).padStart(2, '0')} of ${totalWeeks}` : ''}
+                    </h3>
+                    {onJump && (
+                        <button
+                            onClick={onJump}
+                            className="font-data text-xs underline underline-offset-4 text-pencil hover:text-marker"
+                        >
+                            Jump to current week ↓
+                        </button>
+                    )}
                 </div>
 
-                {/* Bay 2: Microcycle Progress (4 cols) */}
-                <div className="md:col-span-4 p-4 sm:p-5 bg-paper/30 flex flex-col justify-between gap-3 text-left">
-                    <div>
-                        <div className="font-data text-[10px] uppercase font-bold tracking-[0.18em] text-pencil mb-1">
-                            CYCLE STATUS
-                        </div>
-                        <div className="flex items-baseline justify-between gap-2">
-                            <span className="font-display font-bold text-2xl sm:text-3xl text-ink uppercase leading-none">
-                                Week {String(currentWeekNumber).padStart(2, '0')}
-                                <span className="text-pencil font-normal text-base"> / {totalWeeks}</span>
-                            </span>
-                            <span className="font-data text-xs font-bold text-marker">
-                                {ctx.elapsedPct}% done
-                            </span>
-                        </div>
-                    </div>
+                {week && (
+                    <ol className="grid grid-cols-7 gap-1 mt-3" aria-label="This week's workouts">
+                        {week.workouts.map((day, dayIndex) => {
+                            const isToday = ctx.dayIndex === dayIndex;
+                            const dayDist = typeof day.distance === 'number'
+                                ? `${day.distance} ${units}`
+                                : day.distance
+                                    ? `${day.distance[0]}–${day.distance[1]} ${units}`
+                                    : 'no distance set';
+                            const title = cleanPlanTitle(day.title);
+                            return (
+                                <li key={dayIndex}>
+                                    <button
+                                        onClick={() => jumpToDay(dayIndex)}
+                                        aria-label={`${format(day.date, 'EEEE, MMM d')} — ${title}, ${dayDist}`}
+                                        aria-current={isToday ? 'date' : undefined}
+                                        title={`${title} · ${dayDist}`}
+                                        className="w-full text-center border border-rule bg-paper py-2 px-1 relative transition-colors hover:border-pencil/60"
+                                    >
+                                        <span className="block font-data text-[10px] uppercase text-ink/60">
+                                            {format(day.date, 'EEE')}
+                                        </span>
+                                        <span className="relative inline-block mt-1">
+                                            {isToday && (
+                                                <span aria-hidden="true" className="pen-circle pointer-events-none absolute -inset-1" />
+                                            )}
+                                            <span className={`font-data font-bold text-sm ${isToday ? 'text-marker' : 'text-ink'}`}>
+                                                {ribbonDistance(day.distance, units) ?? '–'}
+                                            </span>
+                                        </span>
+                                        <span className="block font-data text-[10px] text-ink/60 truncate mt-0.5 px-0.5">
+                                            {ribbonLabel(title)}
+                                        </span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                )}
 
-                    {/* Segmented Progress Bar */}
-                    <div>
-                        <div className="w-full bg-paper border border-rule h-2 relative overflow-hidden flex">
-                            <div
-                                className="bg-marker h-full transition-all duration-300"
-                                style={{ width: `${Math.max(2, Math.min(100, ctx.elapsedPct))}%` }}
-                            />
-                        </div>
-                        <div className="flex justify-between text-[10px] text-pencil mt-1">
-                            <span>Base Build</span>
-                            {peakVolume !== undefined && peakVolume > 0 ? (
-                                <span>Peak ({peakVolume} {units})</span>
-                            ) : (
-                                <span>Peak</span>
-                            )}
-                            <span>Taper</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bay 3: Race Target & Horizon (3 cols) */}
-                <div className="md:col-span-3 p-4 sm:p-5 flex flex-col justify-between text-left sm:text-center md:text-left">
-                    <div>
-                        <div className="font-data text-[10px] uppercase font-bold tracking-[0.18em] text-pencil mb-1">
-                            GOAL RACE
-                        </div>
-                        <div className="font-display font-bold uppercase text-3xl sm:text-4xl text-ink leading-none">
-                            {isRaceDay ? (
-                                <span className="text-marker">RACE DAY</span>
-                            ) : (
-                                <span>T−{ctx.daysToRace}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-rule/60 font-data text-xs">
-                        <div className="font-bold text-ink truncate flex items-center gap-1.5 sm:justify-center md:justify-start">
-                            <span>{resolvedRaceDate && format(resolvedRaceDate, 'MMM d')}</span>
-                            <span className="text-pencil/50">·</span>
-                            <span className="text-pencil font-normal">{resolvedRaceDate && format(resolvedRaceDate, 'yyyy')}</span>
-                        </div>
-                        <div className="text-pencil text-[10px] uppercase tracking-wider truncate">
-                            {resolvedRaceDate && format(resolvedRaceDate, 'EEEE')}
-                        </div>
-                    </div>
-                </div>
+                <p className="text-xs text-pencil mt-3">
+                    Today: <strong className="text-ink">{todayLabel}</strong>
+                    {' · '}
+                    {ctx.daysToRace === 0 ? (
+                        <span className="text-marker font-bold">Race day — good luck</span>
+                    ) : (
+                        <span>{ctx.daysToRace} days to race{resolvedRaceDate ? ` (${format(resolvedRaceDate, 'EEE, MMM d')})` : ''}</span>
+                    )}
+                    {' · '}
+                    <span>{ctx.elapsedPct}% of plan done</span>
+                </p>
             </div>
         </section>
     );

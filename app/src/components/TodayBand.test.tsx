@@ -41,17 +41,23 @@ afterEach(() => {
 });
 
 describe('TodayBand', () => {
-    it('shows today workout, progress, and countdown mid-plan', () => {
+    it('shows the week ribbon, today workout, and race horizon mid-plan', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(2026, 2, 4, 8, 0));
 
         render(<TodayBand schedule={buildSchedule()} units="km" />);
 
-        expect(screen.getByText(/LT Run/)).toBeInTheDocument();
-        // 8–10 mi in km, one decimal
-        expect(screen.getByText('12.9–16.1 km')).toBeInTheDocument();
-        expect(screen.getByText('T−11')).toBeInTheDocument();
-        expect(screen.getByText('15% done')).toBeInTheDocument();
+        // Ribbon uses short labels ('LT'), footer keeps the full workout title
+        expect(screen.getAllByText('LT')).toHaveLength(7);
+        expect(screen.getByText('LT Run')).toBeInTheDocument();
+        // Ribbon collapses the 8–10 mi range to its midpoint, converted to km
+        expect(screen.getAllByText('14.5')).toHaveLength(7);
+        expect(screen.getByText(/11 days to race/)).toBeInTheDocument();
+        expect(screen.getByText(/15% of plan done/)).toBeInTheDocument();
+        // Today is marked with aria-current inside the 7-day ribbon
+        const ribbon = screen.getByRole('list', { name: "This week's workouts" });
+        expect(ribbon).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Wednesday, Mar 4/ })).toHaveAttribute('aria-current', 'date');
     });
 
     it('renders nothing once the race has passed', () => {
@@ -70,11 +76,13 @@ describe('TodayBand', () => {
         expect(screen.getByText('No workout scheduled today')).toBeInTheDocument();
     });
 
-    it('exposes a jump affordance when onJump is passed', () => {
+    it('exposes jump affordances when onJump is passed', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date(2026, 2, 4, 8, 0));
 
         render(<TodayBand schedule={buildSchedule()} units="mi" onJump={() => {}} />);
-        expect(screen.getByRole('button')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /jump to current week/i })).toBeInTheDocument();
+        // One button per ribbon day, jumping straight to that workout row
+        expect(screen.getByRole('list', { name: "This week's workouts" })).toBeInTheDocument();
     });
 });

@@ -69,8 +69,9 @@ describe('DayCard Component', () => {
             />
         );
 
-        // 300s is 5:00, 330s is 5:30 (handles en-dash separator)
-        expect(screen.getByText(/5:00.*5:30/)).toBeInTheDocument();
+        // 300s is 5:00, 330s is 5:30 (handles en-dash separator).
+        // Rendered twice: desktop (lg+) and mobile (<lg) variants share the DOM.
+        expect(screen.getAllByText(/5:00.*5:30/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders the status trigger button when weekIndex and dayIndex are passed', () => {

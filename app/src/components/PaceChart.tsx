@@ -5,9 +5,9 @@ import {
     type TrainingPaces,
     type EquivalentTimes,
 } from '../lib/paceCalculator';
+import { zoneColor } from '../lib/zoneColors';
 import type { RaceInputState } from '../store/usePlanStore';
 import clsx from 'clsx';
-import { zoneColor } from '../lib/zoneColors';
 
 export interface PaceChartProps {
     paces?: TrainingPaces;
@@ -101,16 +101,22 @@ export const PaceChart = ({
         return `${formatTime(pace)} /${units}`;
     };
 
-    // Calculate full track interval table for VO2 Max
+    // Calculate full track interval table for VO2 Max.
+    // When the zone is a single pace (min == max), show one value, not "1:44–1:44".
     const vo2 = paces['VO2 Max'];
+    const formatSplit = (secs: number, scale: number) => formatTime(secs * scale);
     const trackIntervals = vo2
         ? [
-              { distance: '400m', time: `${formatTime(vo2.min * 0.4)}–${formatTime(vo2.max * 0.4)}` },
-              { distance: '600m', time: `${formatTime(vo2.min * 0.6)}–${formatTime(vo2.max * 0.6)}` },
-              { distance: '800m', time: `${formatTime(vo2.min * 0.8)}–${formatTime(vo2.max * 0.8)}` },
-              { distance: '1000m', time: `${formatTime(vo2.min * 1.0)}–${formatTime(vo2.max * 1.0)}` },
-              { distance: '1200m', time: `${formatTime(vo2.min * 1.2)}–${formatTime(vo2.max * 1.2)}` },
-          ]
+              { distance: '400m', scale: 0.4 },
+              { distance: '600m', scale: 0.6 },
+              { distance: '800m', scale: 0.8 },
+              { distance: '1000m', scale: 1.0 },
+              { distance: '1200m', scale: 1.2 },
+          ].map(({ distance, scale }) => {
+              const lo = formatSplit(vo2.min, scale);
+              const hi = formatSplit(vo2.max, scale);
+              return { distance, time: lo === hi ? lo : `${lo}–${hi}` };
+          })
         : [];
 
     // Filter zones in correct speed order
@@ -118,6 +124,19 @@ export const PaceChart = ({
         if (isFRRPlan && zone === 'Marathon') return false;
         return Boolean(paces[zone]);
     });
+
+    // Ladder scaling: the fastest zone fills the bar, slower zones shrink
+    // proportionally. Speed is encoded by length using each zone's midpoint,
+    // so open-ended Recovery (> GA max) still lands shorter than GA.
+    // Bars stay ink throughout — the 8px dot carries the zone color shared
+    // with day rows, so intensity red never fills a bar and collides with marker red.
+    const midPace = (zone: typeof orderedZones[number]) => {
+        const r = paces[zone]!;
+        return (r.min + r.max) / 2;
+    };
+    const fastestMid = Math.min(...orderedZones.map(midPace));
+    const ladderWidth = (zone: typeof orderedZones[number]) =>
+        `${Math.max(8, Math.round((fastestMid / midPace(zone)) * 100))}%`;
 
     return (
         <section
@@ -133,7 +152,7 @@ export const PaceChart = ({
             >
                 <div>
                     <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide">Training paces</h3>
-                    <p className="text-xs text-pencil font-data mt-0.5">Based on your {raceInput?.time} {raceInput?.distance} race</p>
+                    <p className="text-xs text-pencil font-data mt-0.5">Based on your {(raceInput?.time ?? '').replace(/^0:/, '')} {raceInput?.distance} race</p>
                 </div>
                 <div className={clsx("text-pencil transition-transform duration-200", isOpen && "rotate-180")}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -144,35 +163,6 @@ export const PaceChart = ({
 
             {isOpen && (
                 <div className="p-4 sm:p-6 animate-in duration-200 space-y-6">
-
-                    {/* ── Visual Pace Continuum Spectrum ── */}
-                    <div className="bg-paper/40 border border-rule p-4">
-                        <div className="flex justify-between items-center mb-2 font-data text-[9px] uppercase tracking-widest text-pencil">
-                            <span>← Highest Intensity (Aerobic Max)</span>
-                            <span>Active Recovery →</span>
-                        </div>
-                        <div className={`grid grid-cols-2 sm:grid-cols-${orderedZones.length} gap-1.5`}>
-                            {orderedZones.map((zone) => {
-                                const range = paces[zone];
-                                if (!range) return null;
-                                const zc = zoneColor(zone);
-                                return (
-                                    <div
-                                        key={zone}
-                                        className="p-2 border text-center flex flex-col justify-between gap-1 transition-colors"
-                                        style={{ backgroundColor: `${zc}15`, borderColor: zc ?? 'var(--rule)' }}
-                                    >
-                                        <span className="font-data text-[9px] uppercase font-bold truncate" style={{ color: zc ?? 'var(--ink)' }}>
-                                            {zone} Pace
-                                        </span>
-                                        <span className="font-data font-bold text-xs text-ink leading-tight">
-                                            {units === 'km' ? formatTime(range.min) : formatTime(range.min * KM_TO_MILE)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
 
                     {/* ── Race Equivalents ── */}
                     {racePaces.length > 0 && (
@@ -204,7 +194,7 @@ export const PaceChart = ({
                         </div>
                     )}
 
-                    {/* ── Training Zones List (Ordered Fastest to Slowest) ── */}
+                    {/* ── Training Zones Ladder (fastest first, longer bar = faster) ── */}
                     <div>
                         <div className="font-data text-[10px] text-pencil font-bold uppercase tracking-[0.16em] mb-2.5">
                             Training zones
@@ -214,21 +204,28 @@ export const PaceChart = ({
                                 const range = paces[zone];
                                 if (!range) return null;
                                 const meta = ZONE_DETAILS[zone];
-                                const zc = zoneColor(zone);
 
                                 return (
-                                    <div key={zone} className="p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-paper/40 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <span className="w-3 h-3 rounded-none shrink-0" style={{ backgroundColor: zc ?? 'var(--pencil)' }} />
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-data font-bold text-sm text-ink">{zone}</span>
-                                                    {meta?.hr && <span className="font-data text-[10px] text-pencil">({meta.hr})</span>}
-                                                </div>
-                                                {meta?.purpose && <p className="text-xs text-pencil max-w-lg mt-0.5">{meta.purpose}</p>}
+                                    <div key={zone} className="p-3 sm:px-4 sm:grid sm:grid-cols-[170px_1fr_170px] sm:items-center sm:gap-4">
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="w-2 h-2 rounded-full flex-none"
+                                                    style={{ backgroundColor: zoneColor(zone) ?? 'var(--ink)' }}
+                                                />
+                                                <span className="font-data font-bold text-sm text-ink">{zone}</span>
+                                                {meta?.hr && <span className="font-data text-[10px] text-pencil">({meta.hr})</span>}
                                             </div>
+                                            {meta?.purpose && <p className="text-xs text-pencil mt-0.5 sm:hidden">{meta.purpose}</p>}
                                         </div>
-                                        <div className="font-data font-bold text-base text-ink shrink-0 sm:text-right">
+                                        <div className="mt-2 sm:mt-0">
+                                            <div className="h-4 bg-paper border border-rule" aria-hidden="true">
+                                                <div className="h-full bg-ink" style={{ width: ladderWidth(zone) }} />
+                                            </div>
+                                            {meta?.purpose && <p className="hidden sm:block text-xs text-pencil mt-1 max-w-lg">{meta.purpose}</p>}
+                                        </div>
+                                        <div className="font-data font-bold text-base text-ink shrink-0 sm:text-right mt-1.5 sm:mt-0">
                                             {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}
                                         </div>
                                     </div>

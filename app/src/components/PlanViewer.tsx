@@ -30,9 +30,6 @@ const parseWorkoutId = (id: string) => {
     return { week: parseInt(parts[1], 10), day: parseInt(parts[3], 10) };
 };
 
-/** Plan descriptions arrive as '"Title" from "Book" by Author' — drop the quote marks. */
-const cleanDescription = (text: string | undefined): string => text?.replace(/"/g, '') ?? '';
-
 export const PlanViewer = () => {
 
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
@@ -171,9 +168,6 @@ export const PlanViewer = () => {
     if (!validSchedule) return null;
 
     const planName = plan?.name || planInfo?.name || validSchedule.originalPlan?.name || 'Training plan';
-    const planSource = cleanDescription(
-        plan?.description || planInfo?.description || validSchedule.originalPlan?.description
-    );
     const weekVolumes = validSchedule.weeks.map(w => calculateWeeklyVolume(w, units).average);
     const peakVolume = Math.round(Math.max(...weekVolumes, 0));
 
@@ -196,10 +190,8 @@ export const PlanViewer = () => {
                     schedule={validSchedule}
                     raceDate={raceDate}
                     planName={planName}
-                    planSource={planSource}
                     planType={plan?.type || planInfo?.type || 'Marathon'}
                     units={units}
-                    paces={paces || undefined}
                     peakVolume={peakVolume}
                     onJump={jumpToToday}
                 />
@@ -253,7 +245,7 @@ export const PlanViewer = () => {
             {currentWeekIndex !== -1 && (
                 <button
                     onClick={jumpToToday}
-                    className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] rounded-none shadow-lg transition-colors"
+                    className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-xs sm:text-sm uppercase tracking-[0.12em] rounded-none shadow-lg transition-colors"
                     aria-label="Jump to current week"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">

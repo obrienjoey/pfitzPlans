@@ -11,6 +11,31 @@ import { ThemeToggle } from './ThemeToggle';
  * Ultra-clean, distraction-free top bar featuring an interactive telemetry chip
  * that opens a focused training calibration card on desktop and a bottom drawer on mobile.
  */
+
+/** Compact runner shorthand so the chip never truncates mid-word.
+ *  "Pfitzinger/Douglas: Up to 55 miles per week, 18-week schedule" → "Mar 18wk · ≤55 mi"
+ *  "Faster Road Racing: 5K Schedule 1" → "5K S1" */
+const shortPlanChip = (plan?: { name: string; type: string; weeks: number }): string => {
+    if (!plan) return 'Select Plan';
+    const sched = plan.name.match(/schedule\s*(\d+)/i)?.[1];
+    if (/faster road racing/i.test(plan.name) && sched) {
+        return `${plan.type} S${sched}`;
+    }
+    const upTo = plan.name.match(/up to\s*(\d+)\s*mi/i)?.[1];
+    if (upTo) {
+        const prefix = plan.type === 'Marathon' ? 'Mar' : plan.type === 'Half Marathon' ? 'HM' : plan.type;
+        return `${prefix} ${plan.weeks}wk · ≤${upTo} mi`;
+    }
+    const range = plan.name.match(/(\d+)\s*[–-]\s*(\d+)\s*mi/i);
+    if (range) {
+        const prefix = plan.type === 'Marathon' ? 'Mar' : plan.type === 'Half Marathon' ? 'HM' : plan.type;
+        return `${prefix} ${plan.weeks}wk · ${range[1]}–${range[2]} mi`;
+    }
+    return plan.weeks ? `${plan.type} ${plan.weeks}wk` : plan.name;
+};
+
+/** "0:45:00" → "45:00" so the chip reads like a result, not a timestamp. */
+const shortTime = (t?: string): string => (t ?? '').replace(/^0:/, '');
 const CalibrationForm = () => {
     const { selectedPlanId, setPlanId, raceDate, setRaceDate, availablePlans } = usePlanStore();
     const units = usePlanStore(state => state.units);
@@ -269,7 +294,7 @@ export const Header = () => {
                             className="w-8 h-8 object-cover"
                         />
                         <div>
-                            <h1 className="font-display font-bold uppercase text-2xl tracking-wide text-ink leading-none">
+                            <h1 className="font-display font-bold uppercase text-xl sm:text-2xl tracking-wide text-ink leading-none">
                                 RacePlans
                             </h1>
                             <p className="text-[10px] text-pencil font-data uppercase tracking-wider hidden sm:block">
@@ -284,7 +309,8 @@ export const Header = () => {
                             ref={triggerRef}
                             onClick={() => setIsOpen(!isOpen)}
                             aria-expanded={isOpen}
-                            aria-label="Open plan and calibration settings"
+                            aria-label={`Open plan settings. Current: ${planInfo ? planInfo.name : 'no plan'}, ${raceInput?.distance} ${raceInput?.time}, ${formattedRaceDate}`}
+                            title={planInfo ? planInfo.name : 'Select plan'}
                             className={`group relative flex items-center gap-2 sm:gap-3 px-3.5 py-2 border transition-all duration-200 text-left bg-card ${
                                 isOpen 
                                     ? 'border-marker ring-2 ring-marker/30 shadow-md' 
@@ -292,16 +318,16 @@ export const Header = () => {
                             }`}
                         >
                             <div className="w-2 h-2 rounded-full bg-marker shrink-0" />
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                <span className="font-data font-bold text-xs text-ink truncate max-w-[130px] sm:max-w-[200px]">
-                                    {planInfo ? planInfo.name : 'Select Plan'}
+                            <div className="flex flex-row items-center gap-2">
+                                <span className="font-data font-bold text-xs text-ink whitespace-nowrap">
+                                    {shortPlanChip(planInfo)}
                                 </span>
-                                <span className="text-pencil/50 hidden sm:inline">|</span>
-                                <span className="font-data text-[11px] text-pencil">
-                                    {raceInput?.distance} @ {raceInput?.time}
+                                <span className="text-pencil/50" aria-hidden="true">|</span>
+                                <span className="font-data text-[11px] text-pencil whitespace-nowrap">
+                                    {raceInput?.distance} {shortTime(raceInput?.time)}
                                 </span>
-                                <span className="text-pencil/50 hidden md:inline">|</span>
-                                <span className="font-data text-[11px] text-marker font-semibold hidden md:inline">
+                                <span className="text-pencil/50 hidden md:inline" aria-hidden="true">|</span>
+                                <span className="font-data text-[11px] text-marker font-semibold hidden md:inline whitespace-nowrap">
                                     {formattedRaceDate}
                                 </span>
                             </div>

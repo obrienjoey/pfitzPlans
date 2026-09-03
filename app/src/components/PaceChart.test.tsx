@@ -51,7 +51,7 @@ describe('PaceChart Component', () => {
         );
 
         expect(screen.getByText('Training paces')).toBeInTheDocument();
-        expect(screen.getByText(/Based on your 0:41:20 10K race/)).toBeInTheDocument();
+        expect(screen.getByText(/Based on your 41:20 10K race/)).toBeInTheDocument();
         expect(screen.getByText('Race paces')).toBeInTheDocument();
         expect(screen.getByText('Training zones')).toBeInTheDocument();
     });

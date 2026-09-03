@@ -131,7 +131,7 @@ const DayCardContent = ({
         setExpanded(v => !v);
     };
 
-    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes, ...listeners } : {};
+    const wrapperProps = setNodeRef ? { ref: setNodeRef, style, ...attributes } : {};
 
     return (
         <div
@@ -190,8 +190,8 @@ const DayCardContent = ({
                             style={{
                                 color: isRest ? 'var(--pencil)' : 'var(--ink)',
                                 fontStyle: isRest ? 'italic' : undefined,
-                                borderLeft: !isRest && zc ? `2px solid ${zc}` : undefined,
-                                paddingLeft: !isRest && zc ? 6 : 0,
+                                borderLeft: !isRest ? `2px solid var(--ink)` : undefined,
+                                paddingLeft: !isRest ? 6 : 0,
                                 fontWeight: isRaceDayCard ? 700 : undefined,
                             }}
                         >
@@ -211,15 +211,17 @@ const DayCardContent = ({
                             {formatPlanLabel(workout.description, units)}
                         </p>
                     )}
+                    {paceString && !isRest && zone && (
+                        <p className="lg:hidden font-data text-[11px] text-ink truncate">
+                            {paceString} <span className="text-pencil">/{units}</span>
+                        </p>
+                    )}
                 </div>
 
                 {/* Distance & Action triggers */}
                 <div className="flex-none flex items-center gap-3">
                     {paceString && !isRest && zone && (
-                        <span
-                            className="hidden lg:inline font-data text-xs whitespace-nowrap"
-                            style={{ color: zc ?? 'var(--pencil)' }}
-                        >
+                        <span className="hidden lg:inline font-data text-xs whitespace-nowrap text-ink">
                             {paceString}
                         </span>
                     )}
@@ -243,11 +245,12 @@ const DayCardContent = ({
                                     status === 'none' && "border border-rule hover:border-pencil/60"
                                 )}
                                 title="Mark workout status"
+                                aria-label="Mark workout status"
                             >
                                 {status === 'completed' && <span className="text-[10px] font-bold">✓</span>}
                                 {status === 'skipped' && <span className="text-[10px] font-bold">✗</span>}
                                 {status === 'modified' && <span className="text-[10px] font-bold">✎</span>}
-                                {status === 'none' && <span className="opacity-0 group-hover:opacity-100 text-[10px] text-pencil">✓</span>}
+                                {status === 'none' && <span className="text-[10px] text-pencil">✓</span>}
                             </button>
                             {menuOpen && (
                                 <div
@@ -265,8 +268,12 @@ const DayCardContent = ({
                         </div>
                     )}
                     <span
+                        {...listeners}
                         className="flex-none w-6 h-6 rounded flex items-center justify-center text-pencil cursor-grab active:cursor-grabbing hover:text-ink active:scale-125 active:bg-marker/10 active:text-marker transition-all touch-none"
                         title="Drag to reschedule"
+                        aria-label="Drag to reschedule workout"
+                        role="button"
+                        tabIndex={0}
                     >
                         <GripIcon />
                     </span>

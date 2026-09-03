@@ -145,24 +145,28 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                 <div>
                     <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide flex items-center gap-2">
                         <span>Weekly volume</span>
-                        <span className="text-pencil text-sm font-normal normal-case hidden sm:inline">· intensity stack</span>
+                        <span className="text-pencil text-sm font-normal hidden sm:inline">· Intensity stack</span>
                     </h3>
-                    <p className="text-xs text-pencil mt-0.5">Click any bar to jump directly to that week</p>
+                    <p className="text-xs text-pencil mt-0.5">Select a bar to open that week</p>
                 </div>
 
-                {/* Legend */}
+                {/* Legend — ink / pencil / marker only, matching the logbook system */}
                 <div className="flex items-center gap-3 flex-wrap font-data text-[10px] uppercase tracking-wider text-pencil">
                     <span className="flex items-center gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-none bg-marker" />
-                        <span className="text-ink">Quality / LT</span>
+                        <span className="text-ink">Quality</span>
                     </span>
                     <span className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-none bg-[#3A6073]" />
-                        <span className="text-ink">Long Run</span>
+                        <span className="w-2.5 h-2.5 rounded-none bg-ink" />
+                        <span className="text-ink">Long run</span>
                     </span>
                     <span className="flex items-center gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-none bg-pencil/40" />
-                        <span>Aerobic / Easy</span>
+                        <span>Aerobic</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-none border-2 border-marker" />
+                        <span>Current</span>
                     </span>
                 </div>
             </div>
@@ -222,7 +226,6 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
 
                             const isPeak = index === peakWeekIndex;
                             const isRaceWeek = data.weeksToGoal === 1;
-                            const isTaperStart = index === peakWeekIndex + 1 && !isRaceWeek;
 
                             return (
                                 <g
@@ -246,25 +249,25 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         fill="transparent"
                                     />
 
-                                    {/* Stack 1: Easy / Aerobic Base (Bottom) */}
+                                    {/* Stack 1: Aerobic base (bottom) */}
                                     <rect
                                         x={x}
                                         y={baseY - easyH}
                                         width={barWidth}
                                         height={easyH}
-                                        className={data.isCurrentWeek ? "fill-marker/40" : "fill-pencil/30 group-hover:fill-pencil/50 transition-colors"}
+                                        className="fill-pencil/30 group-hover:fill-pencil/50 transition-colors"
                                     />
 
-                                    {/* Stack 2: Long Run (Middle) */}
+                                    {/* Stack 2: Long run (middle) */}
                                     <rect
                                         x={x}
                                         y={baseY - easyH - longH}
                                         width={barWidth}
                                         height={longH}
-                                        className={data.isCurrentWeek ? "fill-[#3A6073]" : "fill-[#3A6073]/80 group-hover:fill-[#3A6073] transition-colors"}
+                                        className="fill-ink/80 group-hover:fill-ink transition-colors"
                                     />
 
-                                    {/* Stack 3: Quality / LT (Top) */}
+                                    {/* Stack 3: Quality (top) */}
                                     {qualH > 0 && (
                                         <rect
                                             x={x}
@@ -275,7 +278,21 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         />
                                     )}
 
-                                    {/* Milestone Header Badges */}
+                                    {/* Current-week outline — fill stays truthful, ring marks "you are here" */}
+                                    {data.isCurrentWeek && (
+                                        <rect
+                                            x={x - 2}
+                                            y={baseY - totalH - 2}
+                                            width={barWidth + 4}
+                                            height={totalH + 2}
+                                            fill="none"
+                                            stroke="var(--marker)"
+                                            strokeWidth="1.5"
+                                            pointerEvents="none"
+                                        />
+                                    )}
+
+                                    {/* Milestone badges — peak and race only */}
                                     {isPeak && !isHovered && (
                                         <g>
                                             <text
@@ -318,39 +335,6 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                         </g>
                                     )}
 
-                                    {isTaperStart && !isHovered && (
-                                        <g>
-                                            <text
-                                                x={x + barWidth / 2}
-                                                y={baseY - totalH - 8}
-                                                textAnchor="middle"
-                                                className="fill-pencil font-data font-bold text-[9px] tracking-wider"
-                                            >
-                                                TAPER
-                                            </text>
-                                            <line
-                                                x1={x + barWidth / 2}
-                                                y1={baseY - totalH - 5}
-                                                x2={x + barWidth / 2}
-                                                y2={baseY - totalH}
-                                                stroke="var(--pencil)"
-                                                strokeWidth="1"
-                                                strokeDasharray="2 2"
-                                            />
-                                        </g>
-                                    )}
-
-                                    {data.hasTuneUp && !isPeak && !isRaceWeek && !isTaperStart && !isHovered && (
-                                        <text
-                                            x={x + barWidth / 2}
-                                            y={baseY - totalH - 6}
-                                            textAnchor="middle"
-                                            className="fill-pencil font-data text-[8px] tracking-wider"
-                                        >
-                                            ⚡
-                                        </text>
-                                    )}
-
                                     {/* Rich Split Tooltip */}
                                     {isHovered && (
                                         <g>
@@ -377,7 +361,7 @@ export const MileageChart = ({ weeks, units }: MileageChartProps) => {
                                                 textAnchor="middle"
                                                 className="fill-pencil font-data text-[8px]"
                                             >
-                                                LR {Math.round(data.longRun)}m · Q {Math.round(data.quality)}m · Jump ↓
+                                                LR {Math.round(data.longRun)}{units} · Q {Math.round(data.quality)}{units} · Open ↓
                                             </text>
                                         </g>
                                     )}

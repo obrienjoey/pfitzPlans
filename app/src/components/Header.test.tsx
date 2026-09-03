@@ -33,7 +33,7 @@ describe('Header and TimeInput consistency', () => {
         render(<Header />);
         
         // Open drawer
-        const trigger = screen.getByRole('button', { name: /open plan and calibration settings/i });
+        const trigger = screen.getByRole('button', { name: /open plan settings/i });
         fireEvent.click(trigger);
 
         // Mobile drawer dialog should be open
