@@ -6,8 +6,8 @@ test.describe('RacePlans E2E Core Journeys', () => {
     // Load home page
     await page.goto('/');
 
-    // Check onboarding screen shows
-    await expect(page.locator('h2:has-text("Pick a plan, set your race day")')).toBeVisible();
+    // Check onboarding screen shows (thesis heading in the landing hero)
+    await expect(page.getByTestId('landing-thesis')).toBeVisible();
 
     // Select "Faster Road Racing: 5K Schedule 1" plan (short title shown, full name in aria-label)
     const planButton = page.getByTestId('plan-card-frr_5k_01');

@@ -82,7 +82,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
             <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 mt-4 items-start">
                 {/* Thesis */}
                 <div className="animate-slide-up" style={{ animationDelay: '60ms' }}>
-                    <h2 className="font-display font-bold uppercase text-5xl sm:text-6xl leading-[0.92] tracking-wide text-ink text-balance">
+                    <h2 data-testid="landing-thesis" className="font-display font-bold uppercase text-5xl sm:text-6xl leading-[0.92] tracking-wide text-ink text-balance">
                         Train from what{' '}
                         <span className="pen-circle inline-block px-2 -mx-1 whitespace-nowrap">
                             you&rsquo;ve run
