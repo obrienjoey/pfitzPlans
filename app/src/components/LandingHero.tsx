@@ -71,7 +71,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
         : [];
 
     return (
-        <div className="w-full max-w-4xl mx-auto mt-2 sm:mt-6">
+        <div className="w-full max-w-4xl mx-auto mt-2 sm:mt-6 min-w-0 max-w-full">
             {/* Provenance eyebrow — encodes the true source, not decoration */}
             <p
                 className="font-data text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-pencil animate-slide-up"
@@ -79,10 +79,10 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                 Advanced Marathoning · Faster Road Racing · Pfitzinger / Douglas
             </p>
 
-            <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 mt-4 items-start">
+            <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 mt-4 items-start min-w-0">
                 {/* Thesis */}
-                <div className="animate-slide-up" style={{ animationDelay: '60ms' }}>
-                    <h2 data-testid="landing-thesis" className="font-display font-bold uppercase text-5xl sm:text-6xl leading-[0.92] tracking-wide text-ink text-balance">
+                <div className="animate-slide-up min-w-0 max-w-full" style={{ animationDelay: '60ms' }}>
+                    <h2 data-testid="landing-thesis" className="font-display font-bold uppercase text-[2.6rem] min-[400px]:text-5xl sm:text-6xl leading-[0.92] tracking-wide text-ink text-balance max-w-full">
                         Train from what{' '}
                         <span className="pen-circle inline-block px-2 -mx-1 whitespace-nowrap">
                             you&rsquo;ve run
@@ -94,9 +94,9 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                     </p>
 
                     {/* Calibration — parallel inputs, so no 01/02/03 sequence markers */}
-                    <div className="mt-6 border border-rule bg-card p-4 sm:p-5 shadow-sm">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
+                    <div className="mt-6 border border-rule bg-card p-4 sm:p-5 shadow-sm min-w-0 max-w-full">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                            <div className="min-w-0 max-w-full">
                                 <label
                                     htmlFor="landing-bench-dist"
                                     className="block font-data text-[10px] uppercase font-bold tracking-[0.14em] text-pencil mb-1.5"
@@ -111,7 +111,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                             e.target.value as '5K' | '10K' | '15K' | 'Half Marathon' | 'Marathon',
                                         )
                                     }
-                                    className="w-full bg-paper border border-rule hover:border-pencil/60 px-3 py-2 text-sm font-data text-ink focus:ring-2 focus:ring-marker/60 outline-none transition-colors rounded-none"
+                                    className="w-full max-w-full truncate bg-paper border border-rule hover:border-pencil/60 px-3 py-2 text-sm font-data text-ink focus:ring-2 focus:ring-marker/60 outline-none transition-colors rounded-none"
                                 >
                                     <option>5K</option>
                                     <option>10K</option>
@@ -120,7 +120,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                     <option>Marathon</option>
                                 </select>
                             </div>
-                            <div>
+                            <div className="min-w-0 max-w-full">
                                 <span
                                     id="landing-bench-time-label"
                                     className="block font-data text-[10px] uppercase font-bold tracking-[0.14em] text-pencil mb-1.5"
@@ -131,13 +131,13 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                     value={raceInput?.time || ''}
                                     onChange={setRaceInputTime}
                                     raceDistance={raceInput?.distance}
-                                    className="w-full text-sm"
+                                    className="w-full max-w-full min-w-0 text-sm"
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 mt-3 items-end">
-                            <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 mt-3 items-end min-w-0">
+                            <div className="min-w-0 max-w-full">
                                 <span
                                     id="landing-date-label"
                                     className="block font-data text-[10px] uppercase font-bold tracking-[0.14em] text-pencil mb-1.5"
@@ -148,12 +148,12 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                     value={raceDate || defaultDate}
                                     onChange={(d) => usePlanStore.getState().setRaceDate(d)}
                                     placeholder="YYYY-MM-DD"
-                                    className="w-full text-sm"
+                                    className="w-full max-w-full min-w-0 text-sm"
                                 />
                             </div>
                             <button
                                 onClick={buildSchedule}
-                                className="w-full sm:w-auto py-2.5 px-6 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] transition-colors rounded-none whitespace-nowrap"
+                                className="w-full max-w-full sm:w-auto py-2.5 px-6 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] transition-colors rounded-none whitespace-normal min-[400px]:whitespace-nowrap"
                             >
                                 Build my schedule
                             </button>
@@ -167,19 +167,19 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
 
                 {/* Signature: live pace band */}
                 <figure
-                    className="lg:pt-2 animate-slide-up"
+                    className="lg:pt-2 animate-slide-up min-w-0 max-w-full"
                     style={{ animationDelay: '140ms' }}
                     aria-label="Live pace band preview"
                 >
-                    <div className="lg:-rotate-1 origin-top-left">
-                        <div className="bg-card border border-rule shadow-md overflow-hidden">
+                    <div className="lg:-rotate-1 origin-top-left min-w-0 max-w-full">
+                        <div className="bg-card border border-rule shadow-md overflow-hidden max-w-full">
                             <div className="h-1.5 bg-marker" aria-hidden="true" />
-                            <div className="px-4 sm:px-5 pt-3 pb-4">
-                                <div className="flex items-baseline justify-between gap-3">
-                                    <figcaption className="font-data text-[10px] uppercase font-bold tracking-[0.16em] text-pencil">
+                            <div className="px-4 sm:px-5 pt-3 pb-4 min-w-0">
+                                <div className="flex items-baseline justify-between gap-3 min-w-0">
+                                    <figcaption className="font-data text-[10px] uppercase font-bold tracking-[0.16em] text-pencil truncate min-w-0">
                                         Pace band · cut here ✂
                                     </figcaption>
-                                    <span className="font-data text-[10px] uppercase tracking-[0.16em] text-marker font-bold whitespace-nowrap">
+                                    <span className="font-data text-[10px] uppercase tracking-[0.16em] text-marker font-bold whitespace-nowrap shrink-0">
                                         {planInfo ? `${planInfo.type} · ${planInfo.weeks} wk` : 'Select plan ↓'}
                                     </span>
                                 </div>
@@ -207,14 +207,14 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                                     )}
                                                 </span>
                                             </p>
-                                            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                                            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 min-w-0">
                                                 {splits.map(s => (
                                                     <div
                                                         key={s.label}
                                                         className={
                                                             s.isBase
-                                                                ? 'border border-marker bg-marker/5 px-2.5 py-2'
-                                                                : 'border border-rule bg-paper/60 px-2.5 py-2'
+                                                                ? 'border border-marker bg-marker/5 px-2.5 py-2 min-w-0'
+                                                                : 'border border-rule bg-paper/60 px-2.5 py-2 min-w-0'
                                                         }
                                                     >
                                                         <dt
@@ -227,7 +227,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                                             {s.label}
                                                             {s.isBase ? ' ★' : ''}
                                                         </dt>
-                                                        <dd className="font-data font-bold text-base sm:text-lg text-ink tabular-nums leading-tight">
+                                                        <dd className="font-data font-bold text-base sm:text-lg text-ink tabular-nums leading-tight break-words">
                                                             {formatTimeHMS(s.time)}
                                                         </dd>
                                                     </div>

@@ -152,9 +152,9 @@ function App() {
       <div className="min-h-screen text-ink font-sans selection:bg-marker selection:text-paper transition-colors duration-300">
         <Header />
 
-        <main className="container mx-auto px-4 py-8 max-w-5xl">
+        <main className="container mx-auto px-4 py-8 max-w-5xl w-full min-w-0 overflow-x-clip">
           {!raceDate ? (
-            <div className="w-full max-w-4xl mx-auto mt-6 sm:mt-10">
+            <div className="w-full max-w-4xl mx-auto mt-6 sm:mt-10 min-w-0">
               <LandingHero defaultDate={defaultDate} />
 
               <div className="border-t-2 border-ink pt-4 mt-10 mb-6">

@@ -111,8 +111,8 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
     const isCompact = className?.includes('text-sm');
 
     return (
-        <div className={clsx("relative", className)} ref={containerRef}>
-            <div className="relative group">
+        <div className={clsx("relative min-w-0 max-w-full", className)} ref={containerRef}>
+            <div className="relative group min-w-0 max-w-full">
                 <input
                     type="text"
                     readOnly
@@ -125,7 +125,7 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-card border border-rule hover:border-pencil/60 rounded-none pr-4 text-ink font-data focus:ring-2 focus:ring-marker/60 outline-none transition-colors cursor-pointer",
+                        "w-full max-w-full bg-card border border-rule hover:border-pencil/60 rounded-none pr-4 text-ink font-data focus:ring-2 focus:ring-marker/60 outline-none transition-colors cursor-pointer",
                         isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
                     )}
                 />
@@ -145,8 +145,8 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     role="dialog"
                     aria-label="Choose a date"
                     data-datepicker-popup="true"
-                    className="animate-in fade-in zoom-in-95 duration-200 fixed p-4 bg-card border border-rule shadow-2xl z-[300] w-[300px]"
-                    style={{ top: coords?.top ?? 0, left: coords?.left ?? 0 }}
+                    className="animate-in fade-in zoom-in-95 duration-200 fixed p-4 bg-card border border-rule shadow-2xl z-[300] w-[300px] max-w-[calc(100vw-1rem)]"
+                    style={{ top: coords?.top ?? 0, left: coords?.left ?? 0, maxWidth: 'calc(100vw - 1rem)' }}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <button onClick={prevMonth} aria-label="Previous month" className="p-1 hover:bg-paper text-pencil hover:text-ink transition-colors">

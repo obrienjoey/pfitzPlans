@@ -127,8 +127,8 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
     const displayValue = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
     return (
-        <div className={clsx("relative", className)} ref={containerRef}>
-            <div className="relative group">
+        <div className={clsx("relative min-w-0 max-w-full", className)} ref={containerRef}>
+            <div className="relative group min-w-0 max-w-full">
                 <input
                     type="text"
                     readOnly
@@ -138,7 +138,7 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full bg-card border border-rule hover:border-pencil/60 rounded-none pl-9 pr-3 py-2 text-sm text-left text-ink font-data cursor-pointer focus:ring-2 focus:ring-marker/60 outline-none transition-colors",
+                        "w-full max-w-full bg-card border border-rule hover:border-pencil/60 rounded-none pl-9 pr-3 py-2 text-sm text-left text-ink font-data cursor-pointer focus:ring-2 focus:ring-marker/60 outline-none transition-colors",
                         isOpen && "ring-2 ring-marker/60 border-marker/60"
                     )}
                 />
@@ -151,10 +151,10 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
 
             {isOpen && (
                 <div
-                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-card border border-rule shadow-2xl z-[200] w-[240px]"
+                    className="animate-in fade-in zoom-in-95 duration-200 p-4 bg-card border border-rule shadow-2xl z-[200] w-[240px] max-w-[calc(100vw-2rem)]"
                     style={popupFixed && popupCoords
-                        ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right }
-                        : { position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem' }
+                        ? { position: 'fixed', top: popupCoords.top, right: popupCoords.right, maxWidth: 'calc(100vw - 1rem)' }
+                        : { position: 'absolute', top: '100%', right: 0, left: 'auto', marginTop: '0.5rem', maxWidth: 'calc(100vw - 2rem)' }
                     }
                 >
                     <div className="flex items-center justify-center gap-2 mb-4">

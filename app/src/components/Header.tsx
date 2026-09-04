@@ -285,9 +285,9 @@ export const Header = () => {
     return (
         <>
             <header className="sticky top-0 z-50 backdrop-blur bg-paper/90 border-b border-rule transition-colors text-left">
-                <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 max-w-5xl">
+                <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3 sm:gap-4 max-w-5xl min-w-0 w-full">
                     {/* Brand Logo & Title */}
-                    <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0 min-w-0">
                         <img
                             src="pwa-512x512.png"
                             alt="Logo"
@@ -304,34 +304,34 @@ export const Header = () => {
                     </div>
 
                     {/* Center / Right: Interactive Telemetry Chip */}
-                    <div className="flex items-center gap-2 relative">
+                    <div className="flex items-center gap-2 relative min-w-0 max-w-full">
                         <button
                             ref={triggerRef}
                             onClick={() => setIsOpen(!isOpen)}
                             aria-expanded={isOpen}
                             aria-label={`Open plan settings. Current: ${planInfo ? planInfo.name : 'no plan'}, ${raceInput?.distance} ${raceInput?.time}, ${formattedRaceDate}`}
                             title={planInfo ? planInfo.name : 'Select plan'}
-                            className={`group relative flex items-center gap-2 sm:gap-3 px-3.5 py-2 border transition-all duration-200 text-left bg-card ${
+                            className={`group relative flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-3.5 border transition-all duration-200 text-left bg-card min-w-0 max-w-[calc(100vw-7.5rem)] sm:max-w-full overflow-hidden ${
                                 isOpen 
                                     ? 'border-marker ring-2 ring-marker/30 shadow-md' 
                                     : 'border-rule hover:border-pencil/80 hover:bg-ink/[0.02]'
                             }`}
                         >
                             <div className="w-2 h-2 rounded-full bg-marker shrink-0" />
-                            <div className="flex flex-row items-center gap-2">
-                                <span className="font-data font-bold text-xs text-ink whitespace-nowrap">
+                            <div className="flex flex-row items-center gap-2 min-w-0 overflow-hidden">
+                                <span className="font-data font-bold text-xs text-ink whitespace-nowrap truncate min-w-0 max-w-[34vw] sm:max-w-none">
                                     {shortPlanChip(planInfo)}
                                 </span>
-                                <span className="text-pencil/50" aria-hidden="true">|</span>
-                                <span className="font-data text-[11px] text-pencil whitespace-nowrap">
+                                <span className="text-pencil/50 shrink-0" aria-hidden="true">|</span>
+                                <span className="font-data text-[11px] text-pencil whitespace-nowrap truncate min-w-0 hidden min-[400px]:inline">
                                     {raceInput?.distance} {shortTime(raceInput?.time)}
                                 </span>
-                                <span className="text-pencil/50 hidden md:inline" aria-hidden="true">|</span>
+                                <span className="text-pencil/50 hidden md:inline shrink-0" aria-hidden="true">|</span>
                                 <span className="font-data text-[11px] text-marker font-semibold hidden md:inline whitespace-nowrap">
                                     {formattedRaceDate}
                                 </span>
                             </div>
-                            <span className={`font-data text-xs text-pencil transition-transform duration-200 ml-1 ${isOpen ? 'rotate-180 text-marker' : 'group-hover:text-ink'}`}>
+                            <span className={`font-data text-xs text-pencil transition-transform duration-200 ml-1 shrink-0 ${isOpen ? 'rotate-180 text-marker' : 'group-hover:text-ink'}`}>
                                 ▾
                             </span>
                         </button>
