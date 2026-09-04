@@ -1,10 +1,27 @@
 import { KM_PER_MILE } from './constants';
+import { calculateWeeklyVolume } from './calculator';
+import type { RenderedWeek } from '../types';
+import type { WorkoutStatus } from '../store/usePlanStore';
 
 /**
- * A single actual-day run log entry.
+ * Actual-run logging — two layers:
  *
- * Data model locked by wayfinder ticket "Lock the actual-run log data model":
- * keyed by calendar date (yyyy-MM-dd); distance stored as a number plus its own
+ * v1 (wired): athletes toggle Completed / Modified / Skipped per workout
+ * (stored as `workoutLogs` in usePlanStore, keyed by plan/week/day).
+ * `completedVolumeForWeek()` derives logged mileage from those toggles plus
+ * the planned distances, so MileageChart and WeekCard can overlay
+ * planned-vs-logged without any extra data entry.
+ *
+ * Phase 2 (reserved): manual actual entries below (`ActualLogEntry`, keyed
+ * by calendar date with real distance + time) for runners who want to log
+ * what they truly ran rather than ticking off the plan. `dayStatus()` and
+ * `sumDistanceForRange()` already implement that model's helpers.
+ */
+
+/**
+ * A single manual actual-day run log entry (Phase 2 model, reserved).
+ *
+ * Keyed by calendar date (yyyy-MM-dd); distance stored as a number plus its own
  * unit flag (display converts via `convertDistance`); time stored as seconds;
  * pace is derived, never stored.
  */
@@ -88,4 +105,34 @@ export const sumDistanceForRange = (
         .filter((l) => l.date >= startKey && l.date <= endKey)
         .reduce((sum, l) => sum + convertDistance(l.distance, l.distanceUnit, to), 0);
     return round1(total);
+};
+
+/** Storage key for a workout toggle — must match usePlanStore.setWorkoutStatus. */
+export const logKey = (planId: string, weekIndex: number, dayIndex: number): string =>
+    `${planId}-w${weekIndex}-d${dayIndex}`;
+
+/** Toggle states that count toward logged mileage (skipped / untoggled do not). */
+const LOGGED_STATUSES: ReadonlySet<WorkoutStatus> = new Set(['completed', 'modified']);
+
+/**
+ * Logged mileage for one week, derived from the completion toggles: every
+ * workout marked completed/modified counts at its planned distance.
+ * Delegates to `calculateWeeklyVolume` on the logged subset so rounding and
+ * unit conversion are identical to the planned totals.
+ */
+export const completedVolumeForWeek = (
+    week: RenderedWeek,
+    weekIndex: number,
+    planId: string,
+    workoutLogs: Record<string, WorkoutStatus>,
+    units: 'mi' | 'km'
+): number => {
+    const loggedOnly: RenderedWeek = {
+        ...week,
+        workouts: week.workouts.filter((_, dayIndex) => {
+            const status = workoutLogs[logKey(planId, weekIndex, dayIndex)];
+            return !!status && LOGGED_STATUSES.has(status);
+        }),
+    };
+    return calculateWeeklyVolume(loggedOnly, units).average;
 };

@@ -23,4 +23,26 @@ describe('MileageChart', () => {
         expect(screen.getByText('Weekly volume')).toBeInTheDocument();
         expect(screen.getByText('W1')).toBeInTheDocument();
     });
+
+    it('renders a logged-mileage marker when actual volumes are provided', () => {
+        const weeks: RenderedWeek[] = [
+            {
+                weekStart: new Date('2026-06-01'),
+                weekEnd: new Date('2026-06-07'),
+                weeksToGoal: 2,
+                weekNumber: 1,
+                originalWeek: { workouts: [] },
+                workouts: [
+                    { title: 'Easy Run', distance: 10, date: new Date('2026-06-01'), dayOfWeek: 0 }
+                ]
+            }
+        ];
+
+        const { container, rerender } = render(<MileageChart weeks={weeks} units="mi" />);
+        expect(container.querySelector('[data-logged-marker]')).toBeNull();
+
+        rerender(<MileageChart weeks={weeks} units="mi" actualVolumes={[6]} />);
+        expect(container.querySelector('[data-logged-marker="W1"]')).not.toBeNull();
+        expect(screen.getByText('Logged')).toBeInTheDocument();
+    });
 });

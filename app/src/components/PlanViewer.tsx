@@ -5,6 +5,7 @@ import { calculateSchedule, calculateWeeklyVolume } from '../lib/calculator';
 import { scheduleMatchesValid } from '../lib/scheduleGuard';
 import type { Plan } from '../types';
 import { calculateTrainingPaces, parseTimeString } from '../lib/paceCalculator';
+import { completedVolumeForWeek } from '../lib/actualLog';
 import { WeekCard } from './WeekCard';
 import { PaceChart } from './PaceChart';
 import { MileageChart } from './MileageChart';
@@ -32,7 +33,7 @@ const parseWorkoutId = (id: string) => {
 
 export const PlanViewer = () => {
 
-    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans } = usePlanStore();
+    const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans, workoutLogs } = usePlanStore();
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -124,6 +125,18 @@ export const PlanViewer = () => {
         });
     }, [validSchedule]);
 
+    // Logged mileage per week from the completion toggles. Future weeks are
+    // null (nothing to log yet) so charts/cards render planned-only.
+    const actualVolumes = useMemo(() => {
+        if (!validSchedule) return [];
+        const today = new Date();
+        return validSchedule.weeks.map((week, idx) =>
+            new Date(week.weekStart) <= today
+                ? completedVolumeForWeek(week, idx, selectedPlanId, workoutLogs, units)
+                : null
+        );
+    }, [validSchedule, selectedPlanId, workoutLogs, units]);
+
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
     };
@@ -196,7 +209,7 @@ export const PlanViewer = () => {
                     onJump={jumpToToday}
                 />
 
-                <MileageChart weeks={validSchedule.weeks} units={units} />
+                <MileageChart weeks={validSchedule.weeks} units={units} actualVolumes={actualVolumes} />
 
                 <PaceChart
                     paces={paces || undefined}
@@ -215,6 +228,7 @@ export const PlanViewer = () => {
                             paces={paces || undefined}
                             activeId={activeId || undefined}
                             overId={overId || undefined}
+                            actualVolume={actualVolumes[idx] ?? undefined}
                         />
                     ))}
                 </div>

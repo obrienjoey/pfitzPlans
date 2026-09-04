@@ -14,13 +14,16 @@ export const WeekCard = ({
     weekIndex,
     paces,
     activeId,
-    overId
+    overId,
+    actualVolume
 }: {
     week: RenderedWeek,
     weekIndex: number,
     paces?: TrainingPaces,
     activeId?: string,
-    overId?: string
+    overId?: string,
+    /** Logged mileage from the completion toggles (undefined = week hasn't started). */
+    actualVolume?: number | null
 }) => {
     const { units } = usePlanStore();
     const today = new Date();
@@ -59,6 +62,11 @@ export const WeekCard = ({
                     <div className="text-right flex-none">
                         <span className="font-data text-ink font-bold text-lg leading-none">{displayTotal.formatted}</span>
                         <span className="font-data text-[10px] text-pencil ml-1">{units}</span>
+                        {actualVolume != null && (
+                            <div className="font-data text-[10px] text-marker font-bold mt-0.5">
+                                {actualVolume > 0 ? `✓ ${actualVolume} logged` : '· 0 logged'}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

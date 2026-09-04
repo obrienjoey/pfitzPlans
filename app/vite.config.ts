@@ -37,5 +37,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
     exclude: [...configDefaults.exclude, '**/tests/e2e/**'],
+    // Report-only: no thresholds, so coverage can never fail a build.
+    // Raise to gates once the baseline is above the floor.
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
   },
 })

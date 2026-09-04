@@ -14,10 +14,13 @@ type: 5K
 schedule:
 - workouts:
   - title: Recovery {4:6}
+    zone: Recovery
     distance: 4.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: Lactate threshold {9:14}
+    zone: Lactate Threshold
     description: |-
       Lactate threshold {9:14}
       10 min LT interval (jog 3 min recovery)
@@ -25,162 +28,204 @@ schedule:
       8 min LT interval
     distance: 9.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
   - title: 2 recovery runs ({8:12})
+    zone: Recovery
     description: |-
       2 recovery runs ({8:12})
       {4:6}
       {4:6}
     distance: 8.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       6 × 12 sec uphill followed by 8 × 100 m strides
     distance: 9.0
   - title: Endurance {11:18}
+    zone: Long Run
     distance: 11.0
 - workouts:
   - title: Recovery {4:6}
+    zone: Recovery
     distance: 4.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: VO₂max {10:16}
+    zone: VO2 Max
     description: |-
       VO₂max {10:16}
       7 × 3 min uphill @ 3K-5K race effort
       (jog downhill recovery)
     distance: 10.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       6 × 12 sec uphill followed by 8 × 100 m strides
     distance: 9.0
   - title: Endurance {11:18}
+    zone: Long Run
     distance: 11.0
 - workouts:
   - title: Recovery {6:10}
+    zone: Recovery
     distance: 6.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: Lactate threshold {10:16}
+    zone: Lactate Threshold
     description: |-
       Lactate threshold {10:16}
       3 × 10 min LT intervals
       (jog 3 min recovery)
     distance: 10.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
   - title: 2 recovery runs ({10:16})
+    zone: Recovery
     description: |-
       2 recovery runs ({10:16})
       {6:10}
       {4:6}
     distance: 10.0
   - title: Speed {8:13}
+    zone: VO2 Max
     description: |-
       Speed {8:13}
       2 sets of 5 × 300 m @ 800 m to mile race pace
       (jog 300 m recovery and 4 min between sets)
     distance: 8.0
   - title: Endurance {11:18}
+    zone: Long Run
     distance: 11.0
 - workouts:
   - title: Recovery {6:10}
+    zone: Recovery
     distance: 6.0
   - title: General aerobic {8:13}
+    zone: General Aerobic
     distance: 8.0
   - title: General aerobic {8:13}
+    zone: General Aerobic
     distance: 8.0
   - title: Endurance {9:14}
+    zone: Long Run
     distance: 9.0
   - title: 2 recovery runs ({10:16})
+    zone: Recovery
     description: |-
       2 recovery runs ({10:16})
       {6:10}
       {4:6}
     distance: 6.0
   - title: Speed {8:13}
+    zone: VO2 Max
     description: |-
       Speed {8:13}
       3 sets of 4 × 200 m @ 800 m to mile race pace
       (jog 200 m recovery and 4 min between sets)
     distance: 8.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
 - workouts:
   - title: Recovery {6:10}
+    zone: Recovery
     distance: 6.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: VO₂max {10:16}
+    zone: VO2 Max
     description: |-
       VO₂max {10:16}
       6 × 1,000 m@ 3K-5K race pace
       (jog 50-90% interval time recovery)
     distance: 10.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       6 × 12 sec uphill followed by 8 × 100 m strides
     distance: 9.0
   - title: Endurance {12:19}
+    zone: Long Run
     distance: 12.0
 - workouts:
   - title: 2 recovery runs ({8:12})
+    zone: Recovery
     description: |-
       2 recovery runs ({8:12})
       {4:6}
       {4:6}
     distance: 8.0
   - title: General aerobic {8:13}
+    zone: General Aerobic
     distance: 8.0
   - title: Lactate threshold {10:16}
+    zone: Lactate Threshold
     description: |-
       Lactate threshold {10:16}
       22 min tempo run
     distance: 10.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: VO₂max {9:14}
+    zone: VO2 Max
     description: |-
       VO₂max {9:14}
       9 × 600 m @ 3K-5K race pace
       (jog 50-90% interval time recovery)
     distance: 9.0
   - title: Endurance {12:19}
+    zone: Long Run
     distance: 12.0
 - workouts:
   - title: 2 recovery runs ({8:12})
+    zone: Recovery
     description: |-
       2 recovery runs ({8:12})
       {4:6}
       {4:6}
     distance: 8.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: VO₂max {10:16}
+    zone: VO2 Max
     description: |-
       VO₂max {10:16}
       2 × 1,200 m
@@ -190,54 +235,67 @@ schedule:
       (jog 50-90% interval time recovery)
     distance: 10.0
   - title: Endurance {11:18}
+    zone: Long Run
     distance: 11.0
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       2 sets of 6 × 100 m strides
       (jog 3 min between sets)
     distance: 9.0
   - title: Endurance {12:19}
+    zone: Long Run
     distance: 12.0
 - workouts:
   - title: 2 recovery runs ({10:16})
+    zone: Recovery
     description: |-
       2 recovery runs ({10:16})
       {5:8}
       {5:8}
     distance: 10.0
   - title: General aerobic + speed {10:16}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {10:16}
       2 sets of 5 × 150 m strides
       (jog 250 m between intervals and 4 min between sets)
     distance: 10.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: General aerobic {7:11}
+    zone: General Aerobic
     distance: 7.0
   - title: Recovery {5:8}
+    zone: Recovery
     distance: 5.0
   - title: 5K tune-up race {9:14}
     distance: 9.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
 - workouts:
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: VO₂max {10:16}
+    zone: VO2 Max
     description: |-
       VO₂max {10:16}
       2 sets of (1,200 m, 1,000 m, 800 m)
@@ -245,79 +303,100 @@ schedule:
       (jog 50-90% interval time recovery)
     distance: 10.0
   - title: Endurance {11:18}
+    zone: Long Run
     distance: 11.0
   - title: 2 recovery runs ({9:14})
+    zone: Recovery
     description: |-
       2 recovery runs ({9:14})
       {5:8}
       {4:6}
     distance: 9.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       2 sets of 6 × 100 m strides
       (jog 3 min between sets)
     distance: 9.0
   - title: Endurance {13:21}
+    zone: Long Run
     distance: 13.0
 - workouts:
   - title: 2 recovery runs ({10:16})
+    zone: Recovery
     description: |-
       2 recovery runs ({10:16})
       {5:8}
       {5:8}
     distance: 10.0
   - title: General aerobic + speed {10:16}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {10:16}
       2 sets of 5 × 150 m strides
       (jog 250 m recovery and 4 min between sets)
     distance: 10.0
   - title: General aerobic {9:14}
+    zone: General Aerobic
     distance: 9.0
   - title: General aerobic {7:11}
+    zone: General Aerobic
     distance: 7.0
   - title: Recovery {5:8}
+    zone: Recovery
     distance: 5.0
   - title: 5K tune-up race or 3K time trial {9:14}
     distance: 9.0
   - title: Endurance {10:16}
+    zone: Long Run
     distance: 10.0
 - workouts:
   - title: Recovery {5:8}
+    zone: Recovery
     distance: 5.0
   - title: General aerobic {8:13}
+    zone: General Aerobic
     distance: 8.0
   - title: Recovery {6:10}
+    zone: Recovery
     distance: 6.0
   - title: VO₂max {10:16}
+    zone: VO2 Max
     description: |-
       VO₂max {10:16}
       5 × 1,000 m @ 3K-5K race pace
       (jog 50-90% interval time recovery)
     distance: 10.0
   - title: Recovery {4:6}
+    zone: Recovery
     distance: 4.0
   - title: General aerobic + speed {8:13}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {8:13}
       8 × 100 m strides
     distance: 8.0
   - title: General aerobic {10:16}
+    zone: General Aerobic
     distance: 10.0
 - workouts:
   - title: Race pace + speed {8:13}
+    zone: VO2 Max
     description: |-
       Race pace + speed {8:13}
       4 × 100 m strides
       800 m @ 5K race pace
     distance: 8.0
   - title: General aerobic {7:11}
+    zone: General Aerobic
     distance: 7.0
   - title: Recovery {5:8}
+    zone: Recovery
     distance: 5.0
   - title: Rest
   - title: Recovery {4:6}
+    zone: Recovery
     description: |-
       Recovery {4:6}
       4 × 100 m strides
@@ -325,21 +404,28 @@ schedule:
   - title: 5K goal race {9:14}
     distance: 9.0
   - title: Recovery {7:11}
+    zone: Recovery
     distance: 7.0
 - workouts:
   - title: Rest or cross-training
   - title: Recovery {5:8}
+    zone: Recovery
     distance: 5.0
   - title: Recovery {6:10}
+    zone: Recovery
     distance: 6.0
   - title: Recovery {7:11}
+    zone: Recovery
     distance: 7.0
   - title: General aerobic {7:11}
+    zone: General Aerobic
     distance: 7.0
   - title: General aerobic + speed {9:14}
+    zone: General Aerobic
     description: |-
       General aerobic + speed {9:14}
       8 × 100 m strides
     distance: 9.0
   - title: General aerobic {10:16}
+    zone: General Aerobic
     distance: 10.0

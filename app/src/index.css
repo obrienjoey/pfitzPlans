@@ -90,6 +90,14 @@
         border: 2px solid rgb(var(--marker));
         border-radius: 48% 52% 51% 49% / 58% 46% 54% 42%;
     }
+
+    /* Pace-band tear edge — punched holes along the cut line. */
+    .pace-perf {
+        background-image: radial-gradient(circle, rgb(var(--ink) / 0.28) 1.6px, transparent 1.7px);
+        background-size: 12px 100%;
+        background-position: center;
+        background-repeat: repeat-x;
+    }
 }
 
 @keyframes slide-up {

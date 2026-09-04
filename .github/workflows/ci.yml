@@ -24,6 +24,15 @@ jobs:
         run: npm install
         working-directory: app
 
+      # Non-blocking: this is a static site (devDeps never ship), so audit is a
+      # signal for reviewers, not a gate. Current tree has known dev-only
+      # findings (e.g. vitest <4.1 UI-server advisory). Flip to blocking once
+      # the baseline is clean.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+        working-directory: app
+        continue-on-error: true
+
       - name: Lint
         run: npm run lint
         working-directory: app
@@ -33,7 +42,7 @@ jobs:
         working-directory: app
 
       - name: Test
-        run: npm run test -- --run
+        run: npm run test -- --run --coverage
         working-directory: app
 
       - name: Install Playwright Browsers

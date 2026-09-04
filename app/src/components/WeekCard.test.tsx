@@ -28,8 +28,7 @@ describe('WeekCard', () => {
         expect(screen.getByText('km')).toBeInTheDocument();
     });
 
-    it('renders volume range when workouts have distance ranges', () => {
-        const week: RenderedWeek = {
+    it('renders volume range when workouts have distance ranges', () => {        const week: RenderedWeek = {
             weekStart: new Date('2026-06-01'),
             weekEnd: new Date('2026-06-07'),
             weeksToGoal: 4,
@@ -44,5 +43,27 @@ describe('WeekCard', () => {
         render(<WeekCard week={week} weekIndex={0} />);
         expect(screen.getByText('36.9 - 39.4')).toBeInTheDocument();
         expect(screen.getByText('km')).toBeInTheDocument();
+    });
+
+    it('shows logged mileage when actualVolume is provided', () => {
+        const week: RenderedWeek = {
+            weekStart: new Date('2026-06-01'),
+            weekEnd: new Date('2026-06-07'),
+            weeksToGoal: 4,
+            weekNumber: 1,
+            originalWeek: { workouts: [] },
+            workouts: [
+                { title: 'Easy Run', distance: 10, date: new Date('2026-06-01'), dayOfWeek: 0 }
+            ]
+        };
+
+        const { rerender } = render(<WeekCard week={week} weekIndex={0} />);
+        expect(screen.queryByText(/logged/)).toBeNull();
+
+        rerender(<WeekCard week={week} weekIndex={0} actualVolume={10} />);
+        expect(screen.getByText('✓ 10 logged')).toBeInTheDocument();
+
+        rerender(<WeekCard week={week} weekIndex={0} actualVolume={0} />);
+        expect(screen.getByText('· 0 logged')).toBeInTheDocument();
     });
 });

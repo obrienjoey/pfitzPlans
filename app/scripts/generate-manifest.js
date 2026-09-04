@@ -17,7 +17,8 @@ try {
         if ((file.endsWith('.yaml') || file.endsWith('.yml')) && file !== 'manifest.json') {
             const filePath = path.join(plansDir, file);
             const content = fs.readFileSync(filePath, 'utf8');
-            const data = yaml.load(content);
+            // JSON_SCHEMA: only plain JSON-compatible data, no js-yaml custom types.
+            const data = yaml.load(content, { schema: yaml.JSON_SCHEMA });
             
             if (data && data.id) {
                 plans.push({

@@ -1,3 +1,5 @@
+import type { PaceZone } from './lib/paceCalculator';
+
 export type Distance = number | [number, number];
 
 export interface Workout {
@@ -5,7 +7,8 @@ export interface Workout {
     description?: string;
     distance?: Distance;
     tags?: string[];
-    zone?: string;
+    /** Explicit training zone — preferred over title-string inference (see getPaceZone). */
+    zone?: PaceZone;
 }
 
 export interface WeeklyVolume {

@@ -78,6 +78,7 @@ By inputting a target race date and a recent race performance, the app generates
 Plans are declared as static YAML configuration files under `app/public/plans/`.
 
 1. Write a plan YAML file following the JSON Schema declared at `app/src/data/plan-schema.json`.
+2. Give every trainable workout an explicit `zone:` (`VO2 Max`, `Lactate Threshold`, `General Aerobic`, `Long Run`, `Marathon`, `Recovery`, `Speed 300m`, `Speed 200m`, `Race Equivalent`). Rest days, tune-up races, goal races and dress rehearsals stay unzoned. CI fails if a trainable workout is missing its zone or if the zone disagrees with the title heuristic (`scripts/backfill-zones.js` can generate them).
 2. Add your plan information entry to the registry in `app/src/config.ts`:
    ```typescript
    {
