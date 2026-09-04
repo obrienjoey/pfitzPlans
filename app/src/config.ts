@@ -65,6 +65,22 @@ export const AVAILABLE_PLANS: PlanInfo[] = [
         path: 'plans/pfitz_half_12_63.yaml'
     },
     {
+        id: 'pfitz_12_55_4th',
+        name: 'Pfitzinger 12 wk / Up to 55 mi',
+        description: 'Pete Pfitzinger\'s 12-week marathon schedule peaking at 55 miles/week. Condensed build focusing on long runs, medium-long runs, marathon-pace runs and structured lactate threshold workouts.',
+        type: 'Marathon',
+        weeks: 12,
+        path: 'plans/pfitz_12_55_4th.yaml'
+    },
+    {
+        id: 'pfitz_12_70_4th',
+        name: 'Pfitzinger 12 wk / 55–70 mi',
+        description: 'Pete Pfitzinger\'s 12-week marathon schedule peaking at 70 miles/week. Higher-volume condensed build with medium-long runs, marathon-pace runs, VO2 max intervals and lactate threshold workouts.',
+        type: 'Marathon',
+        weeks: 12,
+        path: 'plans/pfitz_12_70_4th.yaml'
+    },
+    {
         id: 'pfitz_18_55_4th',
         name: 'Pfitzinger 18 wk / Up to 55 mi',
         description: 'Pete Pfitzinger\'s classic marathon schedule peaking at 55 miles/week. 18-week plan focusing on long runs, medium-long runs, and structured lactate threshold workouts.',

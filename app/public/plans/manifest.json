@@ -48,6 +48,22 @@
     "path": "plans/frr_8k10k_03.yaml"
   },
   {
+    "id": "pfitz_12_55_4th",
+    "name": "Pfitzinger/Douglas: Up to 55 miles per week, 12-week schedule",
+    "description": "\"Up to 55 miles per week, 12-week schedule\" from \"Advanced Marathoning\" (fourth edition) by Pete Pfitzinger and Scott Douglas",
+    "type": "Marathon",
+    "weeks": 12,
+    "path": "plans/pfitz_12_55_4th.yaml"
+  },
+  {
+    "id": "pfitz_12_70_4th",
+    "name": "Pfitzinger/Douglas: 55 to 70 Miles per Week, 12-week schedule",
+    "description": "\"55 to 70 Miles per Week, 12-week schedule\" from \"Advanced Marathoning\" (fourth edition) by Pete Pfitzinger and Scott Douglas",
+    "type": "Marathon",
+    "weeks": 12,
+    "path": "plans/pfitz_12_70_4th.yaml"
+  },
+  {
     "id": "pfitz_18_55_4th",
     "name": "Pfitzinger/Douglas: Up to 55 miles per week, 18-week schedule",
     "description": "\"Up to 55 miles per week, 18-week schedule\" from \"Advanced Marathoning (fourth edition)\" by Pete Pfitzinger and Scott Douglas",
