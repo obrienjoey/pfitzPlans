@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { RenderedWeek, Distance } from '../types';
 import { calculateWeeklyVolume } from '../lib/calculator';
 import { KM_PER_MILE } from '../lib/constants';
@@ -21,7 +21,7 @@ const getWorkoutDist = (dist?: Distance, units: 'mi' | 'km' = 'mi'): number => {
 };
 
 export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps) => {
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
     const chartData = useMemo(() => {
         const today = new Date();
@@ -81,14 +81,12 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
                 weekNumber: week.weekNumber,
                 weeksToGoal: week.weeksToGoal,
                 volume: total,
-                volumeFormatted: displayTotal.formatted,
                 longRun,
                 quality: qual,
                 easy,
                 isCurrentWeek,
                 hasTuneUp,
                 actual: actualVolumes?.[idx] ?? null,
-                label: `Week ${week.weekNumber}`
             };
         });
     }, [weeks, units, actualVolumes]);
@@ -110,50 +108,89 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
         return peakIdx;
     }, [chartData]);
 
-    const tickCount = 4;
-    const yAxisTicks = useMemo(() => {
-        const step = maxVolume / tickCount;
-        return Array.from({ length: tickCount + 1 }, (_, i) => Math.round(i * step));
-    }, [maxVolume]);
+    const currentIndex = chartData.findIndex(d => d.isCurrentWeek);
 
-    const scrollWrapRef = useRef<HTMLDivElement>(null);
-    const [wrapWidth, setWrapWidth] = useState<number | null>(null);
-
-    useEffect(() => {
-        const el = scrollWrapRef.current;
-        if (!el || typeof ResizeObserver === 'undefined') return;
-        const observer = new ResizeObserver(entries => {
-            for (const entry of entries) setWrapWidth(entry.contentRect.width);
-        });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
-
-    const height = 150;
-    const paddingLeft = 44;
-    const paddingRight = 16;
-    const paddingTop = 44;
-    const paddingBottom = 22;
-
-    const count = chartData.length || 1;
-    const fallbackWidth = 720;
-    const containerWidth = wrapWidth ?? fallbackWidth;
-    const innerWidth = containerWidth - paddingLeft - paddingRight;
-
-    const MIN_SLOT = 36;
-    const rawSlot = innerWidth / count;
-    const scrolls = rawSlot < MIN_SLOT;
-    const slot = scrolls ? MIN_SLOT : rawSlot;
-    const gap = Math.min(16, Math.max(6, slot * 0.28));
-    const barWidth = slot - gap;
-
-    const svgWidth = scrolls
-        ? paddingLeft + count * slot - gap + paddingRight
-        : containerWidth;
-    const svgHeight = height + paddingTop + paddingBottom;
+    // Past weeks collapse behind a disclosure so the page stays scannable
+    // mid-season; future weeks always stay visible for planning ahead.
+    // No current week (plan entirely past/future) = nothing collapses.
+    const splitAt = currentIndex > 0 ? Math.max(0, currentIndex - 2) : 0;
+    const pastWeeks = chartData.slice(0, splitAt);
+    const visibleWeeks = chartData.slice(splitAt);
 
     const jumpToWeek = (weekIdx: number) => {
-        document.getElementById(`week-card-${weekIdx}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const reduced = typeof window !== 'undefined'
+            && typeof window.matchMedia === 'function'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        document.getElementById(`week-card-${weekIdx}`)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    };
+
+    const renderRow = (data: (typeof chartData)[number]) => {
+        const index = data.weekIndex;
+        const open = expandedIndex === index;
+        const prev = index > 0 ? chartData[index - 1]?.volume : undefined;
+        const delta = prev != null ? Math.round(data.volume - prev) : 0;
+        const isTaper = prev != null && data.volume < prev * 0.85 && index > peakWeekIndex;
+        const isPeak = index === peakWeekIndex;
+        const isRaceWeek = data.weeksToGoal === 1;
+        const deltaLabel = index === 0
+            ? (isRaceWeek ? 'RACE' : 'start')
+            : isTaper ? `${delta} taper` : `${delta > 0 ? '+' : ''}${delta}`;
+        const flags = [
+            ...(isPeak ? ['PEAK'] : []),
+            ...(isRaceWeek && index !== 0 ? ['RACE'] : []),
+        ];
+
+        return (
+            <div key={data.weekNumber}>
+                <button
+                    onClick={() => setExpandedIndex(open ? null : index)}
+                    aria-expanded={open}
+                    aria-label={`Week ${data.weekNumber}: ${Math.round(data.volume)} ${units}${data.actual != null ? `, logged ${data.actual} ${units}` : ''}. ${open ? 'Collapse details.' : 'Show details.'}`}
+                    className="w-full min-h-[56px] flex items-center gap-3 py-2 text-left rounded-none"
+                >
+                    <span className={`font-data text-xs w-10 flex-none ${data.isCurrentWeek ? 'text-marker font-bold' : 'text-pencil'}`}>
+                        W{data.weekNumber}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                        <span className="block h-3 bg-paper border border-rule overflow-hidden" aria-hidden="true">
+                            <span className="flex h-full" style={{ width: `${Math.max(4, (data.volume / maxVolume) * 100)}%` }}>
+                                <span className="bg-pencil/30" style={{ width: `${data.volume ? (data.easy / data.volume) * 100 : 0}%` }} />
+                                <span className="bg-ink/80" style={{ width: `${data.volume ? (data.longRun / data.volume) * 100 : 0}%` }} />
+                                <span className="bg-marker" style={{ width: `${data.volume ? (data.quality / data.volume) * 100 : 0}%` }} />
+                            </span>
+                        </span>
+                        <span className="block font-data text-[10px] text-pencil mt-1 truncate">
+                            {data.isCurrentWeek ? '· this week ' : ''}LR {Math.round(data.longRun)} · Q {Math.round(data.quality)}
+                            {data.actual != null && data.actual > 0 && (
+                                <span className="text-marker font-bold" data-logged-marker={`W${data.weekNumber}`}> · {data.actual} logged</span>
+                            )}
+                        </span>
+                    </span>
+                    <span className="flex-none text-right">
+                        <span className="font-data font-bold text-base text-ink">
+                            {Math.round(data.volume)}<span className="text-[10px] text-pencil font-normal"> {units}</span>
+                        </span>
+                        <span className={`block font-data text-[10px] font-bold ${isPeak ? 'text-marker' : 'text-pencil'}`}>
+                            {deltaLabel}{flags.length > 0 && ` · ${flags.join(' · ')}`}
+                        </span>
+                    </span>
+                </button>
+                {open && (
+                    <div className="pb-3 pl-[52px] pr-1 flex items-center gap-3">
+                        <p className="text-xs text-pencil flex-1">
+                            Long run {Math.round(data.longRun)}{units} · Workout miles {Math.round(data.quality)}{units}
+                            {data.actual != null ? ` · Logged ${data.actual}${units}` : ''}
+                        </p>
+                        <button
+                            onClick={() => jumpToWeek(index)}
+                            className="px-3 py-2 bg-ink text-paper font-data text-[11px] font-bold uppercase tracking-wider min-h-[44px]"
+                        >
+                            Open week
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -161,14 +198,13 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
             aria-label="Weekly Volume Progression"
             className="w-full bg-card border border-rule p-4 sm:p-6 mb-2 transition-colors shadow-sm"
         >
-            {/* Header & Interactive Legend */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 border-b border-rule pb-4">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b border-rule pb-4">
                 <div>
-                    <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide flex items-center gap-2">
-                        <span>Weekly volume</span>
-                        <span className="text-pencil text-sm font-normal hidden sm:inline">· Intensity stack</span>
+                    <h3 className="font-display font-semibold uppercase text-xl text-ink tracking-wide">
+                        Weekly volume
                     </h3>
-                    <p className="text-xs text-pencil mt-0.5">Select a bar to open that week</p>
+                    <p className="text-xs text-pencil mt-0.5">Select a row to open that week</p>
                 </div>
 
                 {/* Legend — ink / pencil / marker only, matching the logbook system */}
@@ -185,258 +221,22 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
                         <span className="w-2.5 h-2.5 rounded-none bg-pencil/40" />
                         <span>Aerobic</span>
                     </span>
-                    <span className="flex items-center gap-1.5">
-                        <svg width="14" height="6" aria-hidden="true">
-                            <line x1="0" y1="3" x2="14" y2="3" stroke="var(--marker)" strokeWidth="2" strokeDasharray="3 2" />
-                        </svg>
-                        <span>Logged</span>
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-none border-2 border-marker" />
-                        <span>Current</span>
-                    </span>
                 </div>
             </div>
 
-            <div
-                ref={scrollWrapRef}
-                className="overflow-x-auto scrollbar-thin scrollbar-thumb-pencil/40 scrollbar-track-transparent"
-                role="region"
-                aria-label="Interactive volume bar chart"
-            >
-                <div className={scrolls ? 'min-w-max pb-2' : 'w-full pb-2'}>
-                    <svg
-                        width={scrolls ? svgWidth : '100%'}
-                        height={svgHeight}
-                        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                        className="overflow-visible select-none block"
-                    >
-                        {/* Y-Axis Gridlines and Labels */}
-                        {yAxisTicks.map((val, index) => {
-                            const tickY = svgHeight - paddingBottom - (val / maxVolume) * height;
-                            return (
-                                <g key={`grid-group-${index}`}>
-                                    <line
-                                        x1={paddingLeft}
-                                        y1={tickY}
-                                        x2={svgWidth - paddingRight}
-                                        y2={tickY}
-                                        strokeWidth="1"
-                                        strokeDasharray={val === 0 ? undefined : "3 4"}
-                                        opacity={val === 0 ? "0.9" : "1"}
-                                        style={{ stroke: "var(--chart-grid)" }}
-                                    />
-                                    <text
-                                        x={paddingLeft - 8}
-                                        y={tickY + 3.5}
-                                        textAnchor="end"
-                                        style={{ fill: "var(--chart-label)" }}
-                                        fontSize={10}
-                                        fontFamily="var(--font-data, monospace)"
-                                    >
-                                        {val}
-                                    </text>
-                                </g>
-                            );
-                        })}
+            {pastWeeks.length > 0 && (
+                <details className="border-b border-rule mb-1">
+                    <summary className="font-data text-[11px] uppercase tracking-wider text-pencil cursor-pointer min-h-[44px] flex items-center">
+                        Earlier weeks (W{pastWeeks[0]?.weekNumber}–W{pastWeeks[pastWeeks.length - 1]?.weekNumber})
+                    </summary>
+                    <div className="divide-y divide-rule">
+                        {pastWeeks.map(renderRow)}
+                    </div>
+                </details>
+            )}
 
-                        {chartData.map((data, index) => {
-                            const totalH = (data.volume / maxVolume) * height;
-                            const easyH = (data.easy / maxVolume) * height;
-                            const longH = (data.longRun / maxVolume) * height;
-                            const qualH = (data.quality / maxVolume) * height;
-
-                            const slotX = paddingLeft + index * slot;
-                            const x = slotX + (slot - barWidth) / 2;
-                            const baseY = svgHeight - paddingBottom;
-                            const isHovered = hoveredIndex === index;
-
-                            const isPeak = index === peakWeekIndex;
-                            const isRaceWeek = data.weeksToGoal === 1;
-
-                            return (
-                                <g
-                                    key={data.weekNumber}
-                                    onClick={() => jumpToWeek(index)}
-                                    onMouseEnter={() => setHoveredIndex(index)}
-                                    onMouseLeave={() => setHoveredIndex(null)}
-                                    onFocus={() => setHoveredIndex(index)}
-                                    onBlur={() => setHoveredIndex(null)}
-                                    tabIndex={0}
-                                    role="button"
-                                    aria-label={`Week ${data.weekNumber}: ${data.volumeFormatted} ${units}${data.actual != null ? `, logged ${data.actual} ${units}` : ''}. Click to view week.`}
-                                    className="cursor-pointer group outline-none"
-                                >
-                                    {/* Invisible full-slot hit target */}
-                                    <rect
-                                        x={slotX}
-                                        y={paddingTop}
-                                        width={slot}
-                                        height={height}
-                                        fill="transparent"
-                                    />
-
-                                    {/* Stack 1: Aerobic base (bottom) */}
-                                    <rect
-                                        x={x}
-                                        y={baseY - easyH}
-                                        width={barWidth}
-                                        height={easyH}
-                                        className="fill-pencil/30 group-hover:fill-pencil/50 transition-colors"
-                                    />
-
-                                    {/* Stack 2: Long run (middle) */}
-                                    <rect
-                                        x={x}
-                                        y={baseY - easyH - longH}
-                                        width={barWidth}
-                                        height={longH}
-                                        className="fill-ink/80 group-hover:fill-ink transition-colors"
-                                    />
-
-                                    {/* Stack 3: Quality (top) */}
-                                    {qualH > 0 && (
-                                        <rect
-                                            x={x}
-                                            y={baseY - easyH - longH - qualH}
-                                            width={barWidth}
-                                            height={qualH}
-                                            className="fill-marker"
-                                        />
-                                    )}
-
-                                    {/* Logged-mileage marker — dashed line at the toggled-completed height */}
-                                    {data.actual != null && data.actual > 0 && (
-                                        <line
-                                            x1={x - 2}
-                                            y1={baseY - Math.min(data.actual / maxVolume, 1) * height}
-                                            x2={x + barWidth + 2}
-                                            y2={baseY - Math.min(data.actual / maxVolume, 1) * height}
-                                            stroke="var(--marker)"
-                                            strokeWidth="2"
-                                            strokeDasharray="4 3"
-                                            data-logged-marker={`W${data.weekNumber}`}
-                                        />
-                                    )}
-
-                                    {/* Current-week outline — fill stays truthful, ring marks "you are here" */}
-                                    {data.isCurrentWeek && (
-                                        <rect
-                                            x={x - 2}
-                                            y={baseY - totalH - 2}
-                                            width={barWidth + 4}
-                                            height={totalH + 2}
-                                            fill="none"
-                                            stroke="var(--marker)"
-                                            strokeWidth="1.5"
-                                            pointerEvents="none"
-                                        />
-                                    )}
-
-                                    {/* Milestone badges — peak and race only */}
-                                    {isPeak && !isHovered && (
-                                        <g>
-                                            <text
-                                                x={x + barWidth / 2}
-                                                y={baseY - totalH - 8}
-                                                textAnchor="middle"
-                                                className="fill-ink font-data font-bold text-[9px] tracking-wider"
-                                            >
-                                                PEAK
-                                            </text>
-                                            <line
-                                                x1={x + barWidth / 2}
-                                                y1={baseY - totalH - 5}
-                                                x2={x + barWidth / 2}
-                                                y2={baseY - totalH}
-                                                stroke="var(--ink)"
-                                                strokeWidth="1.5"
-                                            />
-                                        </g>
-                                    )}
-
-                                    {isRaceWeek && !isHovered && (
-                                        <g>
-                                            <text
-                                                x={x + barWidth / 2}
-                                                y={baseY - totalH - 8}
-                                                textAnchor="middle"
-                                                className="fill-marker font-data font-bold text-[9px] tracking-wider"
-                                            >
-                                                RACE
-                                            </text>
-                                            <line
-                                                x1={x + barWidth / 2}
-                                                y1={baseY - totalH - 5}
-                                                x2={x + barWidth / 2}
-                                                y2={baseY - totalH}
-                                                stroke="var(--marker)"
-                                                strokeWidth="1.5"
-                                            />
-                                        </g>
-                                    )}
-
-                                    {/* Rich Split Tooltip */}
-                                    {isHovered && (
-                                        <g>
-                                            <rect
-                                                x={Math.max(paddingLeft, Math.min(svgWidth - 140, x + barWidth / 2 - 65))}
-                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38))}
-                                                width="130"
-                                                height={data.actual != null ? 44 : 32}
-                                                rx="0"
-                                                className="fill-[var(--card)] stroke-[var(--ink)] shadow-md"
-                                                strokeWidth="1.5"
-                                            />
-                                            <text
-                                                x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
-                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38)) + 13}
-                                                textAnchor="middle"
-                                                className="fill-ink font-data font-bold text-[10px]"
-                                            >
-                                                W{data.weekNumber}: {data.volumeFormatted} {units}
-                                            </text>
-                                            <text
-                                                x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
-                                                y={Math.max(4, baseY - totalH - (data.actual != null ? 50 : 38)) + 25}
-                                                textAnchor="middle"
-                                                className="fill-pencil font-data text-[8px]"
-                                            >
-                                                LR {Math.round(data.longRun)}{units} · Q {Math.round(data.quality)}{units} · Open ↓
-                                            </text>
-                                            {data.actual != null && (
-                                                <text
-                                                    x={Math.max(paddingLeft + 65, Math.min(svgWidth - 75, x + barWidth / 2))}
-                                                    y={Math.max(4, baseY - totalH - 50) + 37}
-                                                    textAnchor="middle"
-                                                    className="fill-marker font-data font-bold text-[8px]"
-                                                >
-                                                    ✓ Logged {data.actual}{units}
-                                                </text>
-                                            )}
-                                        </g>
-                                    )}
-
-                                    {/* Week label */}
-                                    <text
-                                        x={x + barWidth / 2}
-                                        y={svgHeight - 4}
-                                        textAnchor="middle"
-                                        className={`font-data text-[10px] ${
-                                            data.isCurrentWeek
-                                                ? 'fill-marker font-bold'
-                                                : isHovered
-                                                    ? 'fill-ink font-bold'
-                                                    : 'fill-pencil'
-                                        }`}
-                                    >
-                                        W{data.weekNumber}
-                                    </text>
-                                </g>
-                            );
-                        })}
-                    </svg>
-                </div>
+            <div className="divide-y divide-rule border-rule">
+                {visibleWeeks.map(renderRow)}
             </div>
         </section>
     );
