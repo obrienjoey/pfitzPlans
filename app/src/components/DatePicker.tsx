@@ -108,7 +108,11 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
 
     const weeks = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-    const isCompact = className?.includes('text-sm');
+    // Compact whenever the caller sizes the trigger down (text-xs in the header
+    // drawer, text-sm on landing). Checking only text-sm left the text-xs caller
+    // on the large pl-12/py-3/text-lg branch — visibly bigger than its neighbours.
+    const isCompact = className ? /\btext-(xs|sm)\b/.test(className) : false;
+    const hasTextSize = className ? /\btext-(xs|sm|base|lg|xl|\[)/.test(className) : false;
 
     return (
         <div className={clsx("relative min-w-0 max-w-full", className)} ref={containerRef}>
@@ -126,7 +130,8 @@ export const DatePicker = ({ value, onChange, className, placeholder = "Select d
                     aria-haspopup="dialog"
                     className={clsx(
                         "w-full max-w-full bg-card border border-rule hover:border-pencil/60 rounded-none pr-4 text-ink font-data focus:ring-2 focus:ring-marker/60 outline-none transition-colors cursor-pointer",
-                        isCompact ? 'pl-9 py-2 text-sm' : 'pl-12 py-3 text-lg'
+                        isCompact ? 'pl-9 py-2' : 'pl-12 py-3 text-lg',
+                        isCompact && !hasTextSize && 'text-sm'
                     )}
                 />
                 <div className={clsx(

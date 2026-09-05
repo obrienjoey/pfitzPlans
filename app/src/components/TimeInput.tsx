@@ -126,6 +126,11 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
 
     const displayValue = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
+    // Size comes from the caller (e.g. text-xs in the header drawer, text-sm on
+    // landing). A hardcoded text-sm here would fight the caller's text-xs in the
+    // Tailwind cascade and render the trigger larger than its neighbours.
+    const hasTextSize = className ? /\btext-(xs|sm|base|lg|xl|\[)/.test(className) : false;
+
     return (
         <div className={clsx("relative min-w-0 max-w-full", className)} ref={containerRef}>
             <div className="relative group min-w-0 max-w-full">
@@ -138,7 +143,8 @@ export const TimeInput = ({ value, onChange, className, raceDistance, popupFixed
                     aria-expanded={isOpen}
                     aria-haspopup="dialog"
                     className={clsx(
-                        "w-full max-w-full bg-card border border-rule hover:border-pencil/60 rounded-none pl-9 pr-3 py-2 text-sm text-left text-ink font-data cursor-pointer focus:ring-2 focus:ring-marker/60 outline-none transition-colors",
+                        "w-full max-w-full bg-card border border-rule hover:border-pencil/60 rounded-none pl-9 pr-3 py-2 text-left text-ink font-data cursor-pointer focus:ring-2 focus:ring-marker/60 outline-none transition-colors",
+                        !hasTextSize && "text-sm",
                         isOpen && "ring-2 ring-marker/60 border-marker/60"
                     )}
                 />
