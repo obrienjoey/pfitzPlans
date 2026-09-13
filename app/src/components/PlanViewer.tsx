@@ -25,6 +25,10 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { DayCard } from './DayCard';
 import { TodayBand } from './TodayBand';
+import { useSearchParams } from 'react-router-dom';
+// PROTOTYPE (issue #2, throwaway): DEV-only variant switcher + options.
+import { PrototypeSwitcher } from './prototype/PrototypeSwitcher';
+import { VOLUME_PROTOTYPE_OPTIONS } from './prototype/volumePrototypeOptions';
 
 const parseWorkoutId = (id: string) => {
     const parts = id.split('-');
@@ -34,6 +38,9 @@ const parseWorkoutId = (id: string) => {
 export const PlanViewer = () => {
 
     const { selectedPlanId, raceDate, currentSchedule, setSchedule, moveWorkout, raceInput, units, availablePlans, workoutLogs } = usePlanStore();
+    // PROTOTYPE (issue #2, throwaway): ?variant= key, drilled to WeekCard headers.
+    const [searchParams] = useSearchParams();
+    const headerVariant = searchParams.get('variant');
     const [plan, setPlan] = useState<Plan | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -229,6 +236,7 @@ export const PlanViewer = () => {
                             activeId={activeId || undefined}
                             overId={overId || undefined}
                             actualVolume={actualVolumes[idx] ?? undefined}
+                            headerVariant={headerVariant}
                         />
                     ))}
                 </div>
@@ -255,6 +263,9 @@ export const PlanViewer = () => {
                     </div>
                 ) : null}
             </DragOverlay>
+
+            {/* PROTOTYPE (issue #2, throwaway): floating variant switcher, DEV only. */}
+            {!import.meta.env.PROD && <PrototypeSwitcher variants={VOLUME_PROTOTYPE_OPTIONS} />}
 
             {currentWeekIndex !== -1 && (
                 <button

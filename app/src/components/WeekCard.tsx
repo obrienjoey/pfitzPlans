@@ -4,6 +4,8 @@ import { DayCard } from './DayCard';
 import { usePlanStore } from '../store/usePlanStore';
 import type { TrainingPaces } from '../lib/paceCalculator';
 import { calculateWeeklyVolume } from '../lib/calculator';
+// PROTOTYPE (issue #2, throwaway): DEV-only alternate volume headers via ?variant=.
+import { VariantLedger, VariantBracket, VariantStamp } from './prototype/WeekCardVolumePrototype';
 
 /**
  * A week as a coach's session sheet: giant week numeral, the date range and
@@ -15,7 +17,8 @@ export const WeekCard = ({
     paces,
     activeId,
     overId,
-    actualVolume
+    actualVolume,
+    headerVariant
 }: {
     week: RenderedWeek,
     weekIndex: number,
@@ -23,7 +26,9 @@ export const WeekCard = ({
     activeId?: string,
     overId?: string,
     /** Logged mileage from the completion toggles (undefined = week hasn't started). */
-    actualVolume?: number | null
+    actualVolume?: number | null,
+    /** PROTOTYPE (issue #2, throwaway): ?variant= key drilled from PlanViewer. DEV only. */
+    headerVariant?: string | null
 }) => {
     const { units } = usePlanStore();
     const today = new Date();
@@ -43,7 +48,35 @@ export const WeekCard = ({
             className="scroll-mt-24 bg-card border border-rule"
             style={isCurrentWeek ? { boxShadow: '0 0 0 1.5px rgb(var(--marker))' } : undefined}
         >
-            {/* Sheet header */}
+            {/* Sheet header (PROTOTYPE issue #2: variants swap this block in DEV only) */}
+            {!import.meta.env.PROD && headerVariant === 'vol-ledger' ? (
+                <VariantLedger
+                    week={week}
+                    units={units}
+                    displayTotal={displayTotal}
+                    actualVolume={actualVolume}
+                    label={label}
+                    isCurrentWeek={isCurrentWeek}
+                />
+            ) : !import.meta.env.PROD && headerVariant === 'vol-bracket' ? (
+                <VariantBracket
+                    week={week}
+                    units={units}
+                    displayTotal={displayTotal}
+                    actualVolume={actualVolume}
+                    label={label}
+                    isCurrentWeek={isCurrentWeek}
+                />
+            ) : !import.meta.env.PROD && headerVariant === 'vol-stamp' ? (
+                <VariantStamp
+                    week={week}
+                    units={units}
+                    displayTotal={displayTotal}
+                    actualVolume={actualVolume}
+                    label={label}
+                    isCurrentWeek={isCurrentWeek}
+                />
+            ) : (
             <div
                 className="flex items-center gap-4 px-3 sm:px-5 py-2.5 border-b border-rule"
                 style={isCurrentWeek ? { background: 'rgb(var(--marker) / 0.06)' } : undefined}
@@ -70,6 +103,7 @@ export const WeekCard = ({
                     </div>
                 )}
             </div>
+            )}
 
             {/* Day rows */}
             <div>
