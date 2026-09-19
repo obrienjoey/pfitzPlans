@@ -185,8 +185,8 @@ export const PaceChart = ({
                             className="border border-marker/40 bg-marker/5 px-3 py-2 font-data text-xs text-ink"
                         >
                             {frrWarning === 'low'
-                                ? 'Benchmark is faster than the Faster Road Racing table — paces are clamped to the fastest row and may be conservative.'
-                                : 'Benchmark is slower than the Faster Road Racing table — paces are clamped to the slowest row and may be optimistic.'}
+                                ? 'Recent result is faster than the Faster Road Racing table — paces are clamped to the fastest row and may be conservative.'
+                                : 'Recent result is slower than the Faster Road Racing table — paces are clamped to the slowest row and may be optimistic.'}
                         </div>
                     )}
 

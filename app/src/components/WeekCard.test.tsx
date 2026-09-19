@@ -24,8 +24,7 @@ describe('WeekCard', () => {
         };
 
         render(<WeekCard week={week} weekIndex={0} />);
-        expect(screen.getByText('40.2')).toBeInTheDocument();
-        expect(screen.getByText('km')).toBeInTheDocument();
+        expect(screen.getByText('40.2 km')).toBeInTheDocument();
     });
 
     it('renders volume range when workouts have distance ranges', () => {        const week: RenderedWeek = {
@@ -41,8 +40,7 @@ describe('WeekCard', () => {
         };
 
         render(<WeekCard week={week} weekIndex={0} />);
-        expect(screen.getByText('36.9 - 39.4')).toBeInTheDocument();
-        expect(screen.getByText('km')).toBeInTheDocument();
+        expect(screen.getByText('36.9 - 39.4 km')).toBeInTheDocument();
     });
 
     it('shows logged mileage when actualVolume is provided', () => {

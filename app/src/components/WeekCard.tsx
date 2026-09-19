@@ -43,11 +43,21 @@ export const WeekCard = ({
             className="scroll-mt-24 bg-card border border-rule"
             style={isCurrentWeek ? { boxShadow: '0 0 0 1.5px rgb(var(--marker))' } : undefined}
         >
-            {/* Sheet header */}
+            {/* Sheet header — volume as a tilted docket chip (winner of proto issue #2) */}
             <div
-                className="flex items-center gap-4 px-3 sm:px-5 py-2.5 border-b border-rule"
+                className="flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-2.5 border-b border-rule"
                 style={isCurrentWeek ? { background: 'rgb(var(--marker) / 0.06)' } : undefined}
             >
+                {displayTotal.average > 0 && (
+                    <span
+                        className={`flex-none -rotate-2 border px-2 py-1 font-data font-bold text-xs tabular-nums whitespace-nowrap ${
+                            displayTotal.min !== displayTotal.max ? 'border-marker text-marker' : 'border-ink text-ink'
+                        }`}
+                        aria-label={`Weekly volume ${displayTotal.formatted} ${units}`}
+                    >
+                        {displayTotal.formatted} {units}
+                    </span>
+                )}
                 <div className="font-display font-bold text-ink text-3xl sm:text-4xl leading-none w-14 sm:w-16 flex-none">
                     {String(week.weekNumber).padStart(2, '0')}
                 </div>
@@ -58,15 +68,9 @@ export const WeekCard = ({
                     </div>
                     <div className="text-xs text-pencil">{label}</div>
                 </div>
-                {displayTotal.average > 0 && (
-                    <div className="text-right flex-none">
-                        <span className="font-data text-ink font-bold text-lg leading-none">{displayTotal.formatted}</span>
-                        <span className="font-data text-[10px] text-pencil ml-1">{units}</span>
-                        {actualVolume != null && (
-                            <div className="font-data text-[10px] text-marker font-bold mt-0.5">
-                                {actualVolume > 0 ? `✓ ${actualVolume} logged` : '· 0 logged'}
-                            </div>
-                        )}
+                {actualVolume != null && (
+                    <div className="text-right flex-none font-data text-[10px] text-marker font-bold">
+                        {actualVolume > 0 ? `✓ ${actualVolume} logged` : '· 0 logged'}
                     </div>
                 )}
             </div>

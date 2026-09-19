@@ -46,7 +46,7 @@ const CalibrationForm = () => {
             {/* Plan selector */}
             <div>
                 <label htmlFor="header-plan-select" className="block font-data text-[10px] uppercase font-bold tracking-wider text-pencil mb-1">
-                    Training Plan
+                    Plan
                 </label>
                 <select
                     id="header-plan-select"
@@ -64,7 +64,7 @@ const CalibrationForm = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label htmlFor="header-bench-dist" className="block font-data text-[10px] uppercase font-bold tracking-wider text-pencil mb-1">
-                        Recent Benchmark Distance
+                        Recent result
                     </label>
                     <select
                         id="header-bench-dist"
@@ -85,7 +85,7 @@ const CalibrationForm = () => {
                 </div>
                 <div>
                     <label className="block font-data text-[10px] uppercase font-bold tracking-wider text-pencil mb-1">
-                        Recent Finish Time
+                        Finish time
                     </label>
                     <TimeInput
                         value={raceInput?.time || ''}
@@ -103,7 +103,7 @@ const CalibrationForm = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label className="block font-data text-[10px] uppercase font-bold tracking-wider text-pencil mb-1">
-                        Target Race Day
+                        Race day
                     </label>
                     <DatePicker
                         value={raceDate}
@@ -114,7 +114,7 @@ const CalibrationForm = () => {
                 </div>
                 <div>
                     <label className="block font-data text-[10px] uppercase font-bold tracking-wider text-pencil mb-1">
-                        Distance Units
+                        Units
                     </label>
                     <div className="flex border border-rule bg-paper p-0.5">
                         <button
@@ -223,7 +223,7 @@ export const Header = () => {
 
     // Mobile Bottom Sheet Portal
     const mobileSheet = isOpen ? createPortal(
-        <div className="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label="Training Calibration Settings">
+        <div className="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label="My plan and paces settings">
             <div
                 className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
                 onClick={() => { setIsOpen(false); setDragOffset(0); }}
@@ -251,8 +251,8 @@ export const Header = () => {
                 {/* Header */}
                 <div className="flex-none flex items-center justify-between border-b border-rule px-4 pb-3">
                     <div>
-                        <h2 className="font-display font-semibold uppercase text-xl text-ink leading-none">Training Calibration</h2>
-                        <p className="text-xs text-pencil font-data mt-0.5">Plan, race day, and pace baseline</p>
+                        <h2 className="font-display font-semibold uppercase text-xl text-ink leading-none">My plan & paces</h2>
+                        <p className="text-xs text-pencil font-data mt-0.5">Plan, race day, and recent result</p>
                     </div>
                     <button
                         onClick={() => { setIsOpen(false); setDragOffset(0); }}
@@ -274,7 +274,7 @@ export const Header = () => {
                         onClick={() => { setIsOpen(false); setDragOffset(0); }}
                         className="w-full py-3 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-bold font-data text-xs uppercase tracking-wider transition-colors"
                     >
-                        Apply & Close
+                        Done
                     </button>
                 </div>
             </div>
@@ -357,8 +357,8 @@ export const Header = () => {
                             >
                                 <div className="flex items-center justify-between border-b border-rule pb-3 mb-4">
                                     <div>
-                                        <h3 className="font-display font-bold uppercase text-lg text-ink leading-none">Training Calibration</h3>
-                                        <p className="text-xs text-pencil font-data mt-0.5">Configure target race parameters and pace baseline</p>
+                                        <h3 className="font-display font-bold uppercase text-lg text-ink leading-none">My plan & paces</h3>
+                                        <p className="text-xs text-pencil font-data mt-0.5">Plan, race day, and recent result</p>
                                     </div>
                                     <button
                                         onClick={() => setIsOpen(false)}
@@ -376,7 +376,7 @@ export const Header = () => {
                                         onClick={() => setIsOpen(false)}
                                         className="px-4 py-2 bg-marker hover:bg-marker/90 text-paper font-data font-bold text-xs uppercase tracking-wider transition-colors"
                                     >
-                                        Apply & Close
+                                        Done
                                     </button>
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { usePlanStore } from '../store/usePlanStore';
-import { calculateTrainingPaces, formatTimeHMS, parseTimeString } from '../lib/paceCalculator';
+import { calculateTrainingPaces, formatTime, formatTimeHMS, parseTimeString } from '../lib/paceCalculator';
+import { KM_PER_MILE } from '../lib/constants';
 import { TimeInput } from './TimeInput';
 import { DatePicker } from './DatePicker';
 
@@ -24,6 +25,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
     const availablePlans = usePlanStore(s => s.availablePlans);
     const raceInput = usePlanStore(s => s.raceInput);
     const raceDate = usePlanStore(s => s.raceDate);
+    const units = usePlanStore(s => s.units);
 
     const planInfo = availablePlans.find(p => p.id === selectedPlanId);
 
@@ -171,13 +173,13 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                     style={{ animationDelay: '140ms' }}
                     aria-label="Live pace band preview"
                 >
-                    <div className="lg:-rotate-1 origin-top-left min-w-0 max-w-full">
-                        <div className="bg-card border border-rule shadow-md overflow-hidden max-w-full">
+                    <div className="-rotate-1 origin-top-left min-w-0 max-w-full">
+                        <div className="bg-card border border-rule shadow-lg overflow-hidden max-w-full">
                             <div className="h-1.5 bg-marker" aria-hidden="true" />
                             <div className="px-4 sm:px-5 pt-3 pb-4 min-w-0">
                                 <div className="flex items-baseline justify-between gap-3 min-w-0">
                                     <figcaption className="font-data text-[10px] uppercase font-bold tracking-[0.16em] text-pencil truncate min-w-0">
-                                        Pace band · cut here ✂
+                                        Pace band · cut here
                                     </figcaption>
                                     <span className="font-data text-[10px] uppercase tracking-[0.16em] text-marker font-bold whitespace-nowrap shrink-0">
                                         {planInfo ? `${planInfo.type} · ${planInfo.weeks} wk` : 'Select plan ↓'}
@@ -237,13 +239,13 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                                                 LT{' '}
                                                 <span className="text-ink font-bold">
                                                     {preview.paces['Lactate Threshold']
-                                                        ? `${Math.floor(preview.paces['Lactate Threshold'].min / 60)}:${String(Math.round(preview.paces['Lactate Threshold'].min % 60)).padStart(2, '0')}/km`
+                                                        ? `${formatTime(units === 'km' ? preview.paces['Lactate Threshold'].min : preview.paces['Lactate Threshold'].min * KM_PER_MILE)}/${units}`
                                                         : '—'}
                                                 </span>
                                                 {'  ·  '}VO₂{' '}
                                                 <span className="text-ink font-bold">
                                                     {preview.paces['VO2 Max']
-                                                        ? `${Math.floor(preview.paces['VO2 Max'].min / 60)}:${String(Math.round(preview.paces['VO2 Max'].min % 60)).padStart(2, '0')}/km`
+                                                        ? `${formatTime(units === 'km' ? preview.paces['VO2 Max'].min : preview.paces['VO2 Max'].min * KM_PER_MILE)}/${units}`
                                                         : '—'}
                                                 </span>
                                                 <span className="hidden sm:inline">

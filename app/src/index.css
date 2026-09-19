@@ -105,8 +105,8 @@
 
     /* Pace-band tear edge — punched holes along the cut line. */
     .pace-perf {
-        background-image: radial-gradient(circle, rgb(var(--ink) / 0.28) 1.6px, transparent 1.7px);
-        background-size: 12px 100%;
+        background-image: radial-gradient(circle, rgb(var(--ink) / 0.38) 2px, transparent 2.1px);
+        background-size: 14px 100%;
         background-position: center;
         background-repeat: repeat-x;
     }

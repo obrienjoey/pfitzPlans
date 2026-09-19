@@ -37,7 +37,7 @@ describe('Header and TimeInput consistency', () => {
         fireEvent.click(trigger);
 
         // Mobile drawer dialog should be open
-        const drawer = screen.getByRole('dialog', { name: /training calibration settings/i });
+        const drawer = screen.getByRole('dialog', { name: /my plan and paces settings/i });
         expect(drawer).toBeInTheDocument();
 
         // Find DatePicker input inside mobile drawer
@@ -56,7 +56,7 @@ describe('Header and TimeInput consistency', () => {
 
         // Race date in store should have changed and drawer should remain open
         expect(usePlanStore.getState().raceDate?.getDate()).toBe(15);
-        expect(screen.getByRole('dialog', { name: /training calibration settings/i })).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: /my plan and paces settings/i })).toBeInTheDocument();
 
         // Find TimeInput inside mobile drawer and click it
         const timeInput = within(drawer).getByRole('textbox', { name: /race result time/i });
@@ -70,6 +70,6 @@ describe('Header and TimeInput consistency', () => {
 
         // Race finish time in store should have changed and drawer should remain open
         expect(usePlanStore.getState().raceInput?.time).toBe('0:50:00');
-        expect(screen.getByRole('dialog', { name: /training calibration settings/i })).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: /my plan and paces settings/i })).toBeInTheDocument();
     });
 });
