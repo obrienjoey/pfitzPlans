@@ -27,7 +27,7 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
         const today = new Date();
         return weeks.map((week, idx) => {
             const displayTotal = calculateWeeklyVolume(week, units);
-            const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
+            const isCurrentWeek = today >= new Date(week.weekStart) && today < new Date(week.weekEnd.getTime() + 24 * 60 * 60 * 1000);
 
             let maxWorkout = 0;
             let longRunMax = 0;

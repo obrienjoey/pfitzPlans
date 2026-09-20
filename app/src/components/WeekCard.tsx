@@ -27,7 +27,9 @@ export const WeekCard = ({
 }) => {
     const { units } = usePlanStore();
     const today = new Date();
-    const isCurrentWeek = today >= new Date(week.weekStart) && today <= new Date(week.weekEnd);
+    // weekEnd is midnight at the start of the 7th day; include the full last day
+    // so the week's final day still counts as "current" (matches todayContext).
+    const isCurrentWeek = today >= new Date(week.weekStart) && today < new Date(week.weekEnd.getTime() + 24 * 60 * 60 * 1000);
 
     const displayTotal = calculateWeeklyVolume(week, units);
     const label =

@@ -120,8 +120,10 @@ export const PlanViewer = () => {
         const today = new Date();
         return validSchedule.weeks.findIndex(week => {
             const start = new Date(week.weekStart);
-            const end = new Date(week.weekEnd);
-            return today >= start && today <= end;
+            // weekEnd is midnight at the start of the 7th day; the last day of
+            // the week is still "current", so include it through its full end.
+            const end = new Date(week.weekEnd.getTime() + 24 * 60 * 60 * 1000);
+            return today >= start && today < end;
         });
     }, [validSchedule]);
 
