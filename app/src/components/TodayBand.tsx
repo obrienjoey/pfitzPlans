@@ -118,7 +118,7 @@ export const TodayBand = ({
                     {onJump && (
                         <button
                             onClick={onJump}
-                            className="font-data text-xs underline underline-offset-4 text-pencil hover:text-marker"
+                            className="inline-flex items-center min-h-[44px] -my-2 font-data text-xs underline underline-offset-4 text-ink/70 hover:text-marker"
                         >
                             Jump to current week ↓
                         </button>
@@ -126,7 +126,7 @@ export const TodayBand = ({
                 </div>
 
                 {week && (
-                    <ol className="grid grid-cols-7 gap-1 mt-3" aria-label="This week's workouts">
+                    <ol className="grid grid-cols-7 gap-0.5 mt-3" aria-label="This week's workouts">
                         {week.workouts.map((day, dayIndex) => {
                             const isToday = ctx.dayIndex === dayIndex;
                             const dayDist = formatFullDistance(day.distance, units) ?? 'no distance set';
@@ -138,9 +138,9 @@ export const TodayBand = ({
                                         aria-label={`${format(day.date, 'EEEE, MMM d')} — ${title}, ${dayDist}`}
                                         aria-current={isToday ? 'date' : undefined}
                                         title={`${title} · ${dayDist}`}
-                                        className="w-full text-center border border-rule bg-paper py-2 px-1 relative transition-colors hover:border-pencil/60"
+                                        className="w-full min-h-[44px] text-center border border-rule bg-paper py-2 px-1 relative transition-colors hover:border-pencil/60"
                                     >
-                                        <span className="block font-data text-[10px] uppercase text-ink/60">
+                                        <span className="block font-data text-[10px] uppercase text-ink/70">
                                             {format(day.date, 'EEE')}
                                         </span>
                                         <span className="relative inline-block mt-1">
@@ -151,7 +151,7 @@ export const TodayBand = ({
                                                 {ribbonDistance(day.distance, units) ?? '–'}
                                             </span>
                                         </span>
-                                        <span className="block font-data text-[10px] text-ink/60 truncate mt-0.5 px-0.5">
+                                        <span className="block font-data text-[10px] text-ink/70 truncate mt-0.5 px-0.5">
                                             {ribbonLabel(title)}
                                         </span>
                                     </button>

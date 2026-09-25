@@ -249,7 +249,7 @@ export const PaceChart = ({
                                             <div className="h-4 bg-paper border border-rule" aria-hidden="true">
                                                 <div className="h-full bg-ink" style={{ width: ladderWidth(zone) }} />
                                             </div>
-                                            {meta?.purpose && <p className="hidden sm:block text-xs text-pencil mt-1 max-w-lg">{meta.purpose}</p>}
+                                            {meta?.purpose && <p className="hidden sm:block text-xs text-pencil mt-1 max-w-[68ch]">{meta.purpose}</p>}
                                         </div>
                                         <div className="font-data font-bold text-base text-ink shrink-0 sm:text-right mt-1.5 sm:mt-0">
                                             {zone === 'Recovery' ? `> ${formatRange({ min: range.min, max: range.min })}` : formatRange(range)}

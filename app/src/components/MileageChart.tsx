@@ -177,7 +177,7 @@ export const MileageChart = ({ weeks, units, actualVolumes }: MileageChartProps)
                 </button>
                 {open && (
                     <div className="pb-3 pl-[52px] pr-1 flex items-center gap-3">
-                        <p className="text-xs text-pencil flex-1">
+                        <p className="text-xs text-pencil flex-1 max-w-[68ch]">
                             Long run {Math.round(data.longRun)}{units} · Workout miles {Math.round(data.quality)}{units}
                             {data.actual != null ? ` · Logged ${data.actual}${units}` : ''}
                         </p>

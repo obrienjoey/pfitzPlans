@@ -155,7 +155,7 @@ export const LandingHero = ({ defaultDate }: LandingHeroProps) => {
                             </div>
                             <button
                                 onClick={buildSchedule}
-                                className="w-full max-w-full sm:w-auto py-2.5 px-6 bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] transition-colors rounded-none whitespace-normal min-[400px]:whitespace-nowrap"
+                                className="w-full max-w-full sm:w-auto py-2.5 px-6 min-h-[44px] bg-marker hover:bg-marker/90 active:bg-marker/80 text-paper font-data font-bold text-sm uppercase tracking-[0.12em] transition-colors rounded-none whitespace-normal min-[400px]:whitespace-nowrap"
                             >
                                 Build my schedule
                             </button>

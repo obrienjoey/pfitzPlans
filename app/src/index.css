@@ -32,13 +32,15 @@
         --card: 36 36 39;
         --ink: 232 231 228;
         --pencil: 148 148 148;
-        --marker: 226 70 60;
+        /* Lighter than the light-mode red so small marker text clears AA
+           (4.5:1) on the dark card and paper grounds. */
+        --marker: 240 100 90;
         --rule: rgba(232, 231, 228, 0.14);
         --grid: rgba(232, 231, 228, 0.06);
         --grid-bold: rgba(232, 231, 228, 0.1);
         --chart-bar: #a3a3a3;
         --chart-bar-hover: #e8e7e4;
-        --chart-current: #e2463c;
+        --chart-current: #f0645a;
         --chart-grid: rgba(232, 231, 228, 0.08);
         --chart-label: #949494;
     }

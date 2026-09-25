@@ -161,7 +161,7 @@ function App() {
                 <h2 className="font-display font-semibold uppercase text-2xl sm:text-3xl text-ink tracking-wide">
                   Choose your schedule
                 </h2>
-                <p className="text-pencil text-sm mt-1">
+                <p className="text-pencil text-sm mt-1 max-w-[68ch]">
                   Grouped by race distance. Higher mileage means faster — pick what your base supports.
                 </p>
               </div>

@@ -164,7 +164,7 @@ const DayCardContent = ({
             <div
                 onClick={expandable ? toggleExpand : undefined}
                 className={clsx(
-                    "relative flex items-center gap-3 px-3 sm:px-4 py-2 hover:bg-ink/[0.02] transition-colors",
+                    "relative flex items-center gap-3 px-3 sm:px-4 py-2 min-h-[44px] hover:bg-ink/[0.02] transition-colors",
                     expandable && "cursor-pointer"
                 )}
             >
@@ -239,31 +239,35 @@ const DayCardContent = ({
                             <button
                                 onClick={toggleMenu}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                className={clsx(
-                                    "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200",
-                                    status === 'completed' && "bg-ink text-paper font-extrabold",
-                                    status === 'skipped' && "border border-pencil/60 text-pencil font-extrabold",
-                                    status === 'modified' && "bg-marker text-paper font-extrabold",
-                                    status === 'none' && "border border-rule hover:border-pencil/60"
-                                )}
+                                className="w-11 h-11 -m-3 flex items-center justify-center rounded-full group/status"
                                 title="Mark workout status"
                                 aria-label="Mark workout status"
                             >
-                                {status === 'completed' && <span className="text-[10px] font-bold">✓</span>}
-                                {status === 'skipped' && <span className="text-[10px] font-bold">✗</span>}
-                                {status === 'modified' && <span className="text-[10px] font-bold">✎</span>}
-                                {status === 'none' && <span className="text-[10px] text-pencil">✓</span>}
+                                <span
+                                    className={clsx(
+                                        "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200",
+                                        status === 'completed' && "bg-ink text-paper font-extrabold",
+                                        status === 'skipped' && "border border-pencil/60 text-pencil font-extrabold",
+                                        status === 'modified' && "bg-marker text-paper font-extrabold",
+                                        status === 'none' && "border border-rule group-hover/status:border-pencil/60"
+                                    )}
+                                >
+                                    {status === 'completed' && <span className="text-[10px] font-bold">✓</span>}
+                                    {status === 'skipped' && <span className="text-[10px] font-bold">✗</span>}
+                                    {status === 'modified' && <span className="text-[10px] font-bold">✎</span>}
+                                    {status === 'none' && <span className="text-[10px] text-pencil">✓</span>}
+                                </span>
                             </button>
                             {menuOpen && (
                                 <div
                                     onMouseDown={(e) => e.stopPropagation()}
-                                    className="absolute right-0 top-6 z-30 w-32 bg-card border border-rule shadow-2xl p-1 flex flex-col gap-0.5 animate-in"
+                                    className="absolute right-0 top-8 z-30 w-32 bg-card border border-rule shadow-2xl p-1 flex flex-col gap-0.5 animate-in"
                                 >
-                                    <button onClick={(e) => selectStatus('completed', e)} className="px-2.5 py-1 text-[11px] font-bold text-ink hover:bg-ink/5 font-data text-left">✓ Completed</button>
-                                    <button onClick={(e) => selectStatus('modified', e)} className="px-2.5 py-1 text-[11px] font-bold text-marker hover:bg-marker/10 font-data text-left">✎ Modified</button>
-                                    <button onClick={(e) => selectStatus('skipped', e)} className="px-2.5 py-1 text-[11px] font-bold text-pencil hover:bg-ink/5 font-data text-left">✗ Skipped</button>
+                                    <button onClick={(e) => selectStatus('completed', e)} className="px-2.5 py-2 min-h-[44px] text-[11px] font-bold text-ink hover:bg-ink/5 font-data text-left">✓ Completed</button>
+                                    <button onClick={(e) => selectStatus('modified', e)} className="px-2.5 py-2 min-h-[44px] text-[11px] font-bold text-marker hover:bg-marker/10 font-data text-left">✎ Modified</button>
+                                    <button onClick={(e) => selectStatus('skipped', e)} className="px-2.5 py-2 min-h-[44px] text-[11px] font-bold text-pencil hover:bg-ink/5 font-data text-left">✗ Skipped</button>
                                     {status !== 'none' && (
-                                        <button onClick={(e) => selectStatus('none', e)} className="px-2.5 py-1 text-[11px] font-bold text-marker border-t border-rule mt-0.5 pt-1.5 font-data text-left">↺ Clear</button>
+                                        <button onClick={(e) => selectStatus('none', e)} className="px-2.5 py-2 min-h-[44px] text-[11px] font-bold text-marker border-t border-rule mt-0.5 font-data text-left">↺ Clear</button>
                                     )}
                                 </div>
                             )}
